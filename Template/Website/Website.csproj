@@ -28,7 +28,7 @@
   <ItemGroup>
     <PackageReference Include="Hangfire" Version="1.6.17" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.5" />
-    <PackageReference Include="Olive" Version="1.0.26" />
+    <PackageReference Include="Olive" Version="1.0.27" />
     <PackageReference Include="Olive.Entities" Version="1.0.19" />
     <PackageReference Include="Olive.Excel" Version="1.0.7" />
     <PackageReference Include="Olive.Hangfire" Version="1.0.15" />
@@ -45,13 +45,6 @@
     <None Include="_M#_TEMP\Preview\DAL.cs" />
     <None Include="_M#_TEMP\Preview\Structure.cs" />
     <None Include="_M#_TEMP\Preview\View.cshtml" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Reference Include="Olive.Microservices">
-      <HintPath>..\..\..\Olive\@Assemblies\netcoreapp2.0\Olive.Microservices.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
   </ItemGroup> 
   
    <UsingTask AssemblyFile="wwwroot\Styles\build\SassCompiler.exe" TaskName="WebCompiler.CompilerBuildTask" />

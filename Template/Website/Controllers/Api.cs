@@ -17,22 +17,13 @@
     public class ApiController : BaseController
     {
         [HttpGet]
-        [Route("userinfo/{email}")]
-        public async Task<IActionResult> GetUserInfo(string email)
+        [Route("myUrl")]
+        public async Task<IActionResult> MyApi(string param1)
         {
-            //User.IsTrustedService();
-
-            if (email.IsEmpty()) return BadRequest();
-
-            var user = await Employee.FindByEmail(email) as Domain.Employee;
-            if (user == null) return NoContent();
-
             var result = new
             {
-                Email = user.Email,
-                ID = user.ID,
-                DisplayName = user.Name,
-                Roles = await user.GetRoles()
+                Property1 = "...",
+                Property2 = new[] { "...", "..." },
             };
 
             return Json(result);
