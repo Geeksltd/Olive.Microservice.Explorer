@@ -16,8 +16,9 @@
 
     public class ApiController : BaseController
     {
-        [HttpGet]
-        [Route("myUrl")]
+        // Here you can add any app specific APIs.
+
+        [HttpGet, Route("myUrl")]
         public async Task<IActionResult> MyApi(string param1)
         {
             var result = new
