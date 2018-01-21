@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "module": "amd",
+        "target": "es5",
+        "sourceMap": true,
+        "noImplicitUseStrict": true,
+        "noImplicitAny": false,
+        "noEmitOnError": true,
+        "removeComments": false
+    }, "compileOnSave": true,
+    "exclude": [
+        "wwwroot/lib",
+        "typings",
+        "lib"
+    ]
+}
