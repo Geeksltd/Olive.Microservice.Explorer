@@ -11,7 +11,6 @@
     using Olive;
     using System.Threading.Tasks;
     using System.Collections.Generic;
-    using Olive.Microservices;
 
     public class SharedActionsController : BaseController
     {

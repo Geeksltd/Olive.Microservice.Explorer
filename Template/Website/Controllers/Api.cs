@@ -12,8 +12,8 @@
     using Olive;
     using System.Threading.Tasks;
     using System.Collections.Generic;
-    using Olive.Microservices;
 
+    [Route("api")]
     public class ApiController : BaseController
     {
         // Here you can add any app specific APIs.

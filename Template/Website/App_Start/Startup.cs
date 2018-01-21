@@ -8,7 +8,6 @@
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.DependencyInjection;
     using Olive;
-    using Olive.Microservices;
     using Olive.Services.Email;
     using Olive.Services.Hangfire;
     using Olive.Services.Testing;
