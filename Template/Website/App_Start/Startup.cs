@@ -8,6 +8,7 @@
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.DependencyInjection;
     using Olive;
+    using Olive.Security;
     using Olive.Services.Email;
     using Olive.Services.Hangfire;
     using Olive.Services.Testing;
@@ -38,10 +39,8 @@
         {
             base.ConfigureApplicationCookie(options);
 
-            options.Cookie.Domain = Microservice.RootDomain;
-
-            // TODO: Find a server farm compatible alternative
-            options.DataProtectionProvider = DataProtectionProvider.Create(Microservice.RootDomain);
+            options.Cookie.Domain = "." + Microservice.RootDomain;
+            options.DataProtectionProvider = new SymmetricKeyDataProtector(Microservice.RootDomain);
         }
     }
 }
