@@ -109,10 +109,8 @@ Website/Images/TextButtons/
 @Scrap/
 
 Domain/App_Readme/Elmah.txt
-Domain/DAL/
-Domain/Entities/
-Domain/Mappings/
-Domain/[GEN-Entities]/
+Domain/\[GEN-Entities\]/
+Domain/\[GEN-DAL\]/
 DB/Tables/
 
 Test/@World/*
