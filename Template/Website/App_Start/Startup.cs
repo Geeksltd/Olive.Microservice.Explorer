@@ -9,9 +9,9 @@
     using Microsoft.Extensions.DependencyInjection;
     using Olive;
     using Olive.Security;
-    using Olive.Services.Email;
-    using Olive.Services.Hangfire;
-    using Olive.Services.Testing;
+    using Olive.Email;
+    using Olive.Hangfire;
+    using Olive.Mvc.Testing;
 
     public class Startup : Olive.Mvc.Startup
     {
