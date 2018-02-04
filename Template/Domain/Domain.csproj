@@ -19,7 +19,7 @@
     <PackageReference Include="Olive.Drawing" Version="1.0.14" />
     <PackageReference Include="Olive.Email" Version="1.0.24" />
     <PackageReference Include="Olive.Entities" Version="1.0.26" />
-    <PackageReference Include="Olive.Entities.Data" Version="1.0.35" />
+    <PackageReference Include="Olive.Entities.Data" Version="1.0.36" />
     <PackageReference Include="Olive.Entities.Data.SqlServer" Version="1.0.14" />
     <PackageReference Include="Olive.Integration" Version="1.0.7" />
     <PackageReference Include="Olive.Microservices" Version="1.0.21" />

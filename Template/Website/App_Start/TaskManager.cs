@@ -9,7 +9,6 @@
     using Olive;
     using Olive.Entities;
     using Olive.Entities.Data;
-    using App;
     using Hangfire;
     
     /// <summary>Executes the scheduled tasks in independent threads automatically.</summary>

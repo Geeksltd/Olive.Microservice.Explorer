@@ -30,8 +30,7 @@
         {
             IDataProvider result = null;
             
-            if (type == typeof(App.A)) result = new ADataProvider();
-            else if (type.IsInterface) result = new InterfaceDataProvider(type);
+            if (type.IsInterface) result = new InterfaceDataProvider(type);
             
             if (result == null)
             {

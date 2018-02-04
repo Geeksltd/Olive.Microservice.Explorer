@@ -2,11 +2,6 @@ using MSharp;
 
 namespace App
 {
-    public class A : EntityType
-    {
-
-    }
-
     public class Project : MSharp.Project
     {
         public Project()
