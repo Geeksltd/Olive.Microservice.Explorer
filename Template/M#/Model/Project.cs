@@ -2,11 +2,16 @@ using MSharp;
 
 namespace App
 {
+    public class A : EntityType
+    {
+
+    }
+
     public class Project : MSharp.Project
     {
         public Project()
         {
-            Name("MY.MICROSERVICE.NAME").SolutionFile("MY.MICROSERVICE.NAME.sln");
+            Name("MY.MICROSERVICE.NAME").SolutionFile("MY.MICROSERVICE.NAME.sln").NetCore();
 
             Layout("Default").Default().AjaxRedirect().VirtualPath("~/Views/Layouts/Default.cshtml");
             Layout("Modal").Modal().VirtualPath("~/Views/Layouts/Modal.cshtml");

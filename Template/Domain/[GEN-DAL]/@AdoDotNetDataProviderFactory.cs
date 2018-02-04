@@ -17,10 +17,10 @@
         public string ConnectionString {get; private set;}
         
         /// <summary>Initializes a new instance of AdoDotNetDataProviderFactory.</summary>
-        public AdoDotNetDataProviderFactory(DataProviderFactoryInfo factoryInfo)
+        public AdoDotNetDataProviderFactory(DatabaseConfig.Provider provider)
         {
-            ConnectionString = factoryInfo.ConnectionString.Or(DataAccess.GetCurrentConnectionString());
-            ConnectionStringKey = factoryInfo.ConnectionStringKey;
+            ConnectionString = provider.ConnectionString.Or(DataAccess.GetCurrentConnectionString());
+            ConnectionStringKey = provider.ConnectionStringKey;
         }
         
         public IDataAccess GetAccess() => new DataAccess<SqlConnection>();
@@ -30,7 +30,8 @@
         {
             IDataProvider result = null;
             
-            if (type.IsInterface) result = new InterfaceDataProvider(type);
+            if (type == typeof(App.A)) result = new ADataProvider();
+            else if (type.IsInterface) result = new InterfaceDataProvider(type);
             
             if (result == null)
             {
