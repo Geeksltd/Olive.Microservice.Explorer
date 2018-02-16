@@ -17,6 +17,8 @@
     /* NOTE ===================================
     *  See this before creating your API:
     *  https://github.com/Geeksltd/Olive/blob/master/Integration/Olive.Microservices/Integration.md
+    *  
+    *  To see the generated Api documentation, request → http://(rootUrl)/swagger
     *  ======================================== */
 
     [Route("api")]

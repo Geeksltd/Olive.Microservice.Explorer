@@ -4,7 +4,6 @@
     using Domain;
     using Microsoft.AspNetCore.Authentication.Cookies;
     using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.DataProtection;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.DependencyInjection;
     using Olive;
@@ -21,12 +20,13 @@
         {
             base.ConfigureServices(services);
             services.AddScheduledTasks();
+            services.AddSwagger();
         }
 
         public override void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            app.ConfigureSwagger();
             app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader());
-
             app.UseWebTest(ReferenceData.Create, config => config.AddTasks().AddEmail());
 
             base.Configure(app, env);
