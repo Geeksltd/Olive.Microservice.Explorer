@@ -20,11 +20,12 @@
   <ItemGroup>
     <PackageReference Include="Hangfire" Version="1.6.17" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.5" />
-    <PackageReference Include="Olive" Version="1.0.57" />
-    <PackageReference Include="Olive.Entities" Version="1.0.29" />
+    <PackageReference Include="Olive" Version="1.0.58" />
+    <PackageReference Include="Olive.ApiProxyGenerator" Version="1.0.47" />
+    <PackageReference Include="Olive.Entities" Version="1.0.30" />
     <PackageReference Include="Olive.Excel" Version="1.0.14" />
     <PackageReference Include="Olive.Hangfire" Version="1.0.22" />
-    <PackageReference Include="Olive.Mvc" Version="1.0.68" />
+    <PackageReference Include="Olive.Mvc" Version="1.0.71" />
     <PackageReference Include="Olive.PDF" Version="1.0.12" />
     <PackageReference Include="Olive.Testing" Version="1.0.39" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="1.2.0" />
