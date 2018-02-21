@@ -38,9 +38,7 @@
         protected override void ConfigureApplicationCookie(CookieAuthenticationOptions options)
         {
             base.ConfigureApplicationCookie(options);
-
-            options.Cookie.Domain = "." + Microservice.RootDomain;
-            options.DataProtectionProvider = new SymmetricKeyDataProtector(Microservice.RootDomain);
+            options.DataProtectionProvider = new SymmetricKeyDataProtector("Auth");
         }
     }
 }
