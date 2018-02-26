@@ -6,7 +6,7 @@
             "environmentVariables": {
                 "ASPNETCORE_ENVIRONMENT": "Development"
             },
-            "applicationUrl": "http://MY.MICROSERVICE.NAME.dev.co:9011/"
+            "applicationUrl": "http://localhost:9011"
         }        
     }
 }
