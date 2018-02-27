@@ -8,7 +8,7 @@
     <meta http-equiv="refresh" content="@((30*60) + 10)">
     <title>@ViewData["Title"]</title>
     <link rel='stylesheet' href="@Microservice.Of("Hub").Url("/styles/theme.css?v=1")" type='text/css' />
-    <link rel='stylesheet' href="@Microservice.Me.Url("/styles/Styles.css")" type='text/css' />
+    <link rel='stylesheet' href="@Request.GetAbsoluteUrl("/styles/Styles.css")" type='text/css' />
 </head>
 <body>    
         <script src="@Microservice.Of("Hub").Url( "/lib/requirejs/require.js")"
