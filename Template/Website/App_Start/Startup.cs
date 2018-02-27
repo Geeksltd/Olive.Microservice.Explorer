@@ -11,6 +11,7 @@
     using Olive.Email;
     using Olive.Hangfire;
     using Olive.Mvc.Testing;
+    using System;
 
     public class Startup : Olive.Mvc.Startup
     {
@@ -26,10 +27,11 @@
         public override void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             app.ConfigureSwagger();
-            app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader());
+            app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowCredentials());
             app.UseWebTest(ReferenceData.Create, config => config.AddTasks().AddEmail());
 
             base.Configure(app, env);
+            Console.Title = Microservice.Me.Name;
 
             if (Config.Get<bool>("Automated.Tasks:Enabled"))
                 app.UseScheduledTasks(TaskManager.Run);
