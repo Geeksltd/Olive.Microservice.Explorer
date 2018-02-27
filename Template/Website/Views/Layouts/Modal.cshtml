@@ -1,16 +1,13 @@
 ﻿@{Layout = Request.IsAjaxRequest() ? null : "~/Views/Layouts/Modal.Container.cshtml";}
-<main>
+<main class="MY.MICROSERVICE.NAME-Service">
     <div class="container-fluid">
         <div class="page">
             <div class="content"> @RenderBody() </div>
         </div>
     </div>
 
-    @if (!Request.IsAjaxRequest())
-    {
-        <script src="@Microservice.Of("Hub").Url("/lib/requirejs/require.js")"
-                data-main="@Microservice.Of("Hub").Url("/scripts/references")"></script>
-    }
+    
+      
 
     @RenderSection("scripts", required: false)
     @Html.RegisterStartupActions()

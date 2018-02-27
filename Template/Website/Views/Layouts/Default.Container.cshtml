@@ -10,7 +10,10 @@
     <link rel='stylesheet' href="@Microservice.Of("Hub").Url("/styles/theme.css?v=1")" type='text/css' />
     <link rel='stylesheet' href="@Microservice.Me.Url("/styles/Styles.css")" type='text/css' />
 </head>
-<body>
+<body>    
+        <script src="@Microservice.Of("Hub").Url( "/lib/requirejs/require.js")"
+                data-main="@Microservice.Of("Hub").Url( "/scripts/references")"></script>
+    
     @RenderBody()
 </body>
 </html>
