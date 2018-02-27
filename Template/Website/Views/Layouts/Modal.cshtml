@@ -8,8 +8,8 @@
 
     @if (!Request.IsAjaxRequest())
     {
-        <script src="@Microservice.Url("theme", "/lib/requirejs/require.js")"
-                data-main="@Microservice.Url("theme", "/scripts/references")"></script>
+        <script src="@Microservice.Of("Hub").Url("/lib/requirejs/require.js")"
+                data-main="@Microservice.Of("Hub").Url("/scripts/references")"></script>
     }
 
     @RenderSection("scripts", required: false)
