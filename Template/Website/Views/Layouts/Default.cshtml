@@ -1,13 +1,14 @@
-﻿@{Layout = Request.IsAjaxCall() ? null : "~/Views/Layouts/Default.Container.cshtml";}
-
-<main class="MY.MICROSERVICE.NAME-Service">
+﻿<main class="MY.MICROSERVICE.NAME-Service" data-root="@Request.RootUrl()">
     <div class="container-fluid">
         <div class="content">@RenderBody()</div>
     </div>
-    
     @Html.RegisterDynamicScriptFiles()
-    @RenderSection("scripts", required: false)
     @Html.WebTestWidget()
-    @Html.RegisterStartupActions()
     @Html.RunJavascript("page.ensureNonModal();")
+    @Html.RegisterStartupActions()
 </main>
+
+<head>
+    <title>@ViewData["Title"]</title>
+    <link rel='stylesheet' href="@Request.GetAbsoluteUrl("/styles/Styles.css")" type='text/css' />
+</head>

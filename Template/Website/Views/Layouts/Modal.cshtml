@@ -1,14 +1,8 @@
-﻿@{Layout = Request.IsAjaxRequest() ? null : "~/Views/Layouts/Modal.Container.cshtml";}
-<main class="MY.MICROSERVICE.NAME-Service">
+﻿<main class="MY.MICROSERVICE.NAME-Service" data-root="@Request.RootUrl()">
     <div class="container-fluid">
         <div class="page">
             <div class="content"> @RenderBody() </div>
         </div>
     </div>
-
-    
-      
-
-    @RenderSection("scripts", required: false)
     @Html.RegisterStartupActions()
 </main>
