@@ -44,6 +44,8 @@
             if (accessor.Blob.IsMedia())
                 return await RangeFileContentResult.From(accessor.Blob);
             else return await File(accessor.Blob);
+
+
         }
 
         [Route("temp-file/{key}")]
