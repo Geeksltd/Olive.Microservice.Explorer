@@ -12,6 +12,7 @@
     using Hangfire;
     
     /// <summary>Executes the scheduled tasks in independent threads automatically.</summary>
+    [EscapeGCop("Auto generated code.")]
     public static partial class TaskManager
     {
         /// <summary>
