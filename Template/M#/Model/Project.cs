@@ -6,7 +6,10 @@ namespace App
     {
         public Project()
         {
-            Name("MY.MICROSERVICE.NAME").SolutionFile("MY.MICROSERVICE.NAME.sln").NetCore();
+            Name("MY.MICROSERVICE.NAME")
+                .SolutionFile("MY.MICROSERVICE.NAME.sln")
+                .IsMicroservice()
+                .NetCore();
 
             Layout("Default").Default().AjaxRedirect().VirtualPath("~/Views/Layouts/Default.cshtml");
             Layout("Modal").Modal().VirtualPath("~/Views/Layouts/Modal.cshtml");
