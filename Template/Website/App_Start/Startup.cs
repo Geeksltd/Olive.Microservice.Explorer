@@ -8,7 +8,6 @@
     using Microsoft.Extensions.DependencyInjection;
     using Olive;
     using Olive.Security;
-    using Olive.Email;
     using Olive.Hangfire;
     using Olive.Mvc.Testing;
     using System;
@@ -28,7 +27,7 @@
         {
             app.ConfigureSwagger();
             app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowCredentials());
-            app.UseWebTest(ReferenceData.Create, config => config.AddTasks().AddEmail());
+            app.UseWebTest(ReferenceData.Create, config => config.AddTasks());
 
             base.Configure(app, env);
             Console.Title = Microservice.Me.Name;
