@@ -18,20 +18,9 @@
         public new async Task<ActionResult> NotFound() => await View("error-404");
 
         [HttpPost, Authorize, Route("upload")]
-        public ActionResult UploadTempFile(IFormFile[] files)
+        public async Task<IActionResult> UploadTempFileToServer(IFormFile[] files)
         {
-            // Note: This will prevent uploading of all unsafe files defined at Blob.UnsafeExtensions
-            // If you need to allow them, then comment it out.
-            if (Blob.HasUnsafeFileExtension(files[0].FileName))
-                return Json(new { Error = "Invalid file extension." });
-
-            var path = System.IO.Path.Combine(FileUploadService.GetFolder(Guid.NewGuid().ToString()).FullName,
-                files[0].FileName.ToSafeFileName());
-
-            if (path.Length >= 260)
-                return Json(new { Error = "File name length is too long." });
-
-            return Json(new FileUploadService().TempSaveUploadedFile(files[0]));
+            return Json(await new FileUploadService().TempSaveUploadedFile(files[0]));
         }
 
         [HttpGet, Route("file")]
@@ -44,8 +33,6 @@
             if (accessor.Blob.IsMedia())
                 return await RangeFileContentResult.From(accessor.Blob);
             else return await File(accessor.Blob);
-
-
         }
 
         [Route("temp-file/{key}")]
