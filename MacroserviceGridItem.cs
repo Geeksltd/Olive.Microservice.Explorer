@@ -1,14 +1,37 @@
 ﻿using System.ComponentModel;
-using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Windows;
+using EnvDTE;
+using EnvDTE80;
 using MacroserviceExplorer.Annotations;
+using Process = System.Diagnostics.Process;
 
 namespace MacroserviceExplorer
 {
     public class MacroserviceGridItem : INotifyPropertyChanged
     {
-        int _status;
+        #region INotifyPropertyChanged Implementations
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        #endregion
+
+        #region Overrides of ToString Object
+
+        public override string ToString()
+        {
+            return $"\'{Service}\' port : {Port} Status : {Status}";
+        }
+
+        #endregion
+
+        int _status;
         public int Status
         {
             get => _status;
@@ -78,7 +101,7 @@ namespace MacroserviceExplorer
                     case 2:
                         return "Service Stopped locally";
                     case 3:
-                        return "Service is Running locally";
+                        return $"Service is Running locally ( '{ProcessName}' process Id : {ProcId})";
                     default:
                         return "";
                 }
@@ -112,7 +135,6 @@ namespace MacroserviceExplorer
         public double RunImageOpacity => Status == 3 ? 1 : .2;
 
         int _procId;
-
         public int ProcId
         {
             get => _procId;
@@ -122,28 +144,63 @@ namespace MacroserviceExplorer
                 if (_procId > 0)
                     ProcessName = Process.GetProcessById(_procId).ProcessName;
                 OnPropertyChanged(nameof(ProcId));
-                OnPropertyChanged(nameof(ProcessName));
-                //OnPropertyChanged(nameof(Tooltip));
+                OnPropertyChanged(nameof(ProcessName));                
             }
         }
 
+        public bool VsIsOpen { get; set; }
+
         public string ProcessName { get; private set; }
 
-        public string WebsiteFolder { get; set; }
+        string _websiteFolder;
+        public string WebsiteFolder
+        {
+            get => _websiteFolder;
+            set
+            {
+                _websiteFolder = value;
+                OnPropertyChanged(nameof(WebsiteFolder));
+                OnPropertyChanged(nameof(VisibleCode));
+            }
+        }
 
         public string PortIcon => int.TryParse(Port, out var _) ? null : "Resources/Warning.png";
+
         public string PortTooltip => !string.IsNullOrEmpty(PortIcon) ? $"launchsettings.json File Not Found in this location :\n{WebsiteFolder}\\Properties\\launchSettings.json" : null;
 
         public Visibility VisibleCode => string.IsNullOrEmpty(PortTooltip) ? Visibility.Visible : Visibility.Hidden;
 
+        public string VsCodeIcon => VsDTE == null ? "Resources/VS.png" : "Resources/VS2.png";
+
         public object Tag { get; set; }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged( string propertyName = null)
+        DTE2 _vsDTE;
+        public DTE2 VsDTE
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            get => _vsDTE;
+            set
+            {
+                _vsDTE = value;
+                OnPropertyChanged(nameof(VsDTE));
+                OnPropertyChanged(nameof(VsCodeIcon));
+                OnPropertyChanged(nameof(VisibleDebug));
+            }
+        }
+
+        public Visibility VisibleDebug => VsDTE == null ? Visibility.Collapsed : Visibility.Visible;
+
+        public string DebuggerIcon
+        {
+            get
+            {
+                if (VsDTE != null)
+                    return VsDTE.Mode == vsIDEMode.vsIDEModeDebug
+                        ? "Resources/debug_stop.png"
+                        : "Resources/debug.png";
+
+                OnPropertyChanged(nameof(VisibleDebug));
+                return null;
+            }
         }
     }
 }

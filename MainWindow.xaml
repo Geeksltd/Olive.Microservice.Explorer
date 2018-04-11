@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:gif="http://wpfanimatedgif.codeplex.com"        
         xmlns:local="clr-namespace:MacroserviceExplorer"
+        xmlns:utils="clr-namespace:MacroserviceExplorer.Utils"
         mc:Ignorable="d"
         Title="Olive Microservice Explorer" Height="521" Width="525" Icon="Olive.ico" Loaded="MainWindow_OnLoaded" Closed="MainWindow_OnClosed" Closing="MainWindow_OnClosing" >
     <Window.Resources>
@@ -31,11 +32,10 @@
     </Window.InputBindings>
     <Grid>
         <Grid.RowDefinitions>
-
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-
         </Grid.RowDefinitions>
         <Menu Grid.Row="0">
             <MenuItem Header="File">
@@ -56,8 +56,7 @@
         <Grid Grid.Row="1" HorizontalAlignment="Stretch" >
             <StackPanel Margin="10" >
                 <TextBlock HorizontalAlignment="Left" Name="txtSolName" FontWeight="Heavy" FontSize="17">{Solution:FullName}</TextBlock>
-
-                <TextBlock  >
+                <TextBlock >
                     <Hyperlink Command="{x:Static local:MainWindow.EditCommand}" >
                         <TextBlock Name="txtFileInfo" />
                     </Hyperlink>
@@ -67,9 +66,19 @@
                 <TextBlock></TextBlock>
             </StackPanel>
         </Grid>
-        
-        
-        <DataGrid Grid.Row="2" Padding="10" ItemsSource="{Binding}" SelectionMode="Single" AutoGenerateColumns="False" Name="DataGrid" CanUserSortColumns="True" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#FF0D3E61" AlternationCount="2" IsReadOnly="True" VerticalContentAlignment="Center" >
+
+        <StackPanel Grid.Row="2">
+            <TextBox Name="txtSearch" Height="30" VerticalContentAlignment="Center" TextChanged="TextBoxBase_OnTextChanged">
+                <utils:WatermarkService.Watermark>
+                    <TextBlock VerticalAlignment="Center" Padding="5,3">Search ... (by Service Name or Port number)</TextBlock>
+                </utils:WatermarkService.Watermark>
+
+            </TextBox>
+        </StackPanel>
+        <DataGrid Name="srvGrid" Grid.Row="3" Padding="10" ItemsSource="{Binding}" SelectionMode="Single" AutoGenerateColumns="False" CanUserSortColumns="True" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#FF0D3E61" AlternationCount="2" IsReadOnly="True" VerticalContentAlignment="Center" 
+                  SelectedItem="{Binding Path=SelectedService,
+                                         RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}, 
+                                         Mode=TwoWay}">
             <DataGrid.CellStyle>
                 <Style TargetType="DataGridCell">
                     <Setter Property="BorderThickness" Value="0"/>
@@ -140,7 +149,10 @@
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
                                 <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="OpenCode_OnClick"  Tag="{Binding Service}" Visibility="{Binding VisibleCode}">
-                                    <Image Source="Resources/VS.png" Style="{StaticResource gridImage}"  Width="25"/>
+                                    <Image Source="{Binding VsCodeIcon}" Style="{StaticResource gridImage}"  Width="25"/>
+                                </Button>
+                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="VsDebuggerAttach_OnClick"  Tag="{Binding Service}" Visibility="{Binding VisibleDebug}">
+                                    <Image Source="{Binding DebuggerIcon}" Style="{StaticResource gridImage}"  Width="25"/>
                                 </Button>
                                 <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="OpenExplorer_OnClick" Tag="{Binding Service}" Visibility="{Binding VisibleCode}">
                                     <Image Source="Resources/folder2.png" Style="{StaticResource gridImage}"  Width="25"/>
@@ -155,6 +167,22 @@
 
     </Grid>
 </Window>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

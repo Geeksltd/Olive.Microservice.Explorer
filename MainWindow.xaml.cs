@@ -5,19 +5,25 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Windows;
-using System.Windows.Forms;
+using System.Windows.Controls;
+//using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Threading;
 using System.Xml;
 using System.Xml.Serialization;
+using EnvDTE;
+using EnvDTE80;
 using MacroserviceExplorer.TCPIP;
 using MacroserviceExplorer.Utils;
-
+using MSharp.Framework.UI.Controls;
 using Button = System.Windows.Controls.Button;
 using ContextMenu = System.Windows.Controls.ContextMenu;
+using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using MessageBox = System.Windows.Forms.MessageBox;
+using Process = System.Diagnostics.Process;
+using Thread = System.Threading.Thread;
+using Window = System.Windows.Window;
 
 
 namespace MacroserviceExplorer
@@ -25,11 +31,13 @@ namespace MacroserviceExplorer
 
     public partial class MainWindow : Window
     {
+        const string services_file_name = "services.json";
+        public List<MacroserviceGridItem> serviceData = new List<MacroserviceGridItem>();
         public ObservableCollection<MacroserviceGridItem> MacroserviceGridItems = new ObservableCollection<MacroserviceGridItem>();
-        readonly NotifyIcon notifyIcon;
+        readonly System.Windows.Forms.NotifyIcon notifyIcon;
         bool exit;
         public Visibility FileOpened { get; set; }
-
+        public MacroserviceGridItem SelectedService { get; set; }
         #region Commands
 
         public static readonly RoutedCommand EditCommand = new RoutedUICommand("Edit", "EditCommand", typeof(MainWindow), new InputGestureCollection(new InputGesture[]
@@ -57,16 +65,16 @@ namespace MacroserviceExplorer
         public MainWindow()
         {
             var components = new Container();
-            notifyIcon = new NotifyIcon(components)
+            notifyIcon = new System.Windows.Forms.NotifyIcon(components)
             {
-                ContextMenuStrip = new ContextMenuStrip(),
+                ContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(),
                 Icon = Properties.Resources.Olive,
                 Text = @"Olive Macroservice Explorer",
                 Visible = true,
             };
-            notifyIcon.ContextMenuStrip.Items.Add(new ToolStripMenuItem("Open Explorer Window", null, TrayOpenWindow));
+            notifyIcon.ContextMenuStrip.Items.Add(new System.Windows.Forms.ToolStripMenuItem("Open Explorer Window", null, TrayOpenWindow));
 
-            notifyIcon.ContextMenuStrip.Items.Add(new ToolStripMenuItem("Exit", null, ExitMenuItem_Click));
+            notifyIcon.ContextMenuStrip.Items.Add(new System.Windows.Forms.ToolStripMenuItem("Exit", null, ExitMenuItem_Click));
 
             //notifyIcon.ContextMenuStrip.Opening += ContextMenuStrip_Opening;
             notifyIcon.Click += TrayOpenWindow;
@@ -74,6 +82,7 @@ namespace MacroserviceExplorer
 
 
             InitializeComponent();
+            DataContext = MacroserviceGridItems;
             StartAutoRefresh();
         }
 
@@ -82,14 +91,26 @@ namespace MacroserviceExplorer
         {
             autoRefreshTimer.Tick += (sender, args) =>
             {
+                var gridHasFocused = srvGrid.IsFocused;
+
+                MacroserviceGridItem selItem = null;
+                if (SelectedService != null)
+                    selItem = SelectedService;
+
                 Refresh();
                 foreach (var service in MacroserviceGridItems)
                 {
-                    if (string.IsNullOrEmpty(service.WebsiteFolder) || string.IsNullOrEmpty(service.Port)) continue;
+                    if (service.WebsiteFolder.IsEmpty() || service.Port.IsEmpty()) continue;
 
                     service.ProcId = getListeningPortProcessId(Convert.ToInt32(service.Port));
                     service.Status = service.ProcId < 0 ? 2 : 3;
                 }
+                srvGrid.SelectedItem = selItem;
+
+                if(gridHasFocused)
+                    srvGrid.Focus();
+
+
             };
             autoRefreshTimer.Interval = new TimeSpan(0, 0, 3);
             autoRefreshTimer.Start();
@@ -154,7 +175,7 @@ namespace MacroserviceExplorer
             var menuitem = (System.Windows.Controls.MenuItem)sender;
             menuitem.Click -= BrowsItem_Click;
             var service = (MacroserviceGridItem)menuitem.Tag;
-            var address = menuitem.Header.ToString().Substring(menuitem.Header.ToString().IndexOf(" ", StringComparison.Ordinal)+1);
+            var address = menuitem.Header.ToString().Substring(menuitem.Header.ToString().IndexOf(" ", StringComparison.Ordinal) + 1);
             //var address = menuitem.Header.ToString().TrimBefore(, caseSensitive: false, trimPhrase: true).Trim();
             if (address.Contains("localhost:") && service.Status != 3)
             {
@@ -229,7 +250,7 @@ namespace MacroserviceExplorer
 
             if (!servicesJsonFile.Exists)
             {
-                var result = MessageBox.Show($"file : {servicesJsonFile.FullName} \ndoes not exist anymore. \nDo you want to removed it from recent files list?", "File Not Found", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                var result = MessageBox.Show($"file : {servicesJsonFile.FullName} \ndoes not exist anymore. \nDo you want to removed it from recent files list?", "File Not Found", System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question);
                 _recentFiles.Remove(servicesJsonFile.FullName);
                 if (result != System.Windows.Forms.DialogResult.Yes) return false;
 
@@ -240,7 +261,7 @@ namespace MacroserviceExplorer
 
                 return false;
             }
-            try
+            //try
             {
 
                 var servicesAllText = File.ReadAllText(servicesJsonFile.FullName);
@@ -248,12 +269,16 @@ namespace MacroserviceExplorer
                 txtFileInfo.Text = servicesJsonFile.FullName;
                 txtSolName.Text = servicesJObject["Solution"]["FullName"].ToString();
 
-                MacroserviceGridItems.Clear();
-
                 var children = servicesJObject["Services"].Children();
                 foreach (var jToken in children)
                 {
                     var serviceName = jToken.Path.Replace("Services.", "");
+                    var srv = serviceData.SingleOrDefault(srvc => srvc.Service == serviceName);
+                    if (srv == null)
+                    {
+                        srv = new MacroserviceGridItem();
+                        serviceData.Add(srv);
+                    }
                     string liveUrl = null;
                     string uatUrl = null;
                     foreach (var url in jToken.Children())
@@ -289,31 +314,46 @@ namespace MacroserviceExplorer
                             status = 3;
                     }
 
-                    var xyz = GetGitUpdates(projFolder);
-                    
-                    MacroserviceGridItems.Add(new MacroserviceGridItem()
-                    {
-                        Status = status,
-                        Service = serviceName,
-                        Port = port,
-                        LiveUrl = liveUrl,
-                        UatUrl = uatUrl,
-                        ProcId = procId,
-                        WebsiteFolder = websiteFolder
-                    });
+                    var gitUpdates = GetGitUpdates(projFolder);
+
+
+
+                    srv.Status = status;
+                    srv.Service = serviceName;
+                    srv.Port = port;
+                    srv.LiveUrl = liveUrl;
+                    srv.UatUrl = uatUrl;
+                    srv.ProcId = procId;
+                    srv.WebsiteFolder = websiteFolder;
+
+                    srv.VsDTE = GetVSDTE(srv);
                 }
 
-                DataContext = MacroserviceGridItems;
+                FilterListBy(txtSearch.Text);
             }
-            catch (Exception)
-            {
-                return false;
-            }
+            //catch (Exception ex)
+            //{
+            //    MessageBox.Show(ex.Message);
+            //    return false;
+            //}
 
             if (watcher == null)
                 StartFileSystemWatcher(servicesJsonFile);
 
             return true;
+        }
+
+        void FilterListBy(string txtSearchText)
+        {
+            MacroserviceGridItems.Clear();
+            if (txtSearch.Text.IsEmpty())
+            {
+                MacroserviceGridItems.AddRange(serviceData);
+                return;
+            }
+
+            MacroserviceGridItems.AddRange(serviceData.Where(x => x.Service.ToLower().Contains(txtSearchText.ToLower()) || x.Port.Contains(txtSearchText)));
+
         }
 
         int GetGitUpdates(string projFolder)
@@ -483,15 +523,36 @@ namespace MacroserviceExplorer
             autoRefreshTimer.Start();
         }
 
-        void OpenVs(FileInfo solutionFile)
+        void OpenVs(MacroserviceGridItem service, FileInfo solutionFile)
         {
-            var solutionName = solutionFile.NameWithoutExtension();
-            var proc = Process.GetProcesses().FirstOrDefault(process => process.ProcessName == "devenv" &&
-                                                                        process.MainWindowTitle.Trim().ToLower().StartsWith(solutionName.ToLower()));
-            if (proc != null)
-                WindowApi.ShowWindow(proc.MainWindowHandle);
+            var dte2 = service.VsDTE ?? GetVSDTE(solutionFile);
+            if (dte2 != null)
+            {
+                dte2.MainWindow.Visible = true;
+                dte2.MainWindow.SetFocus();
+            }
             else
                 Process.Start(solutionFile.FullName);
+        }
+
+        static DTE2 GetVSDTE(MacroserviceGridItem service)
+        {
+            return GetVSDTE(GetServiceSolutionFilePath(service));
+        }
+
+        static DTE2 GetVSDTE(FileInfo solutionFile)
+        {
+            if (solutionFile == null)
+                return null;
+            try
+            {
+                return Helper.GetVsInstances().FirstOrDefault(dte2 => string.Equals(dte2.Solution.FullName, solutionFile.FullName, StringComparison.CurrentCultureIgnoreCase));
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+            
         }
 
         void OpenCode_OnClick(object sender, MouseButtonEventArgs e)
@@ -500,14 +561,18 @@ namespace MacroserviceExplorer
             var btn = (Button)sender;
             var serviceName = btn.Tag.ToString();
             var service = MacroserviceGridItems.Single(s => s.Service == serviceName);
-            var solutionFile = service.WebsiteFolder.AsDirectory().Parent?.GetFiles("*.sln").FirstOrDefault();
-            OpenVs(solutionFile);
+            var solutionFile = GetServiceSolutionFilePath(service);
+            OpenVs(service , solutionFile);
         }
 
-        const string services_file_name = "services.json";
+        static FileInfo GetServiceSolutionFilePath(MacroserviceGridItem service)
+        {
+            return !Directory.Exists(service.WebsiteFolder) ? null : service.WebsiteFolder.AsDirectory().Parent?.GetFiles("*.sln").FirstOrDefault();
+        }
+
         void OpenProject_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            var openFileDialog = new OpenFileDialog()
+            var openFileDialog = new System.Windows.Forms.OpenFileDialog()
             {
                 CheckFileExists = true,
                 CheckPathExists = true,
@@ -564,6 +629,34 @@ namespace MacroserviceExplorer
             var service = MacroserviceGridItems.Single(s => s.Service == serviceName);
             Process.Start(service.WebsiteFolder.AsDirectory().Parent?.FullName);
 
+        }
+        void TextBoxBase_OnTextChanged(object sender, TextChangedEventArgs e)
+        {
+            FilterListBy(txtSearch.Text);
+        }
+
+        void VsDebuggerAttach_OnClick(object sender, MouseButtonEventArgs e)
+        {
+            e.Handled = true;
+            var btn = (Button)sender;
+            var serviceName = btn.Tag.ToString();
+            var service = MacroserviceGridItems.Single(s => s.Service == serviceName);
+
+            if (service.VsDTE.Mode == vsIDEMode.vsIDEModeDebug)
+            {
+                service.VsDTE.Debugger.DetachAll();
+                return;
+            }
+
+            var processes = service.VsDTE.Debugger.LocalProcesses.OfType<EnvDTE.Process>();
+            var process = processes.SingleOrDefault(x => x.ProcessID == service.ProcId);
+            if (process == null) return;
+
+            OpenVs(service, GetServiceSolutionFilePath(service));
+            process.Attach();
+
+            
+            
         }
     }
 }
