@@ -34,6 +34,8 @@
         <CommandBinding Command="{x:Static local:MainWindow.StopAllCommand}" Executed="StopAllMenuItem_Click"></CommandBinding>
         <CommandBinding Command="{x:Static local:MainWindow.RunAllFilteredCommand}" Executed="RunAllFilteredMenuItem_Click"></CommandBinding>
         <CommandBinding Command="{x:Static local:MainWindow.StopAllFilteredCommand}" Executed="StopAllFilteredMenuItem_Click"></CommandBinding>
+
+        <CommandBinding Command="{x:Static local:MainWindow.AlwaysOnTopCommand}" Executed="AlwaysOnTopMenuItem_Click"></CommandBinding>
     </Window.CommandBindings>
     <Window.InputBindings>
         <KeyBinding Key="O" Modifiers="Control" Command="Open"></KeyBinding>
@@ -71,10 +73,14 @@
                     <MenuItem Header="[Empty]"></MenuItem>
                 </MenuItem>
                 <Separator></Separator>
-                <MenuItem Header="_Close Window" Command="{x:Static local:MainWindow.CloseCommand}">
-                    <MenuItem.Icon>
-                        <Image Source="Resources/Menu/Close.png" Style="{StaticResource menuImage}"></Image>
-                    </MenuItem.Icon>
+                <MenuItem Header="This window">
+                    <MenuItem Header="Always on top" IsCheckable="True" Name="mnuAlwaysOnTop"  Command="{x:Static local:MainWindow.AlwaysOnTopCommand}">
+                    </MenuItem>
+                    <MenuItem Header="_Hide" Command="{x:Static local:MainWindow.CloseCommand}">
+                        <MenuItem.Icon>
+                            <Image Source="Resources/Menu/Close.png" Style="{StaticResource menuImage}"></Image>
+                        </MenuItem.Icon>
+                    </MenuItem>
                 </MenuItem>
                 <MenuItem Header="E_xit Macroservice Explorer"  Command="{x:Static local:MainWindow.ExitCommand}">
                     <MenuItem.Icon>

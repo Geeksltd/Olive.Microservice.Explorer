@@ -79,6 +79,12 @@ namespace MacroserviceExplorer
         {
             new KeyGesture(Key.L, ModifierKeys.Control | ModifierKeys.Alt | ModifierKeys.Shift)
         }));
+
+        public static readonly RoutedCommand AlwaysOnTopCommand = new RoutedUICommand("AlwaysOnTop", "AlwaysOnTopCommand", typeof(MainWindow), new InputGestureCollection(new InputGesture[]
+        {
+            new KeyGesture(Key.T, ModifierKeys.Control)
+        }));
+
         #endregion
 
         public MainWindow()
@@ -709,6 +715,11 @@ namespace MacroserviceExplorer
                 if (service.Status == 3)
                     StopService(service);
             }
+        }
+
+        void AlwaysOnTopMenuItem_Click(object sender, ExecutedRoutedEventArgs e)
+        {
+            Topmost = mnuAlwaysOnTop.IsChecked;
         }
     }
 }
