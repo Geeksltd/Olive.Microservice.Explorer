@@ -187,7 +187,7 @@ namespace MacroserviceExplorer
             }
         }
 
-        public Visibility VisibleDebug => VsDTE == null ? Visibility.Collapsed : Visibility.Visible;
+        public Visibility VisibleDebug => VsDTE == null || ProcId <=0 ? Visibility.Collapsed : Visibility.Visible;
 
         public string DebuggerIcon
         {
