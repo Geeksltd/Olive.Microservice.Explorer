@@ -83,11 +83,27 @@
                 </MenuItem>
             </MenuItem>
             <MenuItem Header="_Global">
-                <MenuItem Header="_Run all" Command="{x:Static local:MainWindow.RunAllCommand}"></MenuItem>
-                <MenuItem Header="_Stop all" Command="{x:Static local:MainWindow.StopAllCommand}"></MenuItem>
+                <MenuItem Header="_Run all" Command="{x:Static local:MainWindow.RunAllCommand}">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Menu/RunAll.png" Style="{StaticResource menuImage}"></Image>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Stop all" Command="{x:Static local:MainWindow.StopAllCommand}">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Menu/StopAll.png" Style="{StaticResource menuImage}"></Image>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <Separator></Separator>
-                <MenuItem Header="R_un all (filtered)" Command="{x:Static local:MainWindow.RunAllFilteredCommand}"></MenuItem>
-                <MenuItem Header="S_top all (filtered)" Command="{x:Static local:MainWindow.StopAllFilteredCommand}"></MenuItem>
+                <MenuItem Header="R_un all (filtered)" Command="{x:Static local:MainWindow.RunAllFilteredCommand}">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Menu/RunAllFiltered.png" Style="{StaticResource menuImage}"></Image>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="S_top all (filtered)" Command="{x:Static local:MainWindow.StopAllFilteredCommand}">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Menu/StopAllFiltered.png" Style="{StaticResource menuImage}"></Image>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
         </Menu>
 

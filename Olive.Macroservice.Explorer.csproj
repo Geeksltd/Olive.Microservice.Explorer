@@ -211,5 +211,13 @@
   <ItemGroup>
     <Resource Include="Resources\Menu\Exit.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Menu\RunAll.png" />
+    <Resource Include="Resources\Menu\StopAll.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Menu\RunAllFiltered.png" />
+    <Resource Include="Resources\Menu\StopAllFiltered.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
