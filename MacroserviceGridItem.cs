@@ -45,6 +45,7 @@ namespace MacroserviceExplorer
                 OnPropertyChanged(nameof(ServiceColor));
                 OnPropertyChanged(nameof(ServiceFontWeight));
                 OnPropertyChanged(nameof(ServiceTooltip));
+                OnPropertyChanged(nameof(VisibleDebug));
             }
         }
 

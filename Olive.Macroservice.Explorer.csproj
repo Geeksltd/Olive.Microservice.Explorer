@@ -193,5 +193,23 @@
   <ItemGroup>
     <Resource Include="Resources\debug_stop.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Menu\folder.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Menu\Recent.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Menu\Refresh.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Menu\Edit.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Menu\Close.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Menu\Exit.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

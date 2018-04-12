@@ -60,6 +60,25 @@ namespace MacroserviceExplorer
             new KeyGesture(Key.Q, ModifierKeys.Control | ModifierKeys.Shift)
         }));
 
+        public static readonly RoutedCommand RunAllCommand = new RoutedUICommand("RunAll", "RunAllCommand", typeof(MainWindow), new InputGestureCollection(new InputGesture[]
+        {
+            new KeyGesture(Key.L, ModifierKeys.Control )
+        }));
+
+        public static readonly RoutedCommand StopAllCommand = new RoutedUICommand("StopAll", "StopAllCommand", typeof(MainWindow), new InputGestureCollection(new InputGesture[]
+        {
+            new KeyGesture(Key.L, ModifierKeys.Control | ModifierKeys.Shift)
+        }));
+
+        public static readonly RoutedCommand RunAllFilteredCommand = new RoutedUICommand("RunAllFiltered", "RunAllFilteredCommand", typeof(MainWindow), new InputGestureCollection(new InputGesture[]
+        {
+            new KeyGesture(Key.L, ModifierKeys.Control | ModifierKeys.Alt)
+        }));
+
+        public static readonly RoutedCommand StopAllFilteredCommand = new RoutedUICommand("StopAllFiltered", "StopAllFilteredCommand", typeof(MainWindow), new InputGestureCollection(new InputGesture[]
+        {
+            new KeyGesture(Key.L, ModifierKeys.Control | ModifierKeys.Alt | ModifierKeys.Shift)
+        }));
         #endregion
 
         public MainWindow()
@@ -657,6 +676,39 @@ namespace MacroserviceExplorer
 
             
             
+        }
+
+        void RunAllMenuItem_Click(object sender, ExecutedRoutedEventArgs e)
+        {
+            foreach (var service in MacroserviceGridItems)
+                if (service.Status == 2)
+                    StartService(service);
+        }
+
+        void StopAllMenuItem_Click(object sender, ExecutedRoutedEventArgs e)
+        {
+            foreach (var service in MacroserviceGridItems)
+            {
+                if (service.Status == 3)
+                    StopService(service);
+            }
+        }
+
+        void RunAllFilteredMenuItem_Click(object sender, ExecutedRoutedEventArgs e)
+        {
+            foreach (var service in MacroserviceGridItems)
+                if (service.Status == 2)
+                    StartService(service);
+
+        }
+
+        void StopAllFilteredMenuItem_Click(object sender, ExecutedRoutedEventArgs e)
+        {
+            foreach (var service in MacroserviceGridItems)
+            {
+                if (service.Status == 3)
+                    StopService(service);
+            }
         }
     }
 }

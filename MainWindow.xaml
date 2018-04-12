@@ -12,7 +12,10 @@
         <Style TargetType="Image" x:Key="gridImage">
             <Setter Property="Width" Value="20" />
             <Setter Property="RenderOptions.BitmapScalingMode" Value="Fant"></Setter>
-
+        </Style>
+        <Style TargetType="Image" x:Key="menuImage">
+            <Setter Property="Width" Value="20" />
+            <Setter Property="RenderOptions.BitmapScalingMode" Value="Fant"></Setter>
         </Style>
         <Style TargetType="Button" x:Key="gridButton">
             <Setter Property="Background" Value="Transparent" />
@@ -26,6 +29,11 @@
         <CommandBinding Command="{x:Static local:MainWindow.RefreshCommand}" Executed="RefreshMenuItem_OnClick"></CommandBinding>
         <CommandBinding Command="{x:Static local:MainWindow.CloseCommand}" Executed="CloseMenuItem_OnClick"></CommandBinding>
         <CommandBinding Command="{x:Static local:MainWindow.ExitCommand}" Executed="ExitMenuItem_Click"></CommandBinding>
+        
+        <CommandBinding Command="{x:Static local:MainWindow.RunAllCommand}" Executed="RunAllMenuItem_Click"></CommandBinding>
+        <CommandBinding Command="{x:Static local:MainWindow.StopAllCommand}" Executed="StopAllMenuItem_Click"></CommandBinding>
+        <CommandBinding Command="{x:Static local:MainWindow.RunAllFilteredCommand}" Executed="RunAllFilteredMenuItem_Click"></CommandBinding>
+        <CommandBinding Command="{x:Static local:MainWindow.StopAllFilteredCommand}" Executed="StopAllFilteredMenuItem_Click"></CommandBinding>
     </Window.CommandBindings>
     <Window.InputBindings>
         <KeyBinding Key="O" Modifiers="Control" Command="Open"></KeyBinding>
@@ -38,18 +46,48 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Menu Grid.Row="0">
-            <MenuItem Header="File">
-                <MenuItem Header="Open Project" Command="Open" ></MenuItem>
-                <MenuItem Header="Edit Services.json ..." Command="{x:Static local:MainWindow.EditCommand}" ></MenuItem>
+            <MenuItem Header="_File">
+                <MenuItem Header="_Open Project" Command="Open" >
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Menu/folder.png" Style="{StaticResource menuImage}"></Image>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Edit Services.json ..." Command="{x:Static local:MainWindow.EditCommand}" >
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Menu/Edit.png" Style="{StaticResource menuImage}"></Image>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <Separator></Separator>
-                <MenuItem Header="Refresh" Command="{x:Static local:MainWindow.RefreshCommand}" ></MenuItem>
+                <MenuItem Header="_Refresh" Command="{x:Static local:MainWindow.RefreshCommand}" >
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Menu/Refresh.png" Style="{StaticResource menuImage}"></Image>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <Separator></Separator>
-                <MenuItem Header="Recent Files" Name="mnuRecentFiles">
+                <MenuItem Header="Re_cent Files" Name="mnuRecentFiles">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Menu/Recent.png" Style="{StaticResource menuImage}"></Image>
+                    </MenuItem.Icon>
                     <MenuItem Header="[Empty]"></MenuItem>
                 </MenuItem>
                 <Separator></Separator>
-                <MenuItem Header="Close Window" Command="{x:Static local:MainWindow.CloseCommand}"></MenuItem>
-                <MenuItem Header="Exit Macroservice Explorer"  Command="{x:Static local:MainWindow.ExitCommand}"></MenuItem>
+                <MenuItem Header="_Close Window" Command="{x:Static local:MainWindow.CloseCommand}">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Menu/Close.png" Style="{StaticResource menuImage}"></Image>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="E_xit Macroservice Explorer"  Command="{x:Static local:MainWindow.ExitCommand}">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Menu/Exit.png" Style="{StaticResource menuImage}"></Image>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="_Global">
+                <MenuItem Header="_Run all" Command="{x:Static local:MainWindow.RunAllCommand}"></MenuItem>
+                <MenuItem Header="_Stop all" Command="{x:Static local:MainWindow.StopAllCommand}"></MenuItem>
+                <Separator></Separator>
+                <MenuItem Header="R_un all (filtered)" Command="{x:Static local:MainWindow.RunAllFilteredCommand}"></MenuItem>
+                <MenuItem Header="S_top all (filtered)" Command="{x:Static local:MainWindow.StopAllFilteredCommand}"></MenuItem>
             </MenuItem>
         </Menu>
 
@@ -148,13 +186,13 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="OpenCode_OnClick"  Tag="{Binding Service}" Visibility="{Binding VisibleCode}">
+                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="OpenCode_OnClick"  Tag="{Binding Service}" Visibility="{Binding VisibleCode}" ToolTip="Edit Macroservice Source Code in Visual Studio">
                                     <Image Source="{Binding VsCodeIcon}" Style="{StaticResource gridImage}"  Width="25"/>
                                 </Button>
-                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="VsDebuggerAttach_OnClick"  Tag="{Binding Service}" Visibility="{Binding VisibleDebug}">
+                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="VsDebuggerAttach_OnClick"  Tag="{Binding Service}" Visibility="{Binding VisibleDebug}" ToolTip="Attach Macroservice Process to Current Visual Studio for Debugging">
                                     <Image Source="{Binding DebuggerIcon}" Style="{StaticResource gridImage}"  Width="25"/>
                                 </Button>
-                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="OpenExplorer_OnClick" Tag="{Binding Service}" Visibility="{Binding VisibleCode}">
+                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="OpenExplorer_OnClick" Tag="{Binding Service}" Visibility="{Binding VisibleCode}" ToolTip="Brows Folder in Windows Explorer">
                                     <Image Source="Resources/folder2.png" Style="{StaticResource gridImage}"  Width="25"/>
                                 </Button>
                             </StackPanel>
