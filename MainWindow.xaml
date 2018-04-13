@@ -1,4 +1,4 @@
-﻿<Window x:Class="MacroserviceExplorer.MainWindow"
+﻿<Window xmlns:Controls="clr-namespace:MacroserviceExplorer.Controls"  x:Class="MacroserviceExplorer.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -6,8 +6,21 @@
         xmlns:gif="http://wpfanimatedgif.codeplex.com"        
         xmlns:local="clr-namespace:MacroserviceExplorer"
         xmlns:utils="clr-namespace:MacroserviceExplorer.Utils"
-        mc:Ignorable="d"
-        Title="Olive Microservice Explorer" Height="521" Width="525" Icon="Olive.ico" Loaded="MainWindow_OnLoaded" Closed="MainWindow_OnClosed" Closing="MainWindow_OnClosing" >
+        mc:Ignorable="d" 
+        Name="window"
+        Title="Olive Microservice Explorer"         
+        Height="521" Width="525" Icon="Olive.ico" 
+        AllowsTransparency="True" WindowStyle="None"
+        WindowState="Normal" 
+        ResizeMode="CanResize"
+        Loaded="MainWindow_OnLoaded" 
+        Closed="MainWindow_OnClosed" 
+        Closing="MainWindow_OnClosing" >
+    <WindowChrome.WindowChrome>
+        <WindowChrome 
+            CaptionHeight="0"
+            ResizeBorderThickness="5" />
+    </WindowChrome.WindowChrome>
     <Window.Resources>
         <Style TargetType="Image" x:Key="gridImage">
             <Setter Property="Width" Value="20" />
@@ -29,13 +42,12 @@
         <CommandBinding Command="{x:Static local:MainWindow.RefreshCommand}" Executed="RefreshMenuItem_OnClick"></CommandBinding>
         <CommandBinding Command="{x:Static local:MainWindow.CloseCommand}" Executed="CloseMenuItem_OnClick"></CommandBinding>
         <CommandBinding Command="{x:Static local:MainWindow.ExitCommand}" Executed="ExitMenuItem_Click"></CommandBinding>
-        
+
         <CommandBinding Command="{x:Static local:MainWindow.RunAllCommand}" Executed="RunAllMenuItem_Click"></CommandBinding>
         <CommandBinding Command="{x:Static local:MainWindow.StopAllCommand}" Executed="StopAllMenuItem_Click"></CommandBinding>
         <CommandBinding Command="{x:Static local:MainWindow.RunAllFilteredCommand}" Executed="RunAllFilteredMenuItem_Click"></CommandBinding>
         <CommandBinding Command="{x:Static local:MainWindow.StopAllFilteredCommand}" Executed="StopAllFilteredMenuItem_Click"></CommandBinding>
 
-        <CommandBinding Command="{x:Static local:MainWindow.AlwaysOnTopCommand}" Executed="AlwaysOnTopMenuItem_Click"></CommandBinding>
     </Window.CommandBindings>
     <Window.InputBindings>
         <KeyBinding Key="O" Modifiers="Control" Command="Open"></KeyBinding>
@@ -45,28 +57,18 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Menu Grid.Row="0">
+        <Controls:WindowTitlebarControl x:Name="titleBar" Grid.Row="0" Title="{Binding ElementName=window,Path=Title,Mode=TwoWay}" RefreshClicked="WindowTitlebarControl_OnRefreshClicked" />
+        <Menu Grid.Row="1">
             <MenuItem Header="_File">
                 <MenuItem Header="_Open Project" Command="Open" >
                     <MenuItem.Icon>
                         <Image Source="Resources/Menu/folder.png" Style="{StaticResource menuImage}"></Image>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="_Edit Services.json ..." Command="{x:Static local:MainWindow.EditCommand}" >
-                    <MenuItem.Icon>
-                        <Image Source="Resources/Menu/Edit.png" Style="{StaticResource menuImage}"></Image>
-                    </MenuItem.Icon>
-                </MenuItem>
-                <Separator></Separator>
-                <MenuItem Header="_Refresh" Command="{x:Static local:MainWindow.RefreshCommand}" >
-                    <MenuItem.Icon>
-                        <Image Source="Resources/Menu/Refresh.png" Style="{StaticResource menuImage}"></Image>
-                    </MenuItem.Icon>
-                </MenuItem>
-                <Separator></Separator>
-                <MenuItem Header="Re_cent Files" Name="mnuRecentFiles">
+                <MenuItem Header="Re_cent projects" Name="mnuRecentFiles">
                     <MenuItem.Icon>
                         <Image Source="Resources/Menu/Recent.png" Style="{StaticResource menuImage}"></Image>
                     </MenuItem.Icon>
@@ -74,7 +76,30 @@
                 </MenuItem>
                 <Separator></Separator>
                 <MenuItem Header="This window">
-                    <MenuItem Header="Always on top" IsCheckable="True" Name="mnuAlwaysOnTop"  Command="{x:Static local:MainWindow.AlwaysOnTopCommand}">
+                    <MenuItem Header="Always on top" IsCheckable="True" Name="mnuAlwaysOnTop" Checked="MnuAlwaysOnTop_OnChecked" Unchecked="MnuAlwaysOnTop_OnChecked" IsChecked="{Binding ElementName=titleBar,Path=AlwaysOnTop,Mode=TwoWay}">
+                    </MenuItem>
+                    <MenuItem Header="Opacity" Name="OpacityMenuItem">
+                        <MenuItem Header="100%" IsCheckable="True" utils:MenuItemExtensions.GroupName="opacity" Click="WindowOpacityMenuItem_OnClick" IsChecked="True"></MenuItem>
+                        <MenuItem Header="75%"  IsCheckable="True" utils:MenuItemExtensions.GroupName="opacity" Click="WindowOpacityMenuItem_OnClick"></MenuItem>
+                        <MenuItem Header="50%"  IsCheckable="True" utils:MenuItemExtensions.GroupName="opacity" Click="WindowOpacityMenuItem_OnClick"></MenuItem>
+                        <MenuItem Header="25%"  IsCheckable="True" utils:MenuItemExtensions.GroupName="opacity" Click="WindowOpacityMenuItem_OnClick"></MenuItem>
+                        <MenuItem Name="SliderMenuItem">
+                            <MenuItem.Template>
+                                <ControlTemplate TargetType="{x:Type MenuItem}">
+                                    <Border Padding="5">
+                                        <Grid Width="200">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="35" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Slider Name="OpacitySlider" Grid.Column="1" Value="100" Maximum="100" Minimum="5" ValueChanged="OpacitySlider_OnValueChanged" IsMoveToPointEnabled="True"
+                                                    AutoToolTipPrecision="0" AutoToolTipPlacement="BottomRight"  TickFrequency="5" IsSnapToTickEnabled="True" TickPlacement="BottomRight">
+                                            </Slider>
+                                        </Grid>
+                                    </Border>
+                                </ControlTemplate>
+                            </MenuItem.Template>
+                        </MenuItem>
                     </MenuItem>
                     <MenuItem Header="_Hide" Command="{x:Static local:MainWindow.CloseCommand}">
                         <MenuItem.Icon>
@@ -113,7 +138,7 @@
             </MenuItem>
         </Menu>
 
-        <Grid Grid.Row="1" HorizontalAlignment="Stretch" >
+        <Grid Grid.Row="2" HorizontalAlignment="Stretch" >
             <StackPanel Margin="10" >
                 <TextBlock HorizontalAlignment="Left" Name="txtSolName" FontWeight="Heavy" FontSize="17">{Solution:FullName}</TextBlock>
                 <TextBlock >
@@ -127,15 +152,14 @@
             </StackPanel>
         </Grid>
 
-        <StackPanel Grid.Row="2">
+        <StackPanel Grid.Row="3">
             <TextBox Name="txtSearch" Height="30" VerticalContentAlignment="Center" TextChanged="TextBoxBase_OnTextChanged">
                 <utils:WatermarkService.Watermark>
                     <TextBlock VerticalAlignment="Center" Padding="5,3">Search ... (by Service Name or Port number)</TextBlock>
                 </utils:WatermarkService.Watermark>
-
             </TextBox>
         </StackPanel>
-        <DataGrid Name="srvGrid" Grid.Row="3" Padding="10" ItemsSource="{Binding}" SelectionMode="Single" AutoGenerateColumns="False" CanUserSortColumns="True" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#FF0D3E61" AlternationCount="2" IsReadOnly="True" VerticalContentAlignment="Center" 
+        <DataGrid Grid.Row="4" Name="srvGrid"  Padding="10" ItemsSource="{Binding}" SelectionMode="Single" AutoGenerateColumns="False" CanUserSortColumns="True" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#FF0D3E61" AlternationCount="2" IsReadOnly="True" VerticalContentAlignment="Center" 
                   SelectedItem="{Binding Path=SelectedService,
                                          RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}, 
                                          Mode=TwoWay}">
@@ -151,7 +175,7 @@
             </DataGrid.Resources>
             <DataGrid.Columns>
 
-                <DataGridTemplateColumn Header="Run" SortMemberPath="Status" >
+                <DataGridTemplateColumn Header="Status" SortMemberPath="Status" >
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button Style="{StaticResource gridButton}" Tag="{Binding Service}" PreviewMouseLeftButtonDown="StartStop_OnClick">
@@ -160,18 +184,17 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                
+
                 <DataGridTemplateColumn Header="Service" SortMemberPath="Service" Width="*" >
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <Image Style="{StaticResource gridImage}" Width="10" VerticalAlignment="Center" gif:ImageBehavior.AnimatedSource="{Binding StatusImage}" Margin="5,0,5,0" ToolTip="{Binding ServiceTooltip}"/>
                                 <TextBlock VerticalAlignment="Center" Text="{Binding Service}" Foreground="{Binding ServiceColor, Converter={StaticResource myConverter}}" FontWeight="{Binding ServiceFontWeight}" ToolTip="{Binding ServiceTooltip}"></TextBlock>
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                
+
                 <DataGridTemplateColumn Header="Port" SortMemberPath="Port">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>

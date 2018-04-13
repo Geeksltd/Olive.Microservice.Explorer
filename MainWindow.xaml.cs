@@ -717,9 +717,35 @@ namespace MacroserviceExplorer
             }
         }
 
-        void AlwaysOnTopMenuItem_Click(object sender, ExecutedRoutedEventArgs e)
+        void WindowTitlebarControl_OnRefreshClicked(object sender, EventArgs e)
+        {
+            Refresh();
+        }
+
+        void MnuAlwaysOnTop_OnChecked(object sender, RoutedEventArgs e)
         {
             Topmost = mnuAlwaysOnTop.IsChecked;
+        }
+
+        void WindowOpacityMenuItem_OnClick(object sender, RoutedEventArgs e)
+        {
+            var menuItem = (MenuItem)sender;
+
+            var template = SliderMenuItem.Template;
+            var slider = (Slider)template.FindName("OpacitySlider", SliderMenuItem);
+            slider.Value = Convert.ToInt32(menuItem.Header.ToString().TrimEnd('%'));
+        }
+
+        void OpacitySlider_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            Opacity = e.NewValue / 100d;
+            foreach (MenuItem item in OpacityMenuItem.Items)
+            {
+                if (item.Header ==null || !item.Header.ToString().EndsWith("%"))
+                    continue;
+
+                item.IsChecked = Convert.ToInt32(item.Header.ToString().TrimEnd('%')) == e.NewValue;
+            }
         }
     }
 }

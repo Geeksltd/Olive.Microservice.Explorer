@@ -4,6 +4,6 @@
              xmlns:local="clr-namespace:MacroserviceExplorer"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <FontFamily x:Key="segeo">pack://application:,,,/Resources/font/#Segoe MDL2 Assets</FontFamily>
     </Application.Resources>
 </Application>

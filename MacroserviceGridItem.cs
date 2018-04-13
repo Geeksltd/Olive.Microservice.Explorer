@@ -38,34 +38,13 @@ namespace MacroserviceExplorer
             set
             {
                 _status = value;
-                OnPropertyChanged(nameof(Status));
-                OnPropertyChanged(nameof(StatusImage));
+                OnPropertyChanged(nameof(Status));                
                 OnPropertyChanged(nameof(RunImage));
                 OnPropertyChanged(nameof(RunImageOpacity));
                 OnPropertyChanged(nameof(ServiceColor));
                 OnPropertyChanged(nameof(ServiceFontWeight));
                 OnPropertyChanged(nameof(ServiceTooltip));
                 OnPropertyChanged(nameof(VisibleDebug));
-            }
-        }
-
-        public string StatusImage
-        {
-            get
-            {
-                switch (Status)
-                {
-                    case 1:
-                        return "Resources/Gray.png";
-                    case 2:
-                        return "Resources/Red.png";
-                    case 3:
-                        return "Resources/Green.png";
-                    case 4:
-                        return "Resources/loading.gif";
-                    default:
-                        return "";
-                }
             }
         }
 

@@ -68,14 +68,23 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Controls\WindowTitlebarControl.xaml.cs">
+      <DependentUpon>WindowTitlebarControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="TCPIP\ManagedIpHandlerApi.cs" />
     <Compile Include="TCPIP\PInvokeIPHelperAPI.cs" />
+    <Compile Include="Utils\MenuItemExtensions.cs" />
+    <Compile Include="Utils\extentions.cs" />
     <Compile Include="Utils\ForegroundColorConverter.cs" />
     <Compile Include="Utils\Helper.cs" />
     <Compile Include="Utils\MyEnumWindows.cs" />
     <Compile Include="Utils\WatermarkAdorner.cs" />
     <Compile Include="Utils\WatermarkService.cs" />
     <Compile Include="Utils\WindowApi.cs" />
+    <Page Include="Controls\WindowTitlebarControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -113,6 +122,7 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <Resource Include="Resources\font\segoe-mdl2-assets.ttf" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
@@ -176,6 +186,9 @@
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>11.0.2</Version>
+    </PackageReference>
+    <PackageReference Include="ToggleSwitch">
+      <Version>1.1.2</Version>
     </PackageReference>
     <PackageReference Include="WpfAnimatedGif">
       <Version>1.4.15</Version>
