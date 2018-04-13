@@ -17,6 +17,7 @@ using EnvDTE80;
 using MacroserviceExplorer.TCPIP;
 using MacroserviceExplorer.Utils;
 using MSharp.Framework.UI.Controls;
+using NuGet;
 using Button = System.Windows.Controls.Button;
 using ContextMenu = System.Windows.Controls.ContextMenu;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
@@ -38,6 +39,7 @@ namespace MacroserviceExplorer
         bool exit;
         public Visibility FileOpened { get; set; }
         public MacroserviceGridItem SelectedService { get; set; }
+        
         #region Commands
 
         public static readonly RoutedCommand EditCommand = new RoutedUICommand("Edit", "EditCommand", typeof(MainWindow), new InputGestureCollection(new InputGesture[]
@@ -273,6 +275,8 @@ namespace MacroserviceExplorer
         {
             servicesJsonFile = new FileInfo(filePath);
 
+            var random = new Random(10);
+
             if (!servicesJsonFile.Exists)
             {
                 var result = MessageBox.Show($"file : {servicesJsonFile.FullName} \ndoes not exist anymore. \nDo you want to removed it from recent files list?", "File Not Found", System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question);
@@ -341,7 +345,7 @@ namespace MacroserviceExplorer
 
                     var gitUpdates = GetGitUpdates(projFolder);
 
-
+                    
 
                     srv.Status = status;
                     srv.Service = serviceName;
@@ -350,7 +354,8 @@ namespace MacroserviceExplorer
                     srv.UatUrl = uatUrl;
                     srv.ProcId = procId;
                     srv.WebsiteFolder = websiteFolder;
-
+                    srv.NugetUpdates = random.Next(50);
+                    int i = GetNugetUpdates(projFolder);
                     srv.VsDTE = GetVSDTE(srv);
                 }
 
@@ -366,6 +371,19 @@ namespace MacroserviceExplorer
                 StartFileSystemWatcher(servicesJsonFile);
 
             return true;
+        }
+
+        int GetNugetUpdates(string projFolder)
+        {
+            var repo = PackageRepositoryFactory.Default.CreateRepository("https://packages.nuget.org/api/v3");
+            string path = "";
+            PackageManager packageManager = new PackageManager(repo, path);
+            var packages = repo.GetPackages().ToList();
+            foreach (var package in packages)
+            {
+                
+            }
+            return 0;
         }
 
         void FilterListBy(string txtSearchText)
@@ -658,6 +676,7 @@ namespace MacroserviceExplorer
         void TextBoxBase_OnTextChanged(object sender, TextChangedEventArgs e)
         {
             FilterListBy(txtSearch.Text);
+            
         }
 
         void VsDebuggerAttach_OnClick(object sender, MouseButtonEventArgs e)

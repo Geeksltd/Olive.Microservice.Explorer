@@ -182,5 +182,7 @@ namespace MacroserviceExplorer
                 return null;
             }
         }
+
+        public int NugetUpdates { get; set; }
     }
 }

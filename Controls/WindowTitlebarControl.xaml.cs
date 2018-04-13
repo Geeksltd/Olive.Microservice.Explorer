@@ -59,8 +59,7 @@ namespace MacroserviceExplorer.Controls
             set => SetValue(AlwaysOnTopProperty, value);
         }
 
-        static void OnAlwaysOnTopChanged(DependencyObject d,
-            DependencyPropertyChangedEventArgs e)
+        static void OnAlwaysOnTopChanged(DependencyObject d,DependencyPropertyChangedEventArgs e)
         {
             var alwaysOnTopbarControl = (WindowTitlebarControl)d;
             alwaysOnTopbarControl.OnAlwaysOnTopChanged(e);
