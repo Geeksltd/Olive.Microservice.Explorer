@@ -375,14 +375,14 @@ namespace MacroserviceExplorer
 
         int GetNugetUpdates(string projFolder)
         {
-            var repo = PackageRepositoryFactory.Default.CreateRepository("https://packages.nuget.org/api/v3");
-            string path = "";
-            PackageManager packageManager = new PackageManager(repo, path);
-            var packages = repo.GetPackages().ToList();
-            foreach (var package in packages)
-            {
+            //var repo = PackageRepositoryFactory.Default.CreateRepository("https://packages.nuget.org/api/v3");
+            //string path = "";
+            //PackageManager packageManager = new PackageManager(repo, path);
+            //var packages = repo.GetPackages().ToList();
+            //foreach (var package in packages)
+            //{
                 
-            }
+            //}
             return 0;
         }
 
