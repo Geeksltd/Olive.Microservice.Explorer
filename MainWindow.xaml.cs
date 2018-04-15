@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 //using System.Windows.Forms;
@@ -39,7 +40,7 @@ namespace MacroserviceExplorer
         bool exit;
         public Visibility FileOpened { get; set; }
         public MacroserviceGridItem SelectedService { get; set; }
-        
+
         #region Commands
 
         public static readonly RoutedCommand EditCommand = new RoutedUICommand("Edit", "EditCommand", typeof(MainWindow), new InputGestureCollection(new InputGesture[]
@@ -116,7 +117,7 @@ namespace MacroserviceExplorer
         readonly DispatcherTimer autoRefreshTimer = new DispatcherTimer();
         void StartAutoRefresh()
         {
-            autoRefreshTimer.Tick += (sender, args) =>
+            autoRefreshTimer.Tick += async (sender, args) =>
             {
                 var gridHasFocused = srvGrid.IsFocused;
 
@@ -124,17 +125,17 @@ namespace MacroserviceExplorer
                 if (SelectedService != null)
                     selItem = SelectedService;
 
-                Refresh();
+                await Refresh();
                 foreach (var service in MacroserviceGridItems)
                 {
                     if (service.WebsiteFolder.IsEmpty() || service.Port.IsEmpty()) continue;
 
-                    service.ProcId = getListeningPortProcessId(Convert.ToInt32(service.Port));
+                    service.ProcId = GetListeningPortProcessId(service.Port.To<int>());
                     service.Status = service.ProcId < 0 ? 2 : 3;
                 }
                 srvGrid.SelectedItem = selItem;
 
-                if(gridHasFocused)
+                if (gridHasFocused)
                     srvGrid.Focus();
 
 
@@ -234,7 +235,7 @@ namespace MacroserviceExplorer
             }
         }
 
-        void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
+        async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
         {
             if (!File.Exists(RecentsXml))
                 return;
@@ -242,7 +243,7 @@ namespace MacroserviceExplorer
             ReloadRecentFiles();
             while (_recentFiles.Count > 0)
             {
-                if (LoadFile(_recentFiles[_recentFiles.Count - 1]))
+                if (await LoadFile(_recentFiles[_recentFiles.Count - 1]))
                     break;
             }
         }
@@ -265,13 +266,13 @@ namespace MacroserviceExplorer
             mnuRecentFiles.Items.Add(menuItem);
         }
 
-        void RecentMenuItem_Click(object sender, RoutedEventArgs e)
+        async void RecentMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            LoadFile(((System.Windows.Controls.MenuItem)e.Source).Header.ToString());
+            await LoadFile(((System.Windows.Controls.MenuItem)e.Source).Header.ToString());
         }
 
         FileInfo servicesJsonFile;
-        bool LoadFile(string filePath)
+        async Task<bool> LoadFile(string filePath)
         {
             servicesJsonFile = new FileInfo(filePath);
 
@@ -338,14 +339,12 @@ namespace MacroserviceExplorer
                                 portNumer += port[pos++];
                             port = portNumer;
                         }
-                        procId = getListeningPortProcessId(Convert.ToInt32(port));
+                        procId = GetListeningPortProcessId(port.To<int>());
                         if (procId > 0)
                             status = 3;
                     }
 
-                    var gitUpdates = GetGitUpdates(projFolder);
-
-                    
+                    var gitUpdates = await GetGitUpdates(projFolder);
 
                     srv.Status = status;
                     srv.Service = serviceName;
@@ -355,7 +354,7 @@ namespace MacroserviceExplorer
                     srv.ProcId = procId;
                     srv.WebsiteFolder = websiteFolder;
                     srv.NugetUpdates = random.Next(50);
-                    int i = GetNugetUpdates(projFolder);
+                    var i = GetNugetUpdates(projFolder);
                     srv.VsDTE = GetVSDTE(srv);
                 }
 
@@ -381,7 +380,7 @@ namespace MacroserviceExplorer
             //var packages = repo.GetPackages().ToList();
             //foreach (var package in packages)
             //{
-                
+
             //}
             return 0;
         }
@@ -399,30 +398,23 @@ namespace MacroserviceExplorer
 
         }
 
-        int GetGitUpdates(string projFolder)
+        async Task<int> GetGitUpdates(string projFolder)
         {
             if (!Directory.Exists(Path.Combine(projFolder, ".git")))
             {
                 return -1;
             }
 
-
-            var process = new Process
+            string run()
             {
-                StartInfo =
-                {
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    WorkingDirectory = projFolder,
-                    FileName = "git",
-                    Arguments = "rev-list --count --all"
-                }
-            };
-            process.Start();
-            var output = process.StandardOutput.ReadToEnd();
-            process.WaitForExit();
+                return "git.exe".AsFile(searchEnvironmentPath: true)
+                    .Execute("rev-list --count --all", waitForExit: true,
+                                     configuration: x => x.StartInfo.WorkingDirectory = projFolder);
+            }
 
-            return Convert.ToInt32(output);
+            var output = await Task.Run((Func<string>)run);
+
+            return output.To<int>();
         }
 
         FileSystemWatcher watcher = null;
@@ -461,7 +453,7 @@ namespace MacroserviceExplorer
                 case WatcherChangeTypes.Deleted:
                     break;
                 case WatcherChangeTypes.Changed:
-                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(Refresh));
+                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(async () => await Refresh()));
                     break;
                 case WatcherChangeTypes.Renamed:
                     break;
@@ -472,14 +464,14 @@ namespace MacroserviceExplorer
             }
         }
 
-        int getListeningPortProcessId(int port)
+        int GetListeningPortProcessId(int port)
         {
-            var tcpRow = ManagedIpHelper.GetExtendedTcpTable(sorted: true).FirstOrDefault(tcprow => tcprow.LocalEndPoint.Port == port);
-            if (tcpRow == null || Process.GetProcessById(tcpRow.ProcessId).ProcessName.ToLower() != "dotnet")
-                return -1;
+            var tcpRow = ManagedIpHelper.GetExtendedTcpTable(sorted: true)
+                .FirstOrDefault(tcprow => tcprow.LocalEndPoint.Port == port);
 
+            if (tcpRow == null) return -1;
+            if (Process.GetProcessById(tcpRow.ProcessId).ProcessName.ToLower() != "dotnet") return -1;
             return tcpRow.ProcessId;
-
         }
 
         void MainWindow_OnClosed(object sender, EventArgs e)
@@ -524,7 +516,7 @@ namespace MacroserviceExplorer
             var process = Process.GetProcessById(service.ProcId);
             process.Kill();
             Thread.Sleep(300);
-            service.ProcId = getListeningPortProcessId(Convert.ToInt32(service.Port));
+            service.ProcId = GetListeningPortProcessId(service.Port.To<int>());
             if (service.ProcId < 0)
                 service.Status = 2;
         }
@@ -547,21 +539,20 @@ namespace MacroserviceExplorer
             proc.Start();
 
             var dispatcherTimer = new DispatcherTimer { Tag = service };
-            dispatcherTimer.Tick += dispatcherTimer_Tick;
+            dispatcherTimer.Tick += DispatcherTimer_Tick;
             dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
             dispatcherTimer.Start();
         }
 
-        void dispatcherTimer_Tick(object sender, EventArgs e)
+        void DispatcherTimer_Tick(object sender, EventArgs e)
         {
             var timer = (DispatcherTimer)sender;
             var service = (MacroserviceGridItem)timer.Tag;
-            service.ProcId = getListeningPortProcessId(Convert.ToInt32(service.Port));
-            if (service.ProcId < 0)
-                return;
+            service.ProcId = GetListeningPortProcessId(service.Port.To<int>());
+            if (service.ProcId < 0) return;
 
             timer.Stop();
-            timer.Tick -= dispatcherTimer_Tick;
+            timer.Tick -= DispatcherTimer_Tick;
             service.Status = 3;
             autoRefreshTimer.Start();
         }
@@ -595,7 +586,7 @@ namespace MacroserviceExplorer
             {
                 return null;
             }
-            
+
         }
 
         void OpenCode_OnClick(object sender, MouseButtonEventArgs e)
@@ -605,7 +596,7 @@ namespace MacroserviceExplorer
             var serviceName = btn.Tag.ToString();
             var service = MacroserviceGridItems.Single(s => s.Service == serviceName);
             var solutionFile = GetServiceSolutionFilePath(service);
-            OpenVs(service , solutionFile);
+            OpenVs(service, solutionFile);
         }
 
         static FileInfo GetServiceSolutionFilePath(MacroserviceGridItem service)
@@ -613,7 +604,7 @@ namespace MacroserviceExplorer
             return !Directory.Exists(service.WebsiteFolder) ? null : service.WebsiteFolder.AsDirectory().Parent?.GetFiles("*.sln").FirstOrDefault();
         }
 
-        void OpenProject_Executed(object sender, ExecutedRoutedEventArgs e)
+        async void OpenProject_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             var openFileDialog = new System.Windows.Forms.OpenFileDialog()
             {
@@ -639,13 +630,13 @@ namespace MacroserviceExplorer
                 SaveRecentFilesXml();
             }
 
-            LoadFile(openFileDialog.FileName);
+            await LoadFile(openFileDialog.FileName);
         }
 
-        void Refresh()
+        async Task Refresh()
         {
             if (servicesJsonFile != null)
-                LoadFile(servicesJsonFile.FullName);
+                await LoadFile(servicesJsonFile.FullName);
         }
 
         void EditProject_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -659,9 +650,9 @@ namespace MacroserviceExplorer
             Close();
         }
 
-        void RefreshMenuItem_OnClick(object sender, ExecutedRoutedEventArgs e)
+        async void RefreshMenuItem_OnClick(object sender, ExecutedRoutedEventArgs e)
         {
-            Refresh();
+            await Refresh();
         }
 
         void OpenExplorer_OnClick(object sender, MouseButtonEventArgs e)
@@ -676,7 +667,7 @@ namespace MacroserviceExplorer
         void TextBoxBase_OnTextChanged(object sender, TextChangedEventArgs e)
         {
             FilterListBy(txtSearch.Text);
-            
+
         }
 
         void VsDebuggerAttach_OnClick(object sender, MouseButtonEventArgs e)
@@ -699,8 +690,8 @@ namespace MacroserviceExplorer
             OpenVs(service, GetServiceSolutionFilePath(service));
             process.Attach();
 
-            
-            
+
+
         }
 
         void RunAllMenuItem_Click(object sender, ExecutedRoutedEventArgs e)
@@ -736,9 +727,9 @@ namespace MacroserviceExplorer
             }
         }
 
-        void WindowTitlebarControl_OnRefreshClicked(object sender, EventArgs e)
+        async void WindowTitlebarControl_OnRefreshClicked(object sender, EventArgs e)
         {
-            Refresh();
+            await Refresh();
         }
 
         void MnuAlwaysOnTop_OnChecked(object sender, RoutedEventArgs e)
@@ -752,7 +743,7 @@ namespace MacroserviceExplorer
 
             var template = SliderMenuItem.Template;
             var slider = (Slider)template.FindName("OpacitySlider", SliderMenuItem);
-            slider.Value = Convert.ToInt32(menuItem.Header.ToString().TrimEnd('%'));
+            slider.Value = menuItem.Header.ToString().TrimEnd('%').To<int>();
         }
 
         void OpacitySlider_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -760,11 +751,41 @@ namespace MacroserviceExplorer
             Opacity = e.NewValue / 100d;
             foreach (MenuItem item in OpacityMenuItem.Items)
             {
-                if (item.Header ==null || !item.Header.ToString().EndsWith("%"))
+                if (item.Header == null || !item.Header.ToString().EndsWith("%"))
                     continue;
 
-                item.IsChecked = Convert.ToInt32(item.Header.ToString().TrimEnd('%')) == e.NewValue;
+                item.IsChecked = item.Header.ToString().TrimEnd('%').To<int>() == e.NewValue;
             }
+        }
+    }
+}
+
+namespace System
+{
+    public static class TempExtDeleteMeAfterNugetUpdate
+    {
+        /// <summary>
+        /// It will search in all environment PATH directories, as well as the current directory, to find this file.
+        /// For example for 'git.exe' it will return `C:\Program Files\Git\bin\git.exe`.
+        /// </summary>
+        public static FileInfo AsFile(this string exe, bool searchEnvironmentPath)
+        {
+            if (!searchEnvironmentPath) return exe.AsFile();
+
+            var result = Environment.ExpandEnvironmentVariables(exe).AsFile();
+            if (result.Exists()) return result;
+
+            if (Path.GetDirectoryName(exe).IsEmpty())
+            {
+                var environmentFolders = Environment.GetEnvironmentVariable("PATH").OrEmpty().Split(';').Trim();
+                foreach (var test in environmentFolders)
+                {
+                    result = Path.Combine(test, exe).AsFile();
+                    if (result.Exists()) return result;
+                }
+            }
+
+            throw new FileNotFoundException(new FileNotFoundException().Message, exe);
         }
     }
 }
