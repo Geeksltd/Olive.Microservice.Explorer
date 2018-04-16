@@ -374,10 +374,13 @@ namespace MacroserviceExplorer
                                 portNumer += port[pos++];
                             port = portNumer;
                         }
+
                         procId = getListeningPortProcessId(port.To<int>());
                         if (procId > 0)
                             status = MacroserviceGridItem.enumStatus.Run;
                     }
+                    else
+                        websiteFolder = null;
 
 
 
@@ -388,10 +391,17 @@ namespace MacroserviceExplorer
                     srv.UatUrl = uatUrl;
                     srv.ProcId = procId;
                     srv.WebsiteFolder = websiteFolder;
-                    srv.NugetUpdates = random.Next(50);
+                    if (srv.WebsiteFolder.HasValue())
+                    {
+                        //var i = GetNugetUpdates(projFolder);
+                        var gitUpdates = await GetGitUpdates(srv);
 
-                    //var i = GetNugetUpdates(projFolder);
-                    //var gitUpdates = await GetGitUpdates(projFolder);
+                        srv.NugetUpdates = random.Next(10);
+                        srv.GitUpdates = gitUpdates.ToString();
+                    }
+
+
+
 
                     srv.VsDTE = GetVSDTE(srv);
                 }
@@ -457,19 +467,22 @@ namespace MacroserviceExplorer
 
 
                 srv.ProcId = getListeningPortProcessId(srv.Port.To<int>());
-                if (srv.ProcId > 0)
-                    srv.Status = MacroserviceGridItem.enumStatus.Run;
-                else if (srv.WebsiteFolder.HasValue())
-                    srv.Status = MacroserviceGridItem.enumStatus.Stop;
+
+                if (srv.WebsiteFolder.HasValue())
+                {
+                    srv.Status = srv.ProcId > 0 ? MacroserviceGridItem.enumStatus.Run : MacroserviceGridItem.enumStatus.Stop;
+
+                    //var nugetUpdates = GetNugetUpdates(projFolder);
+                    var gitUpdates = await GetGitUpdates(srv);
+
+                    srv.NugetUpdates = random.Next(10);
+                    srv.GitUpdates = gitUpdates.ToString();
+                    srv.VsDTE = GetVSDTE(srv);
+
+                }
                 else
                     srv.Status = MacroserviceGridItem.enumStatus.NoSourcerLocally;
 
-                srv.NugetUpdates = random.Next(50);
-
-                //var i = GetNugetUpdates(projFolder);
-                //var gitUpdates = await GetGitUpdates(projFolder);
-
-                srv.VsDTE = GetVSDTE(srv);
             }
 
             return true;
@@ -501,23 +514,48 @@ namespace MacroserviceExplorer
 
         }
 
-        async Task<int> GetGitUpdates(string projFolder)
+        async Task<int> GetGitUpdates(MacroserviceGridItem server)
         {
-            if (!Directory.Exists(Path.Combine(projFolder, ".git")))
+            if (server.WebsiteFolder.IsEmpty()) return 0;
+
+            var projFOlder = server.WebsiteFolder.AsDirectory().Parent;
+            if (projFOlder == null || !Directory.Exists(Path.Combine(projFOlder.FullName, ".git")))
             {
-                return -1;
+                return 0;
             }
 
             string run()
             {
                 return "git.exe".AsFile(searchEnvironmentPath: true)
                     .Execute("rev-list --count --all", waitForExit: true,
-                                     configuration: x => x.StartInfo.WorkingDirectory = projFolder);
+                                     configuration: x => x.StartInfo.WorkingDirectory = projFOlder.FullName);
             }
 
             var output = await Task.Run((Func<string>)run);
 
             return output.To<int>();
+        }
+
+        async Task GitUpdate(MacroserviceGridItem server)
+        {
+            var projFOlder = server.WebsiteFolder.AsDirectory().Parent;
+            string run()
+            {
+                try
+                {
+                    return "git.exe".AsFile(searchEnvironmentPath: true)
+                        .Execute("pull -q --no-commit", waitForExit: true,
+                            configuration: x => x.StartInfo.WorkingDirectory = projFOlder.FullName);
+                }
+                catch (Exception e)
+                {
+                    return e.Message;
+                }
+                
+            }
+            var output = await Task.Run((Func<string>)run);
+            if(output.HasValue())
+                MessageBox.Show(output);
         }
 
         FileSystemWatcher watcher;
@@ -867,6 +905,15 @@ namespace MacroserviceExplorer
 
                 item.IsChecked = Math.Abs(item.Header.ToString().TrimEnd('%').To<int>() - e.NewValue) < .0001;
             }
+        }
+
+        async void GitUpdate_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            e.Handled = true;
+            var btn = (Button)sender;
+            var serviceName = btn.Tag.ToString();
+            var service = MacroserviceGridItems.Single(s => s.Service == serviceName);
+            await GitUpdate(service);
         }
     }
 }

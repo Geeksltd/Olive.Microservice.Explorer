@@ -30,11 +30,14 @@
             <Setter Property="Width" Value="20" />
             <Setter Property="RenderOptions.BitmapScalingMode" Value="Fant"></Setter>
         </Style>
+
         <Style TargetType="Button" x:Key="gridButton">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
         </Style>
+
         <local:ForegroundColorConverter x:Key="myConverter"></local:ForegroundColorConverter>
+        <local:NullVisibilityConverter x:Key="nullVisibilityConverter"></local:NullVisibilityConverter>
     </Window.Resources>
     <Window.CommandBindings>
         <CommandBinding Command="Open" Executed="OpenProject_Executed"></CommandBinding>
@@ -225,10 +228,16 @@
                 <DataGridTemplateColumn Header="Git">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <StackPanel>
-                                <TextBlock Text="{Binding GitId}"></TextBlock>
-                                <Image Source="{Binding DownArrowImage}" Style="{StaticResource gridImage}" />
-                            </StackPanel>
+                            <Button PreviewMouseLeftButtonDown="GitUpdate_OnPreviewMouseLeftButtonDown" Style="{StaticResource gridButton}" Tag="{Binding Service}" Visibility="{Binding GitUpdates,Converter={StaticResource nullVisibilityConverter}}" >
+                                <Button.Content>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding GitUpdates}" VerticalAlignment="Center" Margin="7,0,0,0" HorizontalAlignment="Center"></TextBlock>
+                                        <Image Source="{Binding GitUpdateImage}" VerticalAlignment="Center" Margin="7,0,0,0" Style="{StaticResource gridImage}" />
+                                    </StackPanel>
+                                </Button.Content>
+
+                            </Button>
+
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

@@ -78,6 +78,7 @@
     <Compile Include="Utils\ForegroundColorConverter.cs" />
     <Compile Include="Utils\Helper.cs" />
     <Compile Include="Utils\MyEnumWindows.cs" />
+    <Compile Include="Utils\NullVisibilityConverter.cs" />
     <Compile Include="Utils\WatermarkAdorner.cs" />
     <Compile Include="Utils\WatermarkService.cs" />
     <Compile Include="Utils\WindowApi.cs" />
@@ -234,6 +235,9 @@
   <ItemGroup>
     <Resource Include="Resources\Menu\RunAllFiltered.png" />
     <Resource Include="Resources\Menu\StopAllFiltered.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\git.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

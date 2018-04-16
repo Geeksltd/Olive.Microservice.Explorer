@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using EnvDTE;
@@ -100,7 +101,7 @@ namespace MacroserviceExplorer
         public string LiveUrl { get; set; }
         public string UatUrl { get; set; }
 
-        public string RunImage
+        public object RunImage
         {
             get
             {
@@ -113,7 +114,7 @@ namespace MacroserviceExplorer
                     case enumStatus.Pending:
                         return "Resources/gears.gif";
                     default:
-                        return "";
+                        return null;
                 }
 
             }
@@ -151,18 +152,20 @@ namespace MacroserviceExplorer
             }
         }
 
-        public string PortIcon => int.TryParse(Port, out var _) ? null : "Resources/Warning.png";
+        public object PortIcon => int.TryParse(Port, out var _) ? null : "Resources/Warning.png";
 
-        public string PortTooltip => !string.IsNullOrEmpty(PortIcon) ? $"launchsettings.json File Not Found in this location :\n{WebsiteFolder}\\Properties\\launchSettings.json" : null;
+        public string PortTooltip => PortIcon != null ? $"launchsettings.json File Not Found in this location :\n{WebsiteFolder}\\Properties\\launchSettings.json" : null;
 
         public Visibility VisibleCode => string.IsNullOrEmpty(PortTooltip) ? Visibility.Visible : Visibility.Hidden;
 
-        public string VsCodeIcon => VsDTE == null ? "Resources/VS.png" : "Resources/VS2.png";
+        public object VsCodeIcon => VsDTE == null ? "Resources/VS.png" : "Resources/VS2.png";
 
         public object Tag { get; set; }
 
         DTE2 _vsDTE;
         private int _nugetUpdates;
+        private string _gitUpdates;
+        private object _gitUpdateImage;
 
         public DTE2 VsDTE
         {
@@ -178,7 +181,7 @@ namespace MacroserviceExplorer
 
         public Visibility VisibleDebug => VsDTE == null || ProcId <= 0 ? Visibility.Collapsed : Visibility.Visible;
 
-        public string DebuggerIcon
+        public object DebuggerIcon
         {
             get
             {
@@ -201,5 +204,21 @@ namespace MacroserviceExplorer
                 OnPropertyChanged(nameof(NugetUpdates));
             }
         }
+
+        public string GitUpdates
+        {
+            get => _gitUpdates;
+            set
+            {
+                _gitUpdates = value;
+                if (_gitUpdates == "0")
+                    _gitUpdates = null;
+
+                OnPropertyChanged(nameof(GitUpdates));
+                OnPropertyChanged(nameof(GitUpdateImage));
+            }
+        }
+
+        public object GitUpdateImage => GitUpdates.HasValue()  ? "Resources/git.png" : null;
     }
 }
