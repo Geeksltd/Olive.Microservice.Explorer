@@ -75,9 +75,10 @@ namespace MacroserviceExplorer.Controls
 
         void UIElement_OnMouseDown(object sender, MouseButtonEventArgs e)
         {
-            Application.Current.MainWindow?.DragMove();
             if (e.ClickCount == 2)
                 Maximize_OnClick(sender, e);
+            else
+                Application.Current.MainWindow?.DragMove();
         }
 
         void Close_OnClick(object sender, RoutedEventArgs e)

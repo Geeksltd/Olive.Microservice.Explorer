@@ -32,11 +32,21 @@ namespace MacroserviceExplorer
         void LogWindow_OnClosing(object sender, CancelEventArgs e)
         {
             Hide();
+            e.Cancel = true;
         }
 
         public void LogMessage(string logtext)
         {
             Context.TextLog += Environment.NewLine + logtext;
+        }
+
+        public void SetYourPosBy(MainWindow mainWindow)
+        {
+            var border = 7;
+            Top = mainWindow.Top;
+            Height = mainWindow.Height + border;
+            Left = mainWindow.Left + mainWindow.Width - border;
+
         }
     }
 

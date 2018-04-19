@@ -15,7 +15,7 @@
         ResizeMode="CanResize"
         Loaded="MainWindow_OnLoaded" 
         Closed="MainWindow_OnClosed" 
-        Closing="MainWindow_OnClosing" >
+        Closing="MainWindow_OnClosing" LocationChanged="MainWindow_OnLocationChanged" >
     <WindowChrome.WindowChrome>
         <WindowChrome 
             CaptionHeight="0"

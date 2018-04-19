@@ -107,6 +107,8 @@ namespace MacroserviceExplorer
 
 
             InitializeComponent();
+                logWindow = new LogWindow();
+            this.Focus();
             DataContext = MacroserviceGridItems;
             StartAutoRefresh();
         }
@@ -233,7 +235,7 @@ namespace MacroserviceExplorer
             }
         }
 
-        readonly LogWindow logWindow = new LogWindow();
+        readonly LogWindow logWindow;
 
         async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
         {
@@ -246,6 +248,8 @@ namespace MacroserviceExplorer
             }
 
             ReloadRecentFiles();
+            //logWindow.ShowInTaskbar = false;
+            //logWindow.Hide();
             while (_recentFiles.Count > 0)
             {
                 if (await LoadFile(_recentFiles[_recentFiles.Count - 1]))
@@ -263,6 +267,7 @@ namespace MacroserviceExplorer
         void OpenLogWindowMenuItem_OnClick(object sender, RoutedEventArgs e)
         {
             logWindow.Show();
+            logWindow.SetYourPosBy(this);
         }
 
         void ReloadRecentFiles()
@@ -988,6 +993,11 @@ namespace MacroserviceExplorer
             await GitUpdate(service);
         }
 
+        void MainWindow_OnLocationChanged(object sender, EventArgs e)
+        {
+            if(logWindow.IsVisible)
+                logWindow.SetYourPosBy(this);
+        }
     }
 }
 
