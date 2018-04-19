@@ -209,14 +209,25 @@ namespace MacroserviceExplorer
                 {
                     if (args.PropertyName != nameof(service.Status) || service.Status != MacroserviceGridItem.enumStatus.Run) return;
                     service.PropertyChanged -= OnServiceOnPropertyChanged;
-                    Process.Start(address);
+                    Launch(address);
                 }
 
                 service.PropertyChanged += OnServiceOnPropertyChanged;
                 StartService(service);
             }
-            else
-                Process.Start(address);
+            else Launch(address);
+        }
+
+        static void Launch(string url)
+        {
+            try
+            {
+                Process.Start("cmd", "/C start" + " " + url);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         List<string> _recentFiles = new List<string>();
@@ -442,7 +453,7 @@ namespace MacroserviceExplorer
                 return await LoadFile(filePath);
             }
 
-            foreach (var srv in serviceData)
+            foreach (var srv in serviceData.ToArray())
             {
                 var projFolder = Path.Combine(servicesJsonFile.Directory?.Parent?.FullName ?? "", srv.Service);
                 var websiteFolder = Path.Combine(projFolder, "website");
@@ -551,14 +562,14 @@ namespace MacroserviceExplorer
                         {
                             Include = x.Include,
                             Version = x.Version,
-                            IsLatestVersion = null                            
+                            IsLatestVersion = null
                         }).ToList();
                 }
         }
 
         async void GetLatesVersion(MacroserviceGridItem service)
         {
-            
+
             var repo = PackageRepositoryFactory.Default.CreateRepository("https://packages.nuget.org/api/v2");
 
             foreach (MacroserviceGridItem.enumProjects proj in Enum.GetValues(typeof(MacroserviceGridItem.enumProjects)))
@@ -582,8 +593,7 @@ namespace MacroserviceExplorer
                 return;
             }
 
-            MacroserviceGridItems.AddRange(serviceData.Where(x => x.Service.ToLower().Contains(txtSearchText.ToLower()) || x.Port.Contains(txtSearchText)));
-
+            MacroserviceGridItems.AddRange(serviceData.Where(x => x.Service.ToLower().Contains(txtSearchText.ToLower()) || x.Port.OrEmpty().Contains(txtSearchText)));
         }
 
         async Task<int> GetGitUpdates(MacroserviceGridItem server)
