@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using EnvDTE;
 using EnvDTE80;
 using MacroserviceExplorer.Annotations;
+using MacroserviceExplorer.Classes.web;
 using Process = System.Diagnostics.Process;
 
 namespace MacroserviceExplorer
@@ -151,6 +153,7 @@ namespace MacroserviceExplorer
                 OnPropertyChanged(nameof(VisibleCode));
             }
         }
+        public string SolutionFolder { get; set; }
 
         public object PortIcon => int.TryParse(Port, out var _) ? null : "Resources/Warning.png";
 
@@ -219,6 +222,35 @@ namespace MacroserviceExplorer
             }
         }
 
-        public object GitUpdateImage => GitUpdates.HasValue()  ? "Resources/git.png" : null;
+        public object GitUpdateImage => GitUpdates.HasValue() ? "Resources/git.png" : null;
+
+        public enum enumProjects
+        {
+            Website,
+            Domain,
+            Model,
+            UI
+        }
+
+
+        public Dictionary<enumProjects, ProjectRef> Projects => new Dictionary<enumProjects, ProjectRef>()
+        {
+            { enumProjects.Website , new ProjectRef()},
+            { enumProjects.Domain , new ProjectRef()},
+            { enumProjects.Model , new ProjectRef()},
+            { enumProjects.UI , new ProjectRef()},
+        };
+    }
+
+    public class ProjectRef
+    {
+        public List<NugetRef> NugetRefs => new List<NugetRef>();
+        public List<NugetRef> PackageReferences { get; set; }
+    }
+
+    public class NugetRef : ProjectItemGroupPackageReference
+    {
+        public string NewVersion { get; set; }
+        public bool? IsLatestVersion { get; set; }
     }
 }

@@ -144,6 +144,9 @@
                 <MenuItem Header="Update All"></MenuItem>
                 <MenuItem Header="Auto Update" IsCheckable="True"></MenuItem>
             </MenuItem>
+            <MenuItem Header="Logs">
+                <MenuItem Header="Open log window" Click="OpenLogWindowMenuItem_OnClick"></MenuItem>
+            </MenuItem>
         </Menu>
 
         <Grid Grid.Row="2" HorizontalAlignment="Stretch" >

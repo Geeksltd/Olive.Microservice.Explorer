@@ -14,8 +14,10 @@ using System.Xml;
 using System.Xml.Serialization;
 using EnvDTE;
 using EnvDTE80;
+using MacroserviceExplorer.Classes.web;
 using MacroserviceExplorer.TCPIP;
 using MacroserviceExplorer.Utils;
+using NuGet;
 using Button = System.Windows.Controls.Button;
 using ContextMenu = System.Windows.Controls.ContextMenu;
 using MessageBox = System.Windows.Forms.MessageBox;
@@ -231,6 +233,8 @@ namespace MacroserviceExplorer
             }
         }
 
+        readonly LogWindow logWindow = new LogWindow();
+
         async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
         {
             if (!File.Exists(RecentsXml))
@@ -248,11 +252,17 @@ namespace MacroserviceExplorer
                     break;
             }
 
-            if (!projextLoaded)
-            {
-                File.Delete(RecentsXml);
-                MainWindow_OnLoaded(sender, e);
-            }
+            if (projextLoaded) return;
+
+            File.Delete(RecentsXml);
+            MainWindow_OnLoaded(sender, e);
+
+        }
+
+
+        void OpenLogWindowMenuItem_OnClick(object sender, RoutedEventArgs e)
+        {
+            logWindow.Show();
         }
 
         void ReloadRecentFiles()
@@ -271,7 +281,7 @@ namespace MacroserviceExplorer
         {
             var menuItem = new MenuItem { Header = recentFile };
             menuItem.Click += RecentMenuItem_Click;
-            mnuRecentFiles.Items.Insert(0,menuItem);
+            mnuRecentFiles.Items.Insert(0, menuItem);
             var hasClearAll = false;
             foreach (var o in mnuRecentFiles.Items)
             {
@@ -287,9 +297,9 @@ namespace MacroserviceExplorer
         {
             var menuItem = new MenuItem { Header = "Clear All" };
             menuItem.Click += (sender, args) =>
-            {                
+            {
                 mnuRecentFiles.Items.Clear();
-                mnuRecentFiles.Items.Add(new MenuItem {Header = "[Empty]" });
+                mnuRecentFiles.Items.Add(new MenuItem { Header = "[Empty]" });
                 RecentsXml.AsFile().Delete();
             };
             mnuRecentFiles.Items.Add(new Separator());
@@ -390,10 +400,11 @@ namespace MacroserviceExplorer
                     srv.LiveUrl = liveUrl;
                     srv.UatUrl = uatUrl;
                     srv.ProcId = procId;
+                    srv.SolutionFolder = projFolder;
                     srv.WebsiteFolder = websiteFolder;
                     if (srv.WebsiteFolder.HasValue())
                     {
-                        //var i = GetNugetUpdates(projFolder);
+                        var i = GetNugetUpdates(srv);
                         var gitUpdates = await GetGitUpdates(srv);
 
                         srv.NugetUpdates = random.Next(10);
@@ -427,7 +438,7 @@ namespace MacroserviceExplorer
         {
             var srvFile = new FileInfo(filePath);
             if (srvFile.LastWriteTime != servicesJsonFileLastWriteTime)
-            {                
+            {
                 return await LoadFile(filePath);
             }
 
@@ -472,7 +483,7 @@ namespace MacroserviceExplorer
                 {
                     srv.Status = srv.ProcId > 0 ? MacroserviceGridItem.enumStatus.Run : MacroserviceGridItem.enumStatus.Stop;
 
-                    //var nugetUpdates = GetNugetUpdates(projFolder);
+                    var nugetUpdates = GetNugetUpdates(srv);
                     var gitUpdates = await GetGitUpdates(srv);
 
                     srv.NugetUpdates = random.Next(10);
@@ -488,18 +499,79 @@ namespace MacroserviceExplorer
             return true;
         }
 
-        int GetNugetUpdates(string projFolder)
+        int GetNugetUpdates(MacroserviceGridItem service)
         {
-            //var repo = PackageRepositoryFactory.Default.CreateRepository("https://packages.nuget.org/api/v3");
-            //string path = "";
-            //PackageManager packageManager = new PackageManager(repo, path);
-            //var packages = repo.GetPackages().ToList();
-            //foreach (var package in packages)
-            //{
+            if (service.SolutionFolder.IsEmpty())
+                return 0;
 
-            //}
+
+            foreach (MacroserviceGridItem.enumProjects proj in Enum.GetValues(typeof(MacroserviceGridItem.enumProjects)))
+                FetchProjectNugetPackages(service, proj);
+
+
             return 0;
         }
+
+        static void FetchProjectNugetPackages(MacroserviceGridItem service, MacroserviceGridItem.enumProjects projEnum)
+        {
+            string projFolder;
+            switch (projEnum)
+            {
+                case MacroserviceGridItem.enumProjects.Website:
+                    projFolder = service.WebsiteFolder;
+                    break;
+                case MacroserviceGridItem.enumProjects.Domain:
+                    projFolder = Path.Combine(service.SolutionFolder, "Domain");
+                    break;
+                case MacroserviceGridItem.enumProjects.Model:
+                    projFolder = Path.Combine(service.SolutionFolder, "M#", "Model");
+                    break;
+                case MacroserviceGridItem.enumProjects.UI:
+                    projFolder = Path.Combine(service.SolutionFolder, "M#", "UI");
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(projEnum), projEnum, null);
+            }
+
+            var project = ".csproj".GetFisrtFile(projFolder);
+            if (project.IsEmpty())
+                return;
+
+            var serializer = new XmlSerializer(typeof(Classes.web.Project));
+            Classes.web.Project proj;
+            using (var fileStream = File.OpenRead(project))
+                proj = (Classes.web.Project)serializer.Deserialize(fileStream);
+
+            foreach (var itm in proj.ItemGroup)
+                if (itm.PackageReference != null && itm.PackageReference.Length > 0)
+                {
+
+                    service.Projects[projEnum].PackageReferences = itm.PackageReference.Select(x =>
+                        new NugetRef()
+                        {
+                            Include = x.Include,
+                            Version = x.Version,
+                            IsLatestVersion = null                            
+                        }).ToList();
+                }
+        }
+
+        async void GetLatesVersion(MacroserviceGridItem service)
+        {
+            
+            var repo = PackageRepositoryFactory.Default.CreateRepository("https://packages.nuget.org/api/v2");
+
+            foreach (MacroserviceGridItem.enumProjects proj in Enum.GetValues(typeof(MacroserviceGridItem.enumProjects)))
+            {
+                foreach (var packageRef in service.Projects[proj].PackageReferences)
+                {
+                    packageRef.NewVersion = repo.FindPackagesById(packageRef.Include).FirstOrDefault(package => package.IsLatestVersion)?.Version.ToFullString();
+                }
+            }
+
+
+        }
+
 
         void FilterListBy(string txtSearchText)
         {
@@ -551,10 +623,10 @@ namespace MacroserviceExplorer
                 {
                     return e.Message;
                 }
-                
+
             }
             var output = await Task.Run((Func<string>)run);
-            if(output.HasValue())
+            if (output.HasValue())
                 MessageBox.Show(output);
         }
 
@@ -779,7 +851,7 @@ namespace MacroserviceExplorer
 
         async Task Refresh()
         {
-            if(!projextLoaded)
+            if (!projextLoaded)
                 autoRefreshTimer.Stop();
 
             if (servicesJsonFile != null)
@@ -810,7 +882,7 @@ namespace MacroserviceExplorer
             var btn = (Button)sender;
             var serviceName = btn.Tag.ToString();
             var service = MacroserviceGridItems.Single(s => s.Service == serviceName);
-            Process.Start(service.WebsiteFolder.AsDirectory().Parent?.FullName ?? throw new Exception("Macroservice WebsiteFolder Not Exists ..."));
+            Process.Start(service.WebsiteFolder.AsDirectory().Parent?.FullName ?? throw new Exception("Macroservice projFolder Not Exists ..."));
 
         }
         void TextBoxBase_OnTextChanged(object sender, TextChangedEventArgs e)
@@ -915,6 +987,7 @@ namespace MacroserviceExplorer
             var service = MacroserviceGridItems.Single(s => s.Service == serviceName);
             await GitUpdate(service);
         }
+
     }
 }
 
@@ -945,5 +1018,17 @@ namespace System
 
             throw new FileNotFoundException(new FileNotFoundException().Message, exe);
         }
+        public static string GetFisrtFile(this string fileWildcard, string basePath)
+        {
+            if (!fileWildcard.Contains("*"))
+                fileWildcard = "*" + fileWildcard;
+
+            var path = basePath.AsDirectory();
+            if (!path.Exists) return null;
+
+            var file = path.GetFiles(fileWildcard).FirstOrDefault();
+            return file?.FullName;
+        }
     }
+
 }
