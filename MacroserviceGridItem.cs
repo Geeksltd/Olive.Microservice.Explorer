@@ -248,7 +248,7 @@ namespace MacroserviceExplorer
 
     public class ProjectRef
     {
-        public List<NugetRef> NugetRefs => new List<NugetRef>();
+        //public List<NugetRef> NugetRefs => new List<NugetRef>();
         public List<NugetRef> PackageReferences { get; set; }
     }
 

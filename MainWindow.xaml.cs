@@ -88,6 +88,7 @@ namespace MacroserviceExplorer
 
         #endregion
 
+
         public MainWindow()
         {
             var components = new Container();
@@ -113,8 +114,6 @@ namespace MacroserviceExplorer
             DataContext = MacroserviceGridItems;
             StartAutoRefresh();
         }
-
-
 
         readonly DispatcherTimer autoRefreshTimer = new DispatcherTimer();
         void StartAutoRefresh()
@@ -425,24 +424,16 @@ namespace MacroserviceExplorer
                     srv.SolutionFolder = projFolder;
                     srv.WebsiteFolder = websiteFolder;
 
-                    if (srv.WebsiteFolder.HasValue())
-                    {
-                        var i = GetNugetUpdates(srv);
-                        var gitUpdates = await GetGitUpdates(srv);
-
-                        srv.NugetUpdates = random.Next(10);
-                        srv.GitUpdates = gitUpdates.ToString();
-                    }
+                    foreach (MacroserviceGridItem.enumProjects proj in Enum.GetValues(typeof(MacroserviceGridItem.enumProjects)))
+                        FetchProjectNugetPackages(srv, proj);
 
                     srv.VsDTE = GetVSDTE(srv);
 
-                    async void getnugetinfo()
-                    {
-                        foreach (MacroserviceGridItem.enumProjects proj in Enum.GetValues(typeof(MacroserviceGridItem.enumProjects)))
-                            await FetchProjectNugetPackages(srv, proj);
-                    }
+                    if (!srv.WebsiteFolder.HasValue())
+                        continue;
 
-                    //await Task.Run((Action) getnugetinfo);
+                    var gitUpdates = await GetGitUpdates(srv);                        
+                    srv.GitUpdates = gitUpdates.ToString();
 
                 }
 
@@ -512,10 +503,7 @@ namespace MacroserviceExplorer
                 {
                     srv.Status = srv.ProcId > 0 ? MacroserviceGridItem.enumStatus.Run : MacroserviceGridItem.enumStatus.Stop;
 
-                    var nugetUpdates = GetNugetUpdates(srv);
                     var gitUpdates = await GetGitUpdates(srv);
-
-                    srv.NugetUpdates = random.Next(10);
                     srv.GitUpdates = gitUpdates.ToString();
                     srv.VsDTE = GetVSDTE(srv);
 
@@ -528,16 +516,8 @@ namespace MacroserviceExplorer
             return true;
         }
 
-        int GetNugetUpdates(MacroserviceGridItem service)
-        {
-            if (service.SolutionFolder.IsEmpty())
-                return 0;
-
-
-            return 0;
-        }
-
-        static async Task FetchProjectNugetPackages(MacroserviceGridItem service, MacroserviceGridItem.enumProjects projEnum)
+        private static object _listLock = new object();
+        void FetchProjectNugetPackages(MacroserviceGridItem service, MacroserviceGridItem.enumProjects projEnum)
         {
             string projFolder;
             switch (projEnum)
@@ -567,6 +547,8 @@ namespace MacroserviceExplorer
             using (var fileStream = File.OpenRead(project))
                 proj = (Classes.web.Project)serializer.Deserialize(fileStream);
 
+            var nugetPackageRepo = PackageRepositoryFactory.Default.CreateRepository("https://packages.nuget.org/api/v2");
+            //List<IPackage> _packages = new List<IPackage>();
             foreach (var itm in proj.ItemGroup)
                 if (itm.PackageReference != null && itm.PackageReference.Length > 0)
                 {
@@ -578,26 +560,42 @@ namespace MacroserviceExplorer
                             Version = x.Version
                         }).ToList();
 
-                    await GetServiceNugetPackagesLatestVersion(service);
+                    var nugetInitworker = new BackgroundWorker();
+                    nugetInitworker.DoWork += (sender, args) =>
+                    {
+                        var srv = (MacroserviceGridItem)args.Argument;
+
+                        foreach (MacroserviceGridItem.enumProjects prj in Enum.GetValues(typeof(MacroserviceGridItem.enumProjects)))
+                        {
+                            var packageReferences = srv.Projects[prj]?.PackageReferences;
+                            if (packageReferences == null) continue;
+
+                            //logWindow.LogMessage($"Start fetch Nuget Updates [{srv.Service}] for {prj} project ...");
+
+                            List<IPackage> packages = nugetPackageRepo.FindPackages(packageReferences.Select(x => x.Include)).ToList();
+
+                            foreach (var packageRef in packageReferences)
+                                packageRef.NewVersion = packages.FirstOrDefault(package => package.IsLatestVersion)?.Version.ToFullString();
+                        }
+                        args.Result = srv;
+                    };
+
+                    nugetInitworker.RunWorkerCompleted += (sender, args) =>
+                    {
+                        var srv = (MacroserviceGridItem)args.Result;
+                        foreach (var projectRef in srv.Projects)
+                            if (projectRef.Value.PackageReferences != null)
+                                foreach (var nugetRef in projectRef.Value.PackageReferences)
+                                    if (nugetRef.IsLatestVersion)
+                                        srv.NugetUpdates++;
+
+                        logWindow.LogMessage($"Run Worker Completed ({srv.Service})");
+                        var worker = (BackgroundWorker) sender;
+                        worker.Dispose();
+                    };
+
+                    nugetInitworker.RunWorkerAsync(service);
                 }
-        }
-
-        static async Task GetServiceNugetPackagesLatestVersion(MacroserviceGridItem service)
-        {
-
-            var repo = PackageRepositoryFactory.Default.CreateRepository("https://packages.nuget.org/api/v2");
-
-            foreach (MacroserviceGridItem.enumProjects proj in Enum.GetValues(typeof(MacroserviceGridItem.enumProjects)))
-            {
-                var packageReferences = service.Projects[proj]?.PackageReferences;
-                if (packageReferences == null) continue;
-
-                foreach (var packageRef in packageReferences)
-                {
-                    packageRef.NewVersion = repo.FindPackagesById(packageRef.Include)
-                        .FirstOrDefault(package => package.IsLatestVersion)?.Version.ToFullString();
-                }
-            }
         }
 
         void FilterListBy(string txtSearchText)
@@ -1117,7 +1115,7 @@ namespace MacroserviceExplorer
                 WindowApi.ShowWindow(mainWindowHandle);
             else
             {
-                MessageBox.Show("Last Kestrel process was attached to none console window style.\n So if you want to see Kestrel log window, please stop and start macroserice again.","There is not kestrel window-habdle");
+                MessageBox.Show("Last Kestrel process was attached to none console window style.\n So if you want to see Kestrel log window, please stop and start macroserice again.", "There is not kestrel window-habdle");
             }
         }
     }
