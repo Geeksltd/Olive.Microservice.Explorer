@@ -43,11 +43,15 @@ namespace MacroserviceExplorer.Utils
             var placement = new Windowplacement();
             GetWindowPlacement(windowHandle, ref placement);
 
-            if (placement.showCmd == 2)
-                ShowWindow(windowHandle, ShowWindowEnum.Restore);
+            ShowWindow(windowHandle, placement.showCmd == 2 ? ShowWindowEnum.Restore : ShowWindowEnum.ShowMaximized);
 
             SetForegroundWindow(windowHandle);
+        }
+        public static void HideWindow(IntPtr windowHandle)
+        {
+            ShowWindow(windowHandle, ShowWindowEnum.Hide);
 
+            //SetForegroundWindow(windowHandle);
         }
     }
 }

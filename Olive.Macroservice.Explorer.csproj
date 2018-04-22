@@ -84,6 +84,7 @@
     <Compile Include="Utils\Helper.cs" />
     <Compile Include="Utils\MyEnumWindows.cs" />
     <Compile Include="Utils\NullVisibilityConverter.cs" />
+    <Compile Include="Utils\ParentProcessUtilities.cs" />
     <Compile Include="Utils\WatermarkAdorner.cs" />
     <Compile Include="Utils\WatermarkService.cs" />
     <Compile Include="Utils\WindowApi.cs" />
@@ -247,6 +248,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\pause.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\log.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

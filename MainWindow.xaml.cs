@@ -558,9 +558,9 @@ namespace MacroserviceExplorer
                     throw new ArgumentOutOfRangeException(nameof(projEnum), projEnum, null);
             }
 
-            if(projFolder.IsEmpty()) return;
+            if (projFolder.IsEmpty()) return;
             var project = ".csproj".GetFisrtFile(projFolder);
-            if (project.IsEmpty())return;
+            if (project.IsEmpty()) return;
 
             var serializer = new XmlSerializer(typeof(Classes.web.Project));
             Classes.web.Project proj;
@@ -847,12 +847,15 @@ namespace MacroserviceExplorer
                 {
                     FileName = "dotnet",
                     Arguments = "run --no-build --project " + service.WebsiteFolder,
-                    UseShellExecute = false,
+                    UseShellExecute = true,
                     CreateNoWindow = true,
-                    RedirectStandardOutput = true
+                    WindowStyle = ProcessWindowStyle.Minimized
+                    //RedirectStandardOutput = true
                 }
             };
+
             proc.Start();
+
 
             var dispatcherTimer = new DispatcherTimer { Tag = service };
             dispatcherTimer.Tick += DispatcherTimer_Tick;
@@ -1093,6 +1096,29 @@ namespace MacroserviceExplorer
         {
             if (logWindow.IsVisible)
                 logWindow.SetTheLogWindowBy(this);
+        }
+
+        void ShowKestrelLog_OnClick(object sender, MouseButtonEventArgs e)
+        {
+            e.Handled = true;
+            var btn = (Button)sender;
+            var serviceName = btn.Tag.ToString();
+            var service = MacroserviceGridItems.Single(s => s.Service == serviceName);
+            var pid = service.ProcId;
+            IntPtr mainWindowHandle;
+            do
+            {
+                mainWindowHandle = Process.GetProcessById(pid).MainWindowHandle;
+                var pr = ParentProcessUtilities.GetParentProcess(pid);
+                pid = pr?.Id ?? 0;
+            } while (mainWindowHandle == IntPtr.Zero && pid != 0);
+
+            if (mainWindowHandle != IntPtr.Zero)
+                WindowApi.ShowWindow(mainWindowHandle);
+            else
+            {
+                MessageBox.Show("Last Kestrel process was attached to none console window style.\n So if you want to see Kestrel log window, please stop and start macroserice again.","There is not kestrel window-habdle");
+            }
         }
     }
 }

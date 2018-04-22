@@ -135,6 +135,7 @@ namespace MacroserviceExplorer
                     ProcessName = Process.GetProcessById(_procId).ProcessName;
                 OnPropertyChanged(nameof(ProcId));
                 OnPropertyChanged(nameof(ProcessName));
+                OnPropertyChanged(nameof(VisibleKestrel));
             }
         }
 
@@ -223,6 +224,9 @@ namespace MacroserviceExplorer
         }
 
         public object GitUpdateImage => GitUpdates.HasValue() ? "Resources/git.png" : null;
+
+
+        public Visibility VisibleKestrel => ProcId <= 0 ? Visibility.Collapsed : Visibility.Visible;
 
         public enum enumProjects
         {

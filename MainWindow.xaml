@@ -279,6 +279,18 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
 
+                <DataGridTemplateColumn Header="Kestrel" SortMemberPath="VisibleCode" >
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="ShowKestrelLog_OnClick"  Tag="{Binding Service}" Visibility="{Binding VisibleKestrel}" ToolTip="Show the running Kestrel console log window.">
+                                    <Image Source="/Resources/log.png" Style="{StaticResource gridImage}"  Width="25"/>
+                                </Button>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
             </DataGrid.Columns>
         </DataGrid>
         
