@@ -98,12 +98,12 @@ namespace MacroserviceExplorer
                 Text = @"Olive Macroservice Explorer",
                 Visible = true,
             };
-            notifyIcon.ContextMenuStrip.Items.Add(new System.Windows.Forms.ToolStripMenuItem("Open Explorer Window", null, trayOpenWindow));
+            notifyIcon.ContextMenuStrip.Items.Add(new System.Windows.Forms.ToolStripMenuItem("Open Explorer Window", null, TrayOpenWindow));
 
             notifyIcon.ContextMenuStrip.Items.Add(new System.Windows.Forms.ToolStripMenuItem("Exit", null, exitMenuItem_Click));
 
             //notifyIcon.ContextMenuStrip.Opening += ContextMenuStrip_Opening;
-            notifyIcon.Click += trayOpenWindow;
+            notifyIcon.Click += TrayOpenWindow;
             //notifyIcon.MouseUp += notifyIcon_MouseUp;
 
 
@@ -114,11 +114,15 @@ namespace MacroserviceExplorer
             StartAutoRefresh();
         }
 
+
+
         readonly DispatcherTimer autoRefreshTimer = new DispatcherTimer();
         void StartAutoRefresh()
         {
             autoRefreshTimer.Tick += async (sender, args) =>
             {
+
+                logWindow.LogMessage("[Autorefresh Begin]");
                 var gridHasFocused = srvGrid.IsFocused;
 
                 MacroserviceGridItem selItem = null;
@@ -139,9 +143,10 @@ namespace MacroserviceExplorer
                 if (gridHasFocused)
                     srvGrid.Focus();
 
+                logWindow.LogMessage("[Autorefresh End]", new string('=', 60));
 
             };
-            autoRefreshTimer.Interval = new TimeSpan(0, 0, 3);
+            autoRefreshTimer.Interval = new TimeSpan(0, 0, 30);
             autoRefreshTimer.Start();
         }
 
@@ -153,7 +158,7 @@ namespace MacroserviceExplorer
         }
 
 
-        void trayOpenWindow(object sender, EventArgs eventArgs)
+        void TrayOpenWindow(object sender, EventArgs eventArgs)
         {
             Visibility = Visibility.Visible;
         }
@@ -280,7 +285,8 @@ namespace MacroserviceExplorer
         void OpenLogWindowMenuItem_OnClick(object sender, RoutedEventArgs e)
         {
             logWindow.Show();
-            logWindow.SetYourPosBy(this);
+            logWindow.SetTheLogWindowBy(this);
+            logWindow.Focus();
         }
 
         void ReloadRecentFiles()
@@ -330,7 +336,7 @@ namespace MacroserviceExplorer
 
         FileInfo servicesJsonFile;
         bool projextLoaded;
-        private DateTime servicesJsonFileLastWriteTime;
+        DateTime servicesJsonFileLastWriteTime;
 
         async Task<bool> LoadFile(string filePath)
         {
@@ -410,8 +416,6 @@ namespace MacroserviceExplorer
                     else
                         websiteFolder = null;
 
-
-
                     srv.Status = status;
                     srv.Service = serviceName;
                     srv.Port = port;
@@ -420,6 +424,7 @@ namespace MacroserviceExplorer
                     srv.ProcId = procId;
                     srv.SolutionFolder = projFolder;
                     srv.WebsiteFolder = websiteFolder;
+
                     if (srv.WebsiteFolder.HasValue())
                     {
                         var i = GetNugetUpdates(srv);
@@ -429,10 +434,16 @@ namespace MacroserviceExplorer
                         srv.GitUpdates = gitUpdates.ToString();
                     }
 
-
-
-
                     srv.VsDTE = GetVSDTE(srv);
+
+                    async void getnugetinfo()
+                    {
+                        foreach (MacroserviceGridItem.enumProjects proj in Enum.GetValues(typeof(MacroserviceGridItem.enumProjects)))
+                            await FetchProjectNugetPackages(srv, proj);
+                    }
+
+                    //await Task.Run((Action) getnugetinfo);
+
                 }
 
 
@@ -523,14 +534,10 @@ namespace MacroserviceExplorer
                 return 0;
 
 
-            foreach (MacroserviceGridItem.enumProjects proj in Enum.GetValues(typeof(MacroserviceGridItem.enumProjects)))
-                FetchProjectNugetPackages(service, proj);
-
-
             return 0;
         }
 
-        static void FetchProjectNugetPackages(MacroserviceGridItem service, MacroserviceGridItem.enumProjects projEnum)
+        static async Task FetchProjectNugetPackages(MacroserviceGridItem service, MacroserviceGridItem.enumProjects projEnum)
         {
             string projFolder;
             switch (projEnum)
@@ -551,9 +558,9 @@ namespace MacroserviceExplorer
                     throw new ArgumentOutOfRangeException(nameof(projEnum), projEnum, null);
             }
 
+            if(projFolder.IsEmpty()) return;
             var project = ".csproj".GetFisrtFile(projFolder);
-            if (project.IsEmpty())
-                return;
+            if (project.IsEmpty())return;
 
             var serializer = new XmlSerializer(typeof(Classes.web.Project));
             Classes.web.Project proj;
@@ -568,26 +575,29 @@ namespace MacroserviceExplorer
                         new NugetRef()
                         {
                             Include = x.Include,
-                            Version = x.Version,
-                            IsLatestVersion = null
+                            Version = x.Version
                         }).ToList();
+
+                    await GetServiceNugetPackagesLatestVersion(service);
                 }
         }
 
-        async void GetLatesVersion(MacroserviceGridItem service)
+        static async Task GetServiceNugetPackagesLatestVersion(MacroserviceGridItem service)
         {
 
             var repo = PackageRepositoryFactory.Default.CreateRepository("https://packages.nuget.org/api/v2");
 
             foreach (MacroserviceGridItem.enumProjects proj in Enum.GetValues(typeof(MacroserviceGridItem.enumProjects)))
             {
-                foreach (var packageRef in service.Projects[proj].PackageReferences)
+                var packageReferences = service.Projects[proj]?.PackageReferences;
+                if (packageReferences == null) continue;
+
+                foreach (var packageRef in packageReferences)
                 {
-                    packageRef.NewVersion = repo.FindPackagesById(packageRef.Include).FirstOrDefault(package => package.IsLatestVersion)?.Version.ToFullString();
+                    packageRef.NewVersion = repo.FindPackagesById(packageRef.Include)
+                        .FirstOrDefault(package => package.IsLatestVersion)?.Version.ToFullString();
                 }
             }
-
-
         }
 
         void FilterListBy(string txtSearchText)
@@ -615,18 +625,18 @@ namespace MacroserviceExplorer
             string run()
             {
                 StatusProgressStart();
-
+                ShowStatusMessage("Start git fetch ...", tooltip: null, logMessage: false);
                 var fetchoutput = "git.exe".AsFile(searchEnvironmentPath: true)
                          .Execute("fetch", waitForExit: true, configuration: x => x.StartInfo.WorkingDirectory = projFOlder.FullName);
 
-                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(() => ShowStatusMessage($"git fetch completed ... ({service.Service})" , fetchoutput)));
+                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(() => ShowStatusMessage($"git fetch completed ... ({service.Service})", fetchoutput)));
 
                 return "git.exe".AsFile(searchEnvironmentPath: true)
                                 .Execute("status", waitForExit: true, configuration: x => x.StartInfo.WorkingDirectory = projFOlder.FullName);
             }
             var output = await Task.Run((Func<string>)run);
             var status = GetGitInfo(output);
-            ShowStatusMessage($"git get status completed ... ({service.Service}) with {status.RemoteCommits} commit(s) in {status.Branch}", output);
+            ShowStatusMessage($"getting git commit count completed ... ({service.Service}) with {status?.RemoteCommits ?? 0} commit(s) in {status?.Branch ?? "it's branch"}", output);
             StatusProgressStop();
 
             return status?.RemoteCommits ?? 0;
@@ -640,7 +650,7 @@ namespace MacroserviceExplorer
             var branch = match.Groups["branch"];
             var remoteCommits = match.Groups["remoteCommits"];
             if (match.Success)
-                return new GitStatus() {Branch = branch.Value, RemoteCommits = remoteCommits.Value.To<int>()};
+                return new GitStatus() { Branch = branch.Value, RemoteCommits = remoteCommits.Value.To<int>() };
 
             pattern = @"Your branch and '(?<branch>[a-zA-Z/]*)' have diverged,\nand have (?<localCommits>\d*) and (?<remoteCommits>\d*) different commit";
             match = Regex.Match(input, pattern, options);
@@ -648,7 +658,7 @@ namespace MacroserviceExplorer
             remoteCommits = match.Groups["remoteCommits"];
             var localCommits = match.Groups["localCommits"];
 
-            return match.Success ? new GitStatus() { Branch = branch.Value, RemoteCommits = remoteCommits.Value.To<int>() , LocalCommits = localCommits.Value.To<int>()} : null;
+            return match.Success ? new GitStatus() { Branch = branch.Value, RemoteCommits = remoteCommits.Value.To<int>(), LocalCommits = localCommits.Value.To<int>() } : null;
         }
 
         class GitStatus
@@ -658,8 +668,11 @@ namespace MacroserviceExplorer
             public int LocalCommits { get; set; }
         }
 
+
         async Task GitUpdate(MacroserviceGridItem server)
         {
+
+            autoRefreshTimer.Stop();
             var projFOlder = server.WebsiteFolder.AsDirectory().Parent;
             string run()
             {
@@ -673,7 +686,7 @@ namespace MacroserviceExplorer
                 }
                 catch (Exception e)
                 {
-                    ShowStatusMessage("error on git pull ..." , e.Message);
+                    ShowStatusMessage("error on git pull ...", e.Message);
                     StatusProgressStop();
                     return e.Message;
                 }
@@ -684,6 +697,7 @@ namespace MacroserviceExplorer
                 ShowStatusMessage("git pull completed ...", output);
 
             StatusProgressStop();
+            autoRefreshTimer.Start();
         }
 
         void StatusProgressStart()
@@ -703,13 +717,14 @@ namespace MacroserviceExplorer
 
         }
 
-        void ShowStatusMessage(string message, string tooltip = null)
+        void ShowStatusMessage(string message, string tooltip = null, bool logMessage = true)
         {
             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(() =>
             {
                 txtStatusMessage.Text = message;
                 txtStatusMessage.ToolTip = tooltip;
-                logWindow.LogMessage(message, tooltip);
+                if (logMessage)
+                    logWindow.LogMessage(message, tooltip);
             }));
 
         }
@@ -936,13 +951,14 @@ namespace MacroserviceExplorer
 
         async Task Refresh()
         {
-            if (!projextLoaded)
-                autoRefreshTimer.Stop();
 
             if (servicesJsonFile != null)
             {
                 await RefreshFile(servicesJsonFile.FullName);
             }
+
+            if (!projextLoaded)
+                autoRefreshTimer.Stop();
         }
 
         void EditProject_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -1076,7 +1092,7 @@ namespace MacroserviceExplorer
         void MainWindow_OnLocationChanged(object sender, EventArgs e)
         {
             if (logWindow.IsVisible)
-                logWindow.SetYourPosBy(this);
+                logWindow.SetTheLogWindowBy(this);
         }
     }
 }

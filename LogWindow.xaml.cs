@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,8 +29,12 @@ namespace MacroserviceExplorer
             get => (string)GetValue(TextLogProperty);
             set
             {
+                var offset = txtLog.VerticalOffset;
                 SetValue(TextLogProperty, value);
                 OnPropertyChanged(nameof(TextLog));
+                if (IsFocused || Visibility != Visibility.Visible) return;
+
+                txtLog.ScrollToVerticalOffset(offset);
             }
         }
         public event PropertyChangedEventHandler PropertyChanged;
@@ -59,13 +64,24 @@ namespace MacroserviceExplorer
             TextLog += $"{new string('-', 30)}{Environment.NewLine}";
         }
 
-        public void SetYourPosBy(MainWindow mainWindow)
+        public void SetTheLogWindowBy(MainWindow mainWindow)
         {
             const int border = 7;
             Top = mainWindow.Top;
             Height = mainWindow.Height + border;
             Left = mainWindow.Left + mainWindow.Width - border;
 
+        }
+
+        void ClearLogMenuItem_OnClick(object sender, RoutedEventArgs e)
+        {
+            TextLog = null;
+        }
+
+
+        void SaveLogMenuItem_OnClick(object sender, RoutedEventArgs e)
+        {
+            File.WriteAllText("Log.txt",TextLog);
         }
     }
 

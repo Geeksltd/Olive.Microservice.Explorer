@@ -233,7 +233,7 @@ namespace MacroserviceExplorer
         }
 
 
-        public Dictionary<enumProjects, ProjectRef> Projects => new Dictionary<enumProjects, ProjectRef>()
+        public Dictionary<enumProjects, ProjectRef> Projects = new Dictionary<enumProjects, ProjectRef>()
         {
             { enumProjects.Website , new ProjectRef()},
             { enumProjects.Domain , new ProjectRef()},
@@ -250,7 +250,19 @@ namespace MacroserviceExplorer
 
     public class NugetRef : ProjectItemGroupPackageReference
     {
-        public string NewVersion { get; set; }
-        public bool? IsLatestVersion { get; set; }
+        string _newVersion;
+
+        public string NewVersion
+        {
+            get => _newVersion;
+            set
+            {
+                _newVersion = value;
+                if (_newVersion.HasValue() && Version.HasValue() &&  new Version(_newVersion).CompareTo(new Version(Version)) > 0)
+                    IsLatestVersion = true;
+            }
+        }
+
+        public bool IsLatestVersion { get; set; }
     }
 }

@@ -197,7 +197,7 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
 
-                <DataGridTemplateColumn Header="Service" SortMemberPath="Service" Width="*" >
+                <DataGridTemplateColumn Header="Service" SortMemberPath="Service"  Width="150" >
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
