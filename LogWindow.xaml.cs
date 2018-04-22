@@ -18,15 +18,30 @@ namespace MacroserviceExplorer
     /// <summary>
     /// Interaction logic for LogWindow.xaml
     /// </summary>
-    public partial class LogWindow : Window
+    public partial class LogWindow : Window,INotifyPropertyChanged
     {
-        public MyContext Context { get; set; }
-        
+        public static readonly DependencyProperty TextLogProperty =
+            DependencyProperty.Register("TextLog", typeof(string), typeof(Window) /*, new PropertyMetadata(false) */);
+
+        public string TextLog
+        {
+            get => (string)GetValue(TextLogProperty);
+            set
+            {
+                SetValue(TextLogProperty, value);
+                OnPropertyChanged(nameof(TextLog));
+            }
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string name)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+
         public LogWindow()
         {
-            Context = new MyContext { TextLog = "Olive Macroservice Explorer logger :"};
             InitializeComponent();
-            DataContext = Context;
+            TextLog = "Logger Started ...\n";
         }
 
         void LogWindow_OnClosing(object sender, CancelEventArgs e)
@@ -35,14 +50,18 @@ namespace MacroserviceExplorer
             e.Cancel = true;
         }
 
-        public void LogMessage(string logtext)
+        public void LogMessage(string message, string description = null)
         {
-            Context.TextLog += Environment.NewLine + logtext;
+            TextLog += $"{DateTime.Now.ToLongTimeString()}  \t{message}{Environment.NewLine}";
+            if (description.HasValue())
+                TextLog += "decription : \t" + description?.Replace("\n","\n\t\t") + Environment.NewLine;
+
+            TextLog += $"{new string('-', 30)}{Environment.NewLine}";
         }
 
         public void SetYourPosBy(MainWindow mainWindow)
         {
-            var border = 7;
+            const int border = 7;
             Top = mainWindow.Top;
             Height = mainWindow.Height + border;
             Left = mainWindow.Left + mainWindow.Width - border;

@@ -301,11 +301,11 @@
             </StatusBarItem>
             <Separator Grid.Column="1" />
             <StatusBarItem Grid.Column="2">
-                <TextBlock  />
+                <TextBlock Name="txtStatusMessage" Text="Microservice Explorer Started ..." />
             </StatusBarItem>
             <Separator Grid.Column="3" />
             <StatusBarItem Grid.Column="4">
-                <ProgressBar Value="0" Width="90" Height="16" />
+                <ProgressBar Value="0" Width="90" Height="16" Name="statusProgress" />
             </StatusBarItem>
         </StatusBar>
     </Grid>

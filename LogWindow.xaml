@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:MacroserviceExplorer"
         mc:Ignorable="d" x:Name="window"
         Title="LogWindow" Height="300" Width="300" Closing="LogWindow_OnClosing" >
-    <Grid>
-        <TextBox Text="{Binding TextLog}" Name="TextBox"></TextBox>
+    <Grid DataContext="{Binding ElementName=window, Path=.}">
+        <TextBox Text="{Binding  Path=TextLog}" Name="TextBox"></TextBox>
     </Grid>
 </Window>
