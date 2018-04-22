@@ -68,7 +68,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Class1.cs" />
     <Compile Include="Classes\CsProjectSchema.cs" />
     <Compile Include="Classes\WebprojecSchema.cs" />
     <Compile Include="Controls\WindowTitlebarControl.xaml.cs">
