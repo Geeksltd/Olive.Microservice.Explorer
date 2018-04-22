@@ -588,7 +588,6 @@ namespace MacroserviceExplorer
 
         }
 
-
         void FilterListBy(string txtSearchText)
         {
             MacroserviceGridItems.Clear();
@@ -614,7 +613,7 @@ namespace MacroserviceExplorer
             string run()
             {
                 return "git.exe".AsFile(searchEnvironmentPath: true)
-                    .Execute("rev-list --count --all", waitForExit: true,
+                    .Execute("rev-list --count --all ", waitForExit: true,
                                      configuration: x => x.StartInfo.WorkingDirectory = projFOlder.FullName);
             }
 
