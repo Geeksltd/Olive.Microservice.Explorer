@@ -79,7 +79,7 @@
                     <MenuItem Header="[Empty]"></MenuItem>
                 </MenuItem>
                 <Separator></Separator>
-                <MenuItem Header="This window">
+                <MenuItem Header="Window">
                     <MenuItem Header="Always on top" IsCheckable="True" Name="mnuAlwaysOnTop" Checked="MnuAlwaysOnTop_OnChecked" Unchecked="MnuAlwaysOnTop_OnChecked" IsChecked="{Binding ElementName=titleBar,Path=AlwaysOnTop,Mode=TwoWay}">
                     </MenuItem>
                     <MenuItem Header="Opacity" Name="OpacityMenuItem">
@@ -190,8 +190,8 @@
                 <DataGridTemplateColumn Header="Status" SortMemberPath="Status" >
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button Style="{StaticResource gridButton}" Tag="{Binding Service}" PreviewMouseLeftButtonDown="StartStop_OnClick">
-                                <Image Style="{StaticResource gridImage}" gif:ImageBehavior.AnimatedSource="{Binding RunImage}" />
+                            <Button Style="{StaticResource gridButton}" Tag="{Binding Service}" PreviewMouseLeftButtonDown="StartStop_OnClick" VerticalAlignment="Center" >
+                                <Image Style="{StaticResource gridImage}" gif:ImageBehavior.AnimatedSource="{Binding RunImage}"  />
                             </Button>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

@@ -60,13 +60,7 @@ namespace MacroserviceExplorer.Controls
         }
 
         static void OnAlwaysOnTopChanged(DependencyObject d,DependencyPropertyChangedEventArgs e)
-        {
-            var alwaysOnTopbarControl = (WindowTitlebarControl)d;
-            alwaysOnTopbarControl.OnAlwaysOnTopChanged(e);
-        }
-        void OnAlwaysOnTopChanged(DependencyPropertyChangedEventArgs e)
-        {
-            ontop.IsChecked = (bool) e.NewValue;
+        {            
         }
 
 
@@ -117,12 +111,6 @@ namespace MacroserviceExplorer.Controls
         protected virtual void OnAlwayOnTopCheckaged(bool e)
         {
             AlwayOnTopCheckaged?.Invoke(this, e);
-        }
-
-        void ToggleSwitchBase_OnChecked(object sender, RoutedEventArgs e)
-        {
-            var sw = (ToggleSwitch.HorizontalToggleSwitch)sender;
-            OnAlwayOnTopCheckaged(sw.IsChecked);
         }
 
     }

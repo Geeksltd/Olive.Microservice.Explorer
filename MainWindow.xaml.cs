@@ -715,6 +715,7 @@ namespace MacroserviceExplorer
         void MainWindow_OnClosing(object sender, CancelEventArgs e)
         {
             Visibility = Visibility.Hidden;
+            logWindow.Visibility = Visibility;
             e.Cancel = !exit;
         }
 

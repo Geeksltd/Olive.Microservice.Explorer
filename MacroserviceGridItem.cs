@@ -110,9 +110,9 @@ namespace MacroserviceExplorer
                 switch (Status)
                 {
                     case enumStatus.Stop:
-                        return "Resources/Run2.png";
+                        return "Resources/run2.png";
                     case enumStatus.Run:
-                        return "Resources/Pause2.jpg";
+                        return "Resources/pause.png";
                     case enumStatus.Pending:
                         return "Resources/gears.gif";
                     default:

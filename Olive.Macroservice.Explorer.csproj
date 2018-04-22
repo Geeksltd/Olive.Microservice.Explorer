@@ -173,9 +173,6 @@
     <Resource Include="Resources\run2.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\pause2.jpg" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="EnvDTE">
       <Version>8.0.2</Version>
     </PackageReference>
@@ -247,6 +244,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\git.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\pause.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -30,17 +30,6 @@
         <Image Grid.Column="0" Source="/Olive.ico" Margin="3" ></Image>
         <TextBlock Name="txtTitle" Grid.Column="1" Text="Title" VerticalAlignment="Center" Foreground="White" Padding="5" ></TextBlock>
         <StackPanel Grid.Column="2" Orientation="Horizontal">
-            <TextBlock Text="Topmost" VerticalAlignment="Center" Foreground="White" ToolTip="Set/Unset Window status to Always OnTop." FontStyle="Italic"></TextBlock>
-            <ToggleSwitch:HorizontalToggleSwitch
-                Name="ontop"
-                Margin="5,0,20,0"
-                IsChecked="{Binding Path=AlwaysOnTop,ElementName=ctrl,Mode=TwoWay}"
-                Width="70"
-                VerticalAlignment="Center"                
-                HorizontalAlignment="Right" 
-                ToolTip="Set/Unset Window status to Always OnTop."
-                Checked="ToggleSwitchBase_OnChecked" Unchecked="ToggleSwitchBase_OnChecked">
-            </ToggleSwitch:HorizontalToggleSwitch>
 
             <Button Content="&#xE117;" Width="38" Height="{Binding ElementName=ctrl,Path=Height}" Background="Transparent" BorderBrush="Transparent"
                     FontFamily="{StaticResource segeo}" FontSize="10" Click="Refresh_OnClick">
