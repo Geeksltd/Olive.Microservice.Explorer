@@ -105,11 +105,31 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="MacroserviceGridItem.cs" />
+    <Compile Include="Classes\MacroserviceGridItem.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="MainWindow.OnlineDataFetch.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MainWindow.ProjectManagement.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MainWindow.Empty.cs" />
+    <Compile Include="MainWindow.MacroserviceGridActions.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MainWindow.LogWindow.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MainWindow.WindowActionProvider.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MainWindow.RecentProvider.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
+
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\Annotations.cs" />

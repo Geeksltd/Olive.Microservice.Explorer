@@ -44,7 +44,7 @@
         <CommandBinding Command="{x:Static local:MainWindow.EditCommand}" Executed="EditProject_Executed"></CommandBinding>
         <CommandBinding Command="{x:Static local:MainWindow.RefreshCommand}" Executed="RefreshMenuItem_OnClick"></CommandBinding>
         <CommandBinding Command="{x:Static local:MainWindow.CloseCommand}" Executed="CloseMenuItem_OnClick"></CommandBinding>
-        <CommandBinding Command="{x:Static local:MainWindow.ExitCommand}" Executed="exitMenuItem_Click"></CommandBinding>
+        <CommandBinding Command="{x:Static local:MainWindow.ExitCommand}" Executed="ExitMenuItem_Click"></CommandBinding>
 
         <CommandBinding Command="{x:Static local:MainWindow.RunAllCommand}" Executed="RunAllMenuItem_Click"></CommandBinding>
         <CommandBinding Command="{x:Static local:MainWindow.StopAllCommand}" Executed="StopAllMenuItem_Click"></CommandBinding>
@@ -221,7 +221,7 @@
                 <DataGridTemplateColumn Header="Open" SortMemberPath="Port">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button PreviewMouseLeftButtonDown="chrome_OnClick" Style="{StaticResource gridButton}" Tag="{Binding Service}" >
+                            <Button PreviewMouseLeftButtonDown="Chrome_OnClick" Style="{StaticResource gridButton}" Tag="{Binding Service}" >
                                 <Image Source="Resources/Chrome.png" Style="{StaticResource gridImage}" Opacity="{Binding RunImageOpacity}" />
                             </Button>
                         </DataTemplate>

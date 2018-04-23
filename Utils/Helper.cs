@@ -5,8 +5,10 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using EnvDTE;
 using EnvDTE80;
+using Process = System.Diagnostics.Process;
 
 namespace MacroserviceExplorer.Utils
 {
@@ -44,5 +46,18 @@ namespace MacroserviceExplorer.Utils
             }
             return vsList;
         }
+
+        public static void Launch(string url)
+        {
+            try
+            {
+                Process.Start("cmd", "/C start" + " " + url);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
     }
 }
