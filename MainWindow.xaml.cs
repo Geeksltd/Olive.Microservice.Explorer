@@ -15,6 +15,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using EnvDTE;
 using EnvDTE80;
+using GCop.Core;
 using MacroserviceExplorer.Classes.web;
 using MacroserviceExplorer.TCPIP;
 using MacroserviceExplorer.Utils;
@@ -132,7 +133,7 @@ namespace MacroserviceExplorer
 
                 foreach (var service in MacroserviceGridItems)
                 {
-                    if (service.WebsiteFolder.IsEmpty() || service.Port.IsEmpty()) continue;
+                    if (MSharpExtensions.IsEmpty(service.WebsiteFolder) || MSharpExtensions.IsEmpty(service.Port)) continue;
 
                     service.ProcId = getListeningPortProcessId(service.Port.To<int>());
                     service.Status = service.ProcId < 0 ? MacroserviceGridItem.enumStatus.Stop : MacroserviceGridItem.enumStatus.Run;
@@ -429,10 +430,10 @@ namespace MacroserviceExplorer
 
                     srv.VsDTE = GetVSDTE(srv);
 
-                    if (!srv.WebsiteFolder.HasValue())
+                    if (!MSharpExtensions.HasValue(srv.WebsiteFolder))
                         continue;
 
-                    var gitUpdates = await GetGitUpdates(srv);                        
+                    var gitUpdates = await GetGitUpdates(srv);
                     srv.GitUpdates = gitUpdates.ToString();
 
                 }
@@ -499,7 +500,7 @@ namespace MacroserviceExplorer
 
                 srv.ProcId = getListeningPortProcessId(srv.Port.To<int>());
 
-                if (srv.WebsiteFolder.HasValue())
+                if (MSharpExtensions.HasValue(srv.WebsiteFolder))
                 {
                     srv.Status = srv.ProcId > 0 ? MacroserviceGridItem.enumStatus.Run : MacroserviceGridItem.enumStatus.Stop;
 
@@ -538,9 +539,9 @@ namespace MacroserviceExplorer
                     throw new ArgumentOutOfRangeException(nameof(projEnum), projEnum, null);
             }
 
-            if (projFolder.IsEmpty()) return;
+            if (MSharpExtensions.IsEmpty(projFolder)) return;
             var project = ".csproj".GetFisrtFile(projFolder);
-            if (project.IsEmpty()) return;
+            if (MSharpExtensions.IsEmpty(project)) return;
 
             var serializer = new XmlSerializer(typeof(Classes.web.Project));
             Classes.web.Project proj;
@@ -548,6 +549,7 @@ namespace MacroserviceExplorer
                 proj = (Classes.web.Project)serializer.Deserialize(fileStream);
 
             var nugetPackageRepo = PackageRepositoryFactory.Default.CreateRepository("https://packages.nuget.org/api/v2");
+            var nugetPackageSet = new Dictionary<string, string>();
             //List<IPackage> _packages = new List<IPackage>();
             foreach (var itm in proj.ItemGroup)
                 if (itm.PackageReference != null && itm.PackageReference.Length > 0)
@@ -567,15 +569,26 @@ namespace MacroserviceExplorer
 
                         foreach (MacroserviceGridItem.enumProjects prj in Enum.GetValues(typeof(MacroserviceGridItem.enumProjects)))
                         {
+
                             var packageReferences = srv.Projects[prj]?.PackageReferences;
                             if (packageReferences == null) continue;
 
-                            //logWindow.LogMessage($"Start fetch Nuget Updates [{srv.Service}] for {prj} project ...");
-
-                            List<IPackage> packages = nugetPackageRepo.FindPackages(packageReferences.Select(x => x.Include)).ToList();
+                            var packages = nugetPackageRepo.FindPackages(packageReferences.Where(x => !nugetPackageSet.ContainsKey(x.Include))
+                                                                                          .Select(x => x.Include))
+                                                           .ToList();
 
                             foreach (var packageRef in packageReferences)
+                            {
                                 packageRef.NewVersion = packages.FirstOrDefault(package => package.IsLatestVersion)?.Version.ToFullString();
+
+                                if (!nugetPackageSet.ContainsKey(packageRef.Include))
+                                    nugetPackageSet.Add(packageRef.Include, packageRef.NewVersion);
+                            }
+
+                            packageReferences.Where(pr => MSharpExtensions.IsEmpty(pr.NewVersion)).ForEach(pref =>
+                                {
+                                    pref.NewVersion = nugetPackageSet[pref.Include];
+                                });
                         }
                         args.Result = srv;
                     };
@@ -590,7 +603,7 @@ namespace MacroserviceExplorer
                                         srv.NugetUpdates++;
 
                         logWindow.LogMessage($"Run Worker Completed ({srv.Service})");
-                        var worker = (BackgroundWorker) sender;
+                        var worker = (BackgroundWorker)sender;
                         worker.Dispose();
                     };
 
@@ -601,18 +614,18 @@ namespace MacroserviceExplorer
         void FilterListBy(string txtSearchText)
         {
             MacroserviceGridItems.Clear();
-            if (txtSearch.Text.IsEmpty())
+            if (MSharpExtensions.IsEmpty(txtSearch.Text))
             {
                 MacroserviceGridItems.AddRange(serviceData);
                 return;
             }
 
-            MacroserviceGridItems.AddRange(serviceData.Where(x => x.Service.ToLower().Contains(txtSearchText.ToLower()) || x.Port.OrEmpty().Contains(txtSearchText)));
+            MacroserviceGridItems.AddRange(serviceData.Where(x => x.Service.ToLower().Contains(txtSearchText.ToLower()) || MSharpExtensions.OrEmpty(x.Port).Contains(txtSearchText)));
         }
 
         async Task<int> GetGitUpdates(MacroserviceGridItem service)
         {
-            if (service.WebsiteFolder.IsEmpty()) return 0;
+            if (MSharpExtensions.IsEmpty(service.WebsiteFolder)) return 0;
 
             var projFOlder = service.WebsiteFolder.AsDirectory().Parent;
             if (projFOlder == null || !Directory.Exists(Path.Combine(projFOlder.FullName, ".git")))
@@ -691,7 +704,7 @@ namespace MacroserviceExplorer
 
             }
             var output = await Task.Run((Func<string>)run);
-            if (output.HasValue())
+            if (MSharpExtensions.HasValue(output))
                 ShowStatusMessage("git pull completed ...", output);
 
             StatusProgressStop();
@@ -1125,29 +1138,6 @@ namespace System
 {
     public static class TempExtDeleteMeAfterNugetUpdate
     {
-        /// <summary>
-        /// It will search in all environment PATH directories, as well as the current directory, to find this file.
-        /// For example for 'git.exe' it will return `C:\Program Files\Git\bin\git.exe`.
-        /// </summary>
-        public static FileInfo AsFile(this string exe, bool searchEnvironmentPath)
-        {
-            if (!searchEnvironmentPath) return exe.AsFile();
-
-            var result = Environment.ExpandEnvironmentVariables(exe).AsFile();
-            if (result.Exists()) return result;
-
-            if (Path.GetDirectoryName(exe).IsEmpty())
-            {
-                var environmentFolders = Environment.GetEnvironmentVariable("PATH").OrEmpty().Split(';').Trim();
-                foreach (var test in environmentFolders)
-                {
-                    result = Path.Combine(test, exe).AsFile();
-                    if (result.Exists()) return result;
-                }
-            }
-
-            throw new FileNotFoundException(new FileNotFoundException().Message, exe);
-        }
         public static string GetFisrtFile(this string fileWildcard, string basePath)
         {
             if (!fileWildcard.Contains("*"))

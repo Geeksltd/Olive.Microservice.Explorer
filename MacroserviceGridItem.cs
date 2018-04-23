@@ -261,6 +261,9 @@ namespace MacroserviceExplorer
             get => _newVersion;
             set
             {
+                if (!int.TryParse(value.Replace(".", ""), out _))
+                    return;
+
                 _newVersion = value;
                 if (_newVersion.HasValue() && Version.HasValue() &&  new Version(_newVersion).CompareTo(new Version(Version)) > 0)
                     IsLatestVersion = true;
