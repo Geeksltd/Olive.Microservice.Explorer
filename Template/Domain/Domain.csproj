@@ -17,8 +17,8 @@
     <PackageReference Include="Olive.Audit" Version="1.0.30" />
     <PackageReference Include="Olive.CSV" Version="1.0.15" />
     <PackageReference Include="Olive.Entities" Version="1.0.43" />
-    <PackageReference Include="Olive.Entities.Data" Version="1.0.48" />
-    <PackageReference Include="Olive.Entities.Data.SqlServer" Version="1.0.20" />
+    <PackageReference Include="Olive.Entities.Data" Version="1.0.50" />
+    <PackageReference Include="Olive.Entities.Data.SqlServer" Version="1.0.21" />
     <PackageReference Include="Olive.Integration" Version="1.0.7" />
     <PackageReference Include="Olive.Microservices" Version="1.0.30" />
     <PackageReference Include="System.Data.SqlClient" Version="4.4.3" />
