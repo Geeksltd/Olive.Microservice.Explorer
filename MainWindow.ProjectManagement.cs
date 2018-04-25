@@ -272,6 +272,7 @@ namespace MacroserviceExplorer
                             });
                         }
                         args.Result = srv;
+
                     };
 
                     nugetInitworker.RunWorkerCompleted += (sender, args) =>

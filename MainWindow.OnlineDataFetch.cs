@@ -39,14 +39,14 @@ namespace MacroserviceExplorer
                                 .Execute("status", waitForExit: true, configuration: x => x.StartInfo.WorkingDirectory = projFOlder.FullName);
             }
             var output = await Task.Run((Func<string>)run);
-            var status = GetGitInfo(output);
+            var status = ReadGitInfo(output);
             ShowStatusMessage($"getting git commit count completed ... ({service.Service}) with {status?.RemoteCommits ?? 0} commit(s) in {status?.Branch ?? "it's branch"}", output);
             StatusProgressStop();
 
             return status?.RemoteCommits ?? 0;
         }
 
-        GitStatus GetGitInfo(string input)
+        GitStatus ReadGitInfo(string input)
         {
             var pattern = @"Your branch is behind '(?<branch>[a-zA-Z/]*)' by (?<remoteCommits>\d*) commit";
             const RegexOptions options = RegexOptions.Multiline | RegexOptions.IgnoreCase;
@@ -90,7 +90,7 @@ namespace MacroserviceExplorer
 
             }
             var output = await Task.Run((Func<string>)run);
-            if (MSharpExtensions.HasValue(output))
+            if (output.HasValue())
                 ShowStatusMessage("git pull completed ...", output);
 
             StatusProgressStop();
