@@ -14,51 +14,53 @@ namespace MacroserviceExplorer
 {
     partial class MainWindow
     {
-        FileInfo servicesJsonFile;
+        FileInfo ServicesJsonFile;
         public Visibility FileOpened { get; set; }
 
-        const string services_file_name = "services.json";
-        bool projextLoaded;
-        DateTime servicesJsonFileLastWriteTime;
+        const string Services_file_name = "services.json";
+        bool ProjextLoaded;
+        DateTime ServicesJsonFileLastWriteTime;
+
+        FileSystemWatcher Watcher;
 
         async Task<bool> LoadFile(string filePath)
         {
-            servicesJsonFile = new FileInfo(filePath);
+            ServicesJsonFile = new FileInfo(filePath);
 
-            if (!servicesJsonFile.Exists)
+            if (!ServicesJsonFile.Exists)
             {
 
-                var result = MessageBox.Show($"file : {servicesJsonFile.FullName} \ndoes not exist anymore. \nDo you want to removed it from recent files list?", "File Not Found", System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question);
-                _recentFiles.Remove(servicesJsonFile.FullName);
+                var result = MessageBox.Show($"file : {ServicesJsonFile.FullName} \ndoes not exist anymore. \nDo you want to removed it from recent files list?", "File Not Found", System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question);
+                _recentFiles.Remove(ServicesJsonFile.FullName);
                 if (result != System.Windows.Forms.DialogResult.Yes) return false;
 
                 SaveRecentFilesXml();
                 ReloadRecentFiles();
 
-                servicesJsonFile = null;
-                projextLoaded = false;
+                ServicesJsonFile = null;
+                ProjextLoaded = false;
                 return false;
             }
 
-            servicesJsonFileLastWriteTime = servicesJsonFile.LastWriteTime;
+            ServicesJsonFileLastWriteTime = ServicesJsonFile.LastWriteTime;
 
             //try
             {
 
-                var servicesAllText = File.ReadAllText(servicesJsonFile.FullName);
+                var servicesAllText = File.ReadAllText(ServicesJsonFile.FullName);
                 var servicesJObject = Newtonsoft.Json.Linq.JObject.Parse(servicesAllText);
-                txtFileInfo.Text = servicesJsonFile.FullName;
+                txtFileInfo.Text = ServicesJsonFile.FullName;
                 txtSolName.Text = servicesJObject["Solution"]["FullName"].ToString();
 
                 var children = servicesJObject["Services"].Children();
                 foreach (var jToken in children)
                 {
                     var serviceName = jToken.Path.Replace("Services.", "");
-                    var srv = serviceData.SingleOrDefault(srvc => srvc.Service == serviceName);
+                    var srv = ServiceData.SingleOrDefault(srvc => srvc.Service == serviceName);
                     if (srv == null)
                     {
                         srv = new MacroserviceGridItem();
-                        serviceData.Add(srv);
+                        ServiceData.Add(srv);
                     }
                     string liveUrl = null;
                     string uatUrl = null;
@@ -69,8 +71,8 @@ namespace MacroserviceExplorer
                     }
 
                     var port = "";
-                    var status = MacroserviceGridItem.enumStatus.NoSourcerLocally;
-                    var parentFullName = servicesJsonFile.Directory?.Parent?.FullName ?? "";
+                    var status = MacroserviceGridItem.EnumStatus.NoSourcerLocally;
+                    var parentFullName = ServicesJsonFile.Directory?.Parent?.FullName ?? "";
                     var projFolder = Path.Combine(parentFullName, serviceName);
                     var websiteFolder = Path.Combine(projFolder, "website");
                     var launchSettings = Path.Combine(websiteFolder, "properties", "launchSettings.json");
@@ -82,7 +84,7 @@ namespace MacroserviceExplorer
                         var launchSettingsJObject = Newtonsoft.Json.Linq.JObject.Parse(launchSettingsAllText);
                         var appUrl = launchSettingsJObject["profiles"]["Website"]["applicationUrl"].ToString();
                         port = appUrl.Substring(appUrl.LastIndexOf(":", StringComparison.Ordinal) + 1);
-                        status = MacroserviceGridItem.enumStatus.Stop;
+                        status = MacroserviceGridItem.EnumStatus.Stop;
                         if (!int.TryParse(port, out var _))
                         {
                             var pos = 0;
@@ -92,9 +94,7 @@ namespace MacroserviceExplorer
                             port = portNumer;
                         }
 
-                        procId = GetProcessIdByPortNumber(port.To<int>());
-                        if (procId > 0)
-                            status = MacroserviceGridItem.enumStatus.Run;
+                        srv.UpdateProcessStatus();
                     }
                     else
                         websiteFolder = null;
@@ -108,16 +108,16 @@ namespace MacroserviceExplorer
                     srv.SolutionFolder = projFolder;
                     srv.WebsiteFolder = websiteFolder;
 
-                    foreach (MacroserviceGridItem.enumProjects proj in Enum.GetValues(typeof(MacroserviceGridItem.enumProjects)))
+                    foreach (MacroserviceGridItem.EnumProjects proj in Enum.GetValues(typeof(MacroserviceGridItem.EnumProjects)))
                         FetchProjectNugetPackages(srv, proj);
 
-                    srv.VsDTE = GetVSDTE(srv);
+                    srv.VsDTE = srv.GetVSDTE();
 
                     if (!srv.WebsiteFolder.HasValue())
                         continue;
 
-                    var gitUpdates = await GetGitUpdates(srv);
-                    srv.GitUpdates = gitUpdates.ToString();
+                    //var gitUpdates = await GetGitUpdates(srv);
+                    //srv.GitUpdates = gitUpdates.ToString();
 
                 }
 
@@ -130,24 +130,24 @@ namespace MacroserviceExplorer
             //    return false;
             //}
 
-            if (watcher == null)
-                StartFileSystemWatcher(servicesJsonFile);
+            if (Watcher == null)
+                StartFileSystemWatcher(ServicesJsonFile);
 
-            projextLoaded = true;
+            ProjextLoaded = true;
             return true;
         }
 
         async Task<bool> RefreshFile(string filePath)
         {
             var srvFile = new FileInfo(filePath);
-            if (srvFile.LastWriteTime != servicesJsonFileLastWriteTime)
+            if (srvFile.LastWriteTime != ServicesJsonFileLastWriteTime)
             {
                 return await LoadFile(filePath);
             }
 
-            foreach (var srv in serviceData.ToArray())
+            foreach (var srv in ServiceData.ToArray())
             {
-                var projFolder = Path.Combine(servicesJsonFile.Directory?.Parent?.FullName ?? "", srv.Service);
+                var projFolder = Path.Combine(ServicesJsonFile.Directory?.Parent?.FullName ?? "", srv.Service);
                 var websiteFolder = Path.Combine(projFolder, "website");
                 var launchSettings = Path.Combine(websiteFolder, "properties", "launchSettings.json");
                 if (File.Exists(launchSettings))
@@ -170,7 +170,7 @@ namespace MacroserviceExplorer
                 }
                 else
                 {
-                    srv.Status = MacroserviceGridItem.enumStatus.NoSourcerLocally;
+                    srv.Status = MacroserviceGridItem.EnumStatus.NoSourcerLocally;
                     srv.WebsiteFolder = null;
                     srv.ProcId = -1;
                     srv.VsDTE = null;
@@ -180,40 +180,39 @@ namespace MacroserviceExplorer
                 }
 
 
-                srv.ProcId = GetProcessIdByPortNumber(srv.Port.To<int>());
 
                 if (srv.WebsiteFolder.HasValue())
                 {
-                    srv.Status = srv.ProcId > 0 ? MacroserviceGridItem.enumStatus.Run : MacroserviceGridItem.enumStatus.Stop;
+                    srv.UpdateProcessStatus();
 
                     var gitUpdates = await GetGitUpdates(srv);
                     srv.GitUpdates = gitUpdates.ToString();
-                    srv.VsDTE = GetVSDTE(srv);
+                    srv.VsDTE = srv.GetVSDTE();
 
                 }
                 else
-                    srv.Status = MacroserviceGridItem.enumStatus.NoSourcerLocally;
+                    srv.Status = MacroserviceGridItem.EnumStatus.NoSourcerLocally;
 
             }
 
             return true;
         }
 
-        void FetchProjectNugetPackages(MacroserviceGridItem service, MacroserviceGridItem.enumProjects projEnum)
+        void FetchProjectNugetPackages(MacroserviceGridItem service, MacroserviceGridItem.EnumProjects projEnum)
         {
             string projFolder;
             switch (projEnum)
             {
-                case MacroserviceGridItem.enumProjects.Website:
+                case MacroserviceGridItem.EnumProjects.Website:
                     projFolder = service.WebsiteFolder;
                     break;
-                case MacroserviceGridItem.enumProjects.Domain:
+                case MacroserviceGridItem.EnumProjects.Domain:
                     projFolder = Path.Combine(service.SolutionFolder, "Domain");
                     break;
-                case MacroserviceGridItem.enumProjects.Model:
+                case MacroserviceGridItem.EnumProjects.Model:
                     projFolder = Path.Combine(service.SolutionFolder, "M#", "Model");
                     break;
-                case MacroserviceGridItem.enumProjects.UI:
+                case MacroserviceGridItem.EnumProjects.UI:
                     projFolder = Path.Combine(service.SolutionFolder, "M#", "UI");
                     break;
                 default:
@@ -224,10 +223,10 @@ namespace MacroserviceExplorer
             var project = ".csproj".GetFisrtFile(projFolder);
             if (project.IsEmpty()) return;
 
-            var serializer = new XmlSerializer(typeof(Classes.web.Project));
-            Classes.web.Project proj;
+            var serializer = new XmlSerializer(typeof(Classes.Web.Project));
+            Classes.Web.Project proj;
             using (var fileStream = File.OpenRead(project))
-                proj = (Classes.web.Project)serializer.Deserialize(fileStream);
+                proj = (Classes.Web.Project)serializer.Deserialize(fileStream);
 
             var nugetPackageRepo = PackageRepositoryFactory.Default.CreateRepository("https://packages.nuget.org/api/v2");
             var nugetPackageSet = new Dictionary<string, string>();
@@ -248,15 +247,23 @@ namespace MacroserviceExplorer
                     {
                         var srv = (MacroserviceGridItem)args.Argument;
 
-                        foreach (MacroserviceGridItem.enumProjects prj in Enum.GetValues(typeof(MacroserviceGridItem.enumProjects)))
+                        foreach (MacroserviceGridItem.EnumProjects prj in Enum.GetValues(typeof(MacroserviceGridItem.EnumProjects)))
                         {
 
                             var packageReferences = srv.Projects[prj]?.PackageReferences;
                             if (packageReferences == null) continue;
-
-                            var packages = nugetPackageRepo.FindPackages(packageReferences.Where(x => !nugetPackageSet.ContainsKey(x.Include))
-                                                                                          .Select(x => x.Include))
-                                                           .ToList();
+                            List<IPackage> packages;
+                            try
+                            {
+                                packages = nugetPackageRepo.FindPackages(packageReferences.Where(x => !nugetPackageSet.ContainsKey(x.Include))
+                                        .Select(x => x.Include))
+                                    .ToList();
+                            }
+                            catch (Exception e)
+                            {
+                                logWindow.LogMessage("Error on git repository access:" , e.Message);
+                                return;
+                            }
 
                             foreach (var packageRef in packageReferences)
                             {
@@ -278,6 +285,9 @@ namespace MacroserviceExplorer
                     nugetInitworker.RunWorkerCompleted += (sender, args) =>
                     {
                         var srv = (MacroserviceGridItem)args.Result;
+                        if(srv == null)
+                            return;
+
                         foreach (var projectRef in srv.Projects)
                             if (projectRef.Value.PackageReferences != null)
                                 foreach (var nugetRef in projectRef.Value.PackageReferences)
@@ -293,33 +303,31 @@ namespace MacroserviceExplorer
                 }
         }
 
-
-        FileSystemWatcher watcher;
         void StartFileSystemWatcher(FileInfo fileInfo)
         {
-            if (watcher != null)
+            if (Watcher != null)
                 StopWatcher();
 
-            watcher = new FileSystemWatcher(fileInfo.Directory?.FullName ?? throw new InvalidOperationException($"File '{fileInfo.FullName}' does not exists anymore ..."), services_file_name);
+            Watcher = new FileSystemWatcher(fileInfo.Directory?.FullName ?? throw new InvalidOperationException($"File '{fileInfo.FullName}' does not exists anymore ..."), Services_file_name);
 
-            watcher.Changed += Watcher_Changed;
-            watcher.EnableRaisingEvents = true;
+            Watcher.Changed += Watcher_Changed;
+            Watcher.EnableRaisingEvents = true;
         }
 
         void StopWatcher()
         {
-            if (watcher == null) return;
+            if (Watcher == null) return;
 
-            watcher.EnableRaisingEvents = false;
-            watcher.Changed -= Watcher_Changed;
-            watcher.Dispose();
-            watcher = null;
+            Watcher.EnableRaisingEvents = false;
+            Watcher.Changed -= Watcher_Changed;
+            Watcher.Dispose();
+            Watcher = null;
         }
         public delegate void MyDelegate();
 
         void Watcher_Changed(object sender, FileSystemEventArgs e)
         {
-            if (!string.Equals(e.FullPath, servicesJsonFile.FullName,
+            if (!string.Equals(e.FullPath, ServicesJsonFile.FullName,
                 StringComparison.CurrentCultureIgnoreCase)) return;
 
 
@@ -339,7 +347,7 @@ namespace MacroserviceExplorer
                     break;
 
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException("");
             }
         }
 

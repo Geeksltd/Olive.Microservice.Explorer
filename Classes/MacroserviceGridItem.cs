@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using EnvDTE;
 using EnvDTE80;
 using MacroserviceExplorer.Annotations;
-using MacroserviceExplorer.Classes.web;
+using MacroserviceExplorer.Classes.Web;
+using MacroserviceExplorer.TCPIP;
+using MacroserviceExplorer.Utils;
 using Process = System.Diagnostics.Process;
+using Thread = System.Threading.Thread;
 
 namespace MacroserviceExplorer
 {
@@ -34,15 +39,15 @@ namespace MacroserviceExplorer
 
         #endregion
 
-        public enum enumStatus
+        public enum EnumStatus
         {
             NoSourcerLocally = 1,
             Stop = 2,
             Run = 3,
             Pending = 4
         }
-        enumStatus _status;
-        public enumStatus Status
+        EnumStatus _status;
+        public EnumStatus Status
         {
             get => _status;
             set
@@ -60,7 +65,7 @@ namespace MacroserviceExplorer
 
         public string Service { get; set; }
 
-        public FontWeight ServiceFontWeight => Status == enumStatus.Run ? FontWeights.Bold : FontWeights.Regular;
+        public FontWeight ServiceFontWeight => Status == EnumStatus.Run ? FontWeights.Bold : FontWeights.Regular;
 
         public System.Windows.Media.Brush ServiceColor
         {
@@ -68,11 +73,11 @@ namespace MacroserviceExplorer
             {
                 switch (Status)
                 {
-                    case enumStatus.NoSourcerLocally:
+                    case EnumStatus.NoSourcerLocally:
                         return System.Windows.Media.Brushes.DimGray;
-                    case enumStatus.Stop:
+                    case EnumStatus.Stop:
                         return System.Windows.Media.Brushes.DarkRed;
-                    case enumStatus.Run:
+                    case EnumStatus.Run:
                         return System.Windows.Media.Brushes.Green;
                     default:
                         return System.Windows.Media.Brushes.Black;
@@ -86,11 +91,11 @@ namespace MacroserviceExplorer
             {
                 switch (Status)
                 {
-                    case enumStatus.NoSourcerLocally:
+                    case EnumStatus.NoSourcerLocally:
                         return "Source not available locally";
-                    case enumStatus.Stop:
+                    case EnumStatus.Stop:
                         return "Service Stopped locally";
-                    case enumStatus.Run:
+                    case EnumStatus.Run:
                         return $"Service is Running locally ( '{ProcessName}' process Id : {ProcId})";
                     default:
                         return "";
@@ -109,11 +114,11 @@ namespace MacroserviceExplorer
             {
                 switch (Status)
                 {
-                    case enumStatus.Stop:
+                    case EnumStatus.Stop:
                         return "Resources/run2.png";
-                    case enumStatus.Run:
+                    case EnumStatus.Run:
                         return "Resources/pause.png";
-                    case enumStatus.Pending:
+                    case EnumStatus.Pending:
                         return "Resources/gears.gif";
                     default:
                         return null;
@@ -122,7 +127,7 @@ namespace MacroserviceExplorer
             }
         }
 
-        public double RunImageOpacity => Status == enumStatus.Stop ? 1 : .2;
+        public double RunImageOpacity => Status == EnumStatus.Stop ? 1 : .2;
 
         int _procId;
         public int ProcId
@@ -154,6 +159,7 @@ namespace MacroserviceExplorer
                 OnPropertyChanged(nameof(VisibleCode));
             }
         }
+
         public string SolutionFolder { get; set; }
 
         public object PortIcon => int.TryParse(Port, out var _) ? null : "Resources/Warning.png";
@@ -167,9 +173,9 @@ namespace MacroserviceExplorer
         public object Tag { get; set; }
 
         DTE2 _vsDTE;
-        private int _nugetUpdates;
-        private string _gitUpdates;
-        private object _gitUpdateImage;
+        int _nugetUpdates;
+        string _gitUpdates;
+        
 
         public DTE2 VsDTE
         {
@@ -228,7 +234,7 @@ namespace MacroserviceExplorer
 
         public Visibility VisibleKestrel => ProcId <= 0 ? Visibility.Collapsed : Visibility.Visible;
 
-        public enum enumProjects
+        public enum EnumProjects
         {
             Website,
             Domain,
@@ -237,13 +243,80 @@ namespace MacroserviceExplorer
         }
 
 
-        public Dictionary<enumProjects, ProjectRef> Projects = new Dictionary<enumProjects, ProjectRef>()
+        public Dictionary<EnumProjects, ProjectRef> Projects = new Dictionary<EnumProjects, ProjectRef>()
         {
-            { enumProjects.Website , new ProjectRef()},
-            { enumProjects.Domain , new ProjectRef()},
-            { enumProjects.Model , new ProjectRef()},
-            { enumProjects.UI , new ProjectRef()},
+            { EnumProjects.Website , new ProjectRef()},
+            { EnumProjects.Domain , new ProjectRef()},
+            { EnumProjects.Model , new ProjectRef()},
+            { EnumProjects.UI , new ProjectRef()},
         };
+
+        public void Stop()
+        {
+            Status = EnumStatus.Pending;
+
+            var process = Process.GetProcessById(ProcId);
+            process.Kill();
+            Thread.Sleep(300);
+            ProcId = GetProcessIdByPortNumber(Port.To<int>());
+            if (ProcId < 0)
+                Status = EnumStatus.Stop;
+        }
+
+        int GetProcessIdByPortNumber(int port)
+        {
+            var tcpRow = ManagedIpHelper.GetExtendedTcpTable(sorted: true)
+                .FirstOrDefault(tcprow => tcprow.LocalEndPoint.Port == port);
+
+            if (tcpRow == null) return -1;
+            if (Process.GetProcessById(tcpRow.ProcessId).ProcessName.ToLower() != "dotnet") return -1;
+            return tcpRow.ProcessId;
+        }
+
+        public void UpdateProcessStatus()
+        {
+            ProcId = GetProcessIdByPortNumber(Port.To<int>());
+            Status = ProcId < 0 ? EnumStatus.Stop : EnumStatus.Run;
+
+        }
+
+        public void OpenVs(FileInfo solutionFile)
+        {
+            var dte2 = VsDTE ?? GetVSDTE(solutionFile);
+            if (dte2 != null)
+            {
+                dte2.MainWindow.Visible = true;
+                dte2.MainWindow.SetFocus();
+            }
+            else
+                Process.Start(solutionFile.FullName);
+        }
+
+        public DTE2 GetVSDTE()
+        {
+            return GetVSDTE(GetServiceSolutionFilePath());
+        }
+
+        public DTE2 GetVSDTE(FileInfo solutionFile)
+        {
+            if (solutionFile == null)
+                return null;
+            try
+            {
+                return Helper.GetVsInstances().FirstOrDefault(dte2 => string.Equals(dte2.Solution.FullName, solutionFile.FullName, StringComparison.CurrentCultureIgnoreCase));
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+
+        }
+
+        public FileInfo GetServiceSolutionFilePath()
+        {
+            return !Directory.Exists(WebsiteFolder) ? null : WebsiteFolder.AsDirectory().Parent?.GetFiles("*.sln").FirstOrDefault();
+        }
+
     }
 
     public class ProjectRef

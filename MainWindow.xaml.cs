@@ -1,30 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using EnvDTE;
-using EnvDTE80;
-using MacroserviceExplorer.TCPIP;
 using MacroserviceExplorer.Utils;
 using Button = System.Windows.Controls.Button;
 using MessageBox = System.Windows.Forms.MessageBox;
 using Process = System.Diagnostics.Process;
-using Thread = System.Threading.Thread;
 
 
 namespace MacroserviceExplorer
 {
 
-    public partial class MainWindow
+    public partial class MainWindow : IDisposable
     {
 
         #region Commands
@@ -106,10 +99,9 @@ namespace MacroserviceExplorer
 
                 foreach (var service in MacroserviceGridItems)
                 {
-                    if (MSharpExtensions.IsEmpty(service.WebsiteFolder) || MSharpExtensions.IsEmpty(service.Port)) continue;
+                    if (service.WebsiteFolder.IsEmpty() || service.Port.IsEmpty()) continue;
 
-                    service.ProcId = GetProcessIdByPortNumber(service.Port.To<int>());
-                    service.Status = service.ProcId < 0 ? MacroserviceGridItem.enumStatus.Stop : MacroserviceGridItem.enumStatus.Run;
+                    service.UpdateProcessStatus();
                 }
                 srvGrid.SelectedItem = selItem;
 
@@ -129,7 +121,7 @@ namespace MacroserviceExplorer
             if (!File.Exists(RecentsXml))
             {
                 OpenProject_Executed(sender, null);
-                if (!projextLoaded)
+                if (!ProjextLoaded)
                     ExitMenuItem_Click(sender, e);
                 return;
             }
@@ -143,24 +135,13 @@ namespace MacroserviceExplorer
                     break;
             }
 
-            if (projextLoaded) return;
+            if (ProjextLoaded) return;
 
             File.Delete(RecentsXml);
             MainWindow_OnLoaded(sender, e);
 
         }
         
-
-        int GetProcessIdByPortNumber(int port)
-        {
-            var tcpRow = ManagedIpHelper.GetExtendedTcpTable(sorted: true)
-                .FirstOrDefault(tcprow => tcprow.LocalEndPoint.Port == port);
-
-            if (tcpRow == null) return -1;
-            if (Process.GetProcessById(tcpRow.ProcessId).ProcessName.ToLower() != "dotnet") return -1;
-            return tcpRow.ProcessId;
-        }
-
 
         void StartStop_OnClick(object sender, MouseButtonEventArgs e)
         {
@@ -170,38 +151,27 @@ namespace MacroserviceExplorer
             var service = MacroserviceGridItems.Single(s => s.Service == serviceName);
             switch (service.Status)
             {
-                case MacroserviceGridItem.enumStatus.Pending:
+                case MacroserviceGridItem.EnumStatus.Pending:
                     MessageBox.Show("Macroservice is loading.\nPlease Wait ...", @"Loading ...");
                     break;
-                case MacroserviceGridItem.enumStatus.Run:
-                    StopService(service);
+                case MacroserviceGridItem.EnumStatus.Run:
+                    service.Stop();
                     break;
-                case MacroserviceGridItem.enumStatus.Stop:
+                case MacroserviceGridItem.EnumStatus.Stop:
                     StartService(service);
                     break;
-                case MacroserviceGridItem.enumStatus.NoSourcerLocally:
+                case MacroserviceGridItem.EnumStatus.NoSourcerLocally:
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
-        void StopService(MacroserviceGridItem service)
-        {
-            service.Status = MacroserviceGridItem.enumStatus.Pending;
-
-            var process = Process.GetProcessById(service.ProcId);
-            process.Kill();
-            Thread.Sleep(300);
-            service.ProcId = GetProcessIdByPortNumber(service.Port.To<int>());
-            if (service.ProcId < 0)
-                service.Status = MacroserviceGridItem.enumStatus.Stop;
-        }
 
         void StartService(MacroserviceGridItem service)
         {
             autoRefreshTimer.Stop();
-            service.Status = MacroserviceGridItem.enumStatus.Pending;
+            service.Status = MacroserviceGridItem.EnumStatus.Pending;
             var proc = new Process
             {
                 StartInfo = new ProcessStartInfo
@@ -228,46 +198,15 @@ namespace MacroserviceExplorer
         {
             var timer = (DispatcherTimer)sender;
             var service = (MacroserviceGridItem)timer.Tag;
-            service.ProcId = GetProcessIdByPortNumber(service.Port.To<int>());
+            service.UpdateProcessStatus();
             if (service.ProcId < 0) return;
 
             timer.Stop();
             timer.Tick -= DispatcherTimer_Tick;
-            service.Status = MacroserviceGridItem.enumStatus.Run;
+            service.Status = MacroserviceGridItem.EnumStatus.Run;
             autoRefreshTimer.Start();
         }
 
-        void OpenVs(MacroserviceGridItem service, FileInfo solutionFile)
-        {
-            var dte2 = service.VsDTE ?? GetVSDTE(solutionFile);
-            if (dte2 != null)
-            {
-                dte2.MainWindow.Visible = true;
-                dte2.MainWindow.SetFocus();
-            }
-            else
-                Process.Start(solutionFile.FullName);
-        }
-
-        static DTE2 GetVSDTE(MacroserviceGridItem service)
-        {
-            return GetVSDTE(GetServiceSolutionFilePath(service));
-        }
-
-        static DTE2 GetVSDTE(FileInfo solutionFile)
-        {
-            if (solutionFile == null)
-                return null;
-            try
-            {
-                return Helper.GetVsInstances().FirstOrDefault(dte2 => string.Equals(dte2.Solution.FullName, solutionFile.FullName, StringComparison.CurrentCultureIgnoreCase));
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-
-        }
 
         void OpenCode_OnClick(object sender, MouseButtonEventArgs e)
         {
@@ -275,13 +214,8 @@ namespace MacroserviceExplorer
             var btn = (Button)sender;
             var serviceName = btn.Tag.ToString();
             var service = MacroserviceGridItems.Single(s => s.Service == serviceName);
-            var solutionFile = GetServiceSolutionFilePath(service);
-            OpenVs(service, solutionFile);
-        }
-
-        static FileInfo GetServiceSolutionFilePath(MacroserviceGridItem service)
-        {
-            return !Directory.Exists(service.WebsiteFolder) ? null : service.WebsiteFolder.AsDirectory().Parent?.GetFiles("*.sln").FirstOrDefault();
+            var solutionFile = service.GetServiceSolutionFilePath();
+            service.OpenVs(solutionFile);
         }
 
         async void OpenProject_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -290,11 +224,11 @@ namespace MacroserviceExplorer
             {
                 CheckFileExists = true,
                 CheckPathExists = true,
-                Filter = $@"Services JSON File |{services_file_name}",
+                Filter = $@"Services JSON File |{Services_file_name}",
                 RestoreDirectory = true,
                 Multiselect = false,
                 SupportMultiDottedExtensions = true,
-                Title = $@"Select {services_file_name} file"
+                Title = $@"Select {Services_file_name} file"
             };
             if (openFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
                 return;
@@ -316,19 +250,19 @@ namespace MacroserviceExplorer
         async Task Refresh()
         {
 
-            if (servicesJsonFile != null)
+            if (ServicesJsonFile != null)
             {
-                await RefreshFile(servicesJsonFile.FullName);
+                await RefreshFile(ServicesJsonFile.FullName);
             }
 
-            if (!projextLoaded)
+            if (!ProjextLoaded)
                 autoRefreshTimer.Stop();
         }
 
         void EditProject_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            if (servicesJsonFile != null)
-                Process.Start("Notepad.exe", servicesJsonFile.FullName);
+            if (ServicesJsonFile != null)
+                Process.Start("Notepad.exe", ServicesJsonFile.FullName);
         }
 
         void CloseMenuItem_OnClick(object sender, RoutedEventArgs e)
@@ -373,7 +307,7 @@ namespace MacroserviceExplorer
             var process = processes.SingleOrDefault(x => x.ProcessID == service.ProcId);
             if (process == null) return;
 
-            OpenVs(service, GetServiceSolutionFilePath(service));
+            service.OpenVs(service.GetServiceSolutionFilePath());
             process.Attach();
 
 
@@ -383,7 +317,7 @@ namespace MacroserviceExplorer
         void RunAllMenuItem_Click(object sender, ExecutedRoutedEventArgs e)
         {
             foreach (var service in MacroserviceGridItems)
-                if (service.Status == MacroserviceGridItem.enumStatus.Stop)
+                if (service.Status == MacroserviceGridItem.EnumStatus.Stop)
                     StartService(service);
         }
 
@@ -391,15 +325,15 @@ namespace MacroserviceExplorer
         {
             foreach (var service in MacroserviceGridItems)
             {
-                if (service.Status == MacroserviceGridItem.enumStatus.Run)
-                    StopService(service);
+                if (service.Status == MacroserviceGridItem.EnumStatus.Run)
+                    service.Stop();
             }
         }
 
         void RunAllFilteredMenuItem_Click(object sender, ExecutedRoutedEventArgs e)
         {
             foreach (var service in MacroserviceGridItems)
-                if (service.Status == MacroserviceGridItem.enumStatus.Stop)
+                if (service.Status == MacroserviceGridItem.EnumStatus.Stop)
                     StartService(service);
 
         }
@@ -408,8 +342,8 @@ namespace MacroserviceExplorer
         {
             foreach (var service in MacroserviceGridItems)
             {
-                if (service.Status == MacroserviceGridItem.enumStatus.Run)
-                    StopService(service);
+                if (service.Status == MacroserviceGridItem.EnumStatus.Run)
+                    service.Stop();
             }
         }
 
@@ -480,6 +414,12 @@ namespace MacroserviceExplorer
             {
                 MessageBox.Show("Last Kestrel process was attached to none console window style.\n So if you want to see Kestrel log window, please stop and start macroserice again.", "There is not kestrel window-habdle");
             }
+        }
+
+        public void Dispose()
+        {
+            notifyIcon.Dispose();
+            Watcher.Dispose();
         }
     }
 }

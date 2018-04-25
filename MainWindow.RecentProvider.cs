@@ -21,7 +21,7 @@ namespace MacroserviceExplorer
         void SaveRecentFilesXml()
         {
             var serializer = new XmlSerializer(typeof(List<string>));
-            using (var sww = new StringWriter())
+            var sww = new StringWriter();
             using (var writer = XmlWriter.Create(sww))
             {
                 serializer.Serialize(writer, _recentFiles);

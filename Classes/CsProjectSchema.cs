@@ -14,7 +14,7 @@ namespace MacroserviceExplorer.Classes
     [System.Xml.Serialization.XmlRootAttribute(Namespace = "", IsNullable = false)]
     public partial class Project
     {
-        ProjectPropertyGroup[] propertyGroupField;
+        ProjectPropertyGroup[] PropertyGroupField;
 
         List<ProjectPackageReference> itemGroupField;
 
@@ -24,8 +24,8 @@ namespace MacroserviceExplorer.Classes
         [System.Xml.Serialization.XmlElementAttribute("PropertyGroup")]
         public ProjectPropertyGroup[] PropertyGroup
         {
-            get => propertyGroupField;
-            set => propertyGroupField = value;
+            get => PropertyGroupField;
+            set => PropertyGroupField = value;
         }
 
         /// <remarks/>

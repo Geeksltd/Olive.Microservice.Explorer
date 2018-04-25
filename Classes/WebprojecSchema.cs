@@ -4,14 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MacroserviceExplorer.Classes.web
+namespace MacroserviceExplorer.Classes.Web
 {
 
 
 
 // NOTE: Generated code may require at least .NET Framework 4.5 or .NET Core/Standard 2.0.
     /// <remarks/>
-    [System.SerializableAttribute()]
+    [Serializable()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
     [System.Xml.Serialization.XmlRootAttribute(Namespace = "", IsNullable = false)]
@@ -70,7 +70,7 @@ namespace MacroserviceExplorer.Classes.web
     }
 
     /// <remarks/>
-    [System.SerializableAttribute()]
+    [Serializable()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
     public partial class ProjectPropertyGroup
@@ -153,7 +153,7 @@ namespace MacroserviceExplorer.Classes.web
     }
 
     /// <remarks/>
-    [System.SerializableAttribute()]
+    [Serializable()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
     public partial class ProjectItemGroup
@@ -225,7 +225,7 @@ namespace MacroserviceExplorer.Classes.web
     }
 
     /// <remarks/>
-    [System.SerializableAttribute()]
+    [Serializable()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
     public partial class ProjectItemGroupProjectReference
@@ -243,7 +243,7 @@ namespace MacroserviceExplorer.Classes.web
     }
 
     /// <remarks/>
-    [System.SerializableAttribute()]
+    [Serializable()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
     public partial class ProjectItemGroupPackageReference
@@ -271,7 +271,7 @@ namespace MacroserviceExplorer.Classes.web
     }
 
     /// <remarks/>
-    [System.SerializableAttribute()]
+    [Serializable()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
     public partial class ProjectItemGroupDotNetCliToolReference
@@ -299,7 +299,7 @@ namespace MacroserviceExplorer.Classes.web
     }
 
     /// <remarks/>
-    [System.SerializableAttribute()]
+    [Serializable()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
     public partial class ProjectItemGroupCompile
@@ -317,7 +317,7 @@ namespace MacroserviceExplorer.Classes.web
     }
 
     /// <remarks/>
-    [System.SerializableAttribute()]
+    [Serializable()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
     public partial class ProjectItemGroupContent
@@ -335,7 +335,7 @@ namespace MacroserviceExplorer.Classes.web
     }
 
     /// <remarks/>
-    [System.SerializableAttribute()]
+    [Serializable()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
     public partial class ProjectItemGroupEmbeddedResource
@@ -353,7 +353,7 @@ namespace MacroserviceExplorer.Classes.web
     }
 
     /// <remarks/>
-    [System.SerializableAttribute()]
+    [Serializable()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
     public partial class ProjectItemGroupNone
@@ -371,7 +371,7 @@ namespace MacroserviceExplorer.Classes.web
     }
 
     /// <remarks/>
-    [System.SerializableAttribute()]
+    [Serializable()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
     public partial class ProjectUsingTask
@@ -399,7 +399,7 @@ namespace MacroserviceExplorer.Classes.web
     }
 
     /// <remarks/>
-    [System.SerializableAttribute()]
+    [Serializable()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
     public partial class ProjectTarget
@@ -457,7 +457,7 @@ namespace MacroserviceExplorer.Classes.web
     }
 
     /// <remarks/>
-    [System.SerializableAttribute()]
+    [Serializable()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
     public partial class ProjectTargetWebCompilerCompilerCleanTask
@@ -485,7 +485,7 @@ namespace MacroserviceExplorer.Classes.web
     }
 
     /// <remarks/>
-    [System.SerializableAttribute()]
+    [Serializable()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
     public partial class ProjectTargetWebCompilerCompilerBuildTask

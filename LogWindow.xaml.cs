@@ -13,6 +13,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace MacroserviceExplorer
 {
@@ -57,11 +58,16 @@ namespace MacroserviceExplorer
 
         public void LogMessage(string message, string description = null)
         {
-            TextLog += $"{DateTime.Now.ToLongTimeString()}  \t{message}{Environment.NewLine}";
-            if (description.HasValue())
-                TextLog += "decription : \t" + description?.Replace("\n","\n\t\t") + Environment.NewLine;
+            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MainWindow.MyDelegate(() =>
+            {
+                TextLog += $"{DateTime.Now.ToLongTimeString()}  \t{message}{Environment.NewLine}";
+                if (description.HasValue())
+                    TextLog += "decription : \t" + description?.Replace("\n", "\n\t\t") + Environment.NewLine;
 
-            TextLog += $"{new string('-', 30)}{Environment.NewLine}";
+                TextLog += $"{new string('-', 30)}{Environment.NewLine}";
+
+            }));
+
         }
 
         public void SetTheLogWindowBy(MainWindow mainWindow)

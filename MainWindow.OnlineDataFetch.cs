@@ -30,13 +30,23 @@ namespace MacroserviceExplorer
             {
                 StatusProgressStart();
                 ShowStatusMessage("Start git fetch ...", tooltip: null, logMessage: false);
-                var fetchoutput = "git.exe".AsFile(searchEnvironmentPath: true)
-                         .Execute("fetch", waitForExit: true, configuration: x => x.StartInfo.WorkingDirectory = projFOlder.FullName);
+                try
+                {
+                    var fetchoutput = "git.exe".AsFile(searchEnvironmentPath: true)
+                        .Execute("fetch", waitForExit: true, configuration: x => x.StartInfo.WorkingDirectory = projFOlder.FullName);
 
-                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(() => ShowStatusMessage($"git fetch completed ... ({service.Service})", fetchoutput)));
+                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(() => ShowStatusMessage($"git fetch completed ... ({service.Service})", fetchoutput)));
 
-                return "git.exe".AsFile(searchEnvironmentPath: true)
-                                .Execute("status", waitForExit: true, configuration: x => x.StartInfo.WorkingDirectory = projFOlder.FullName);
+                    return "git.exe".AsFile(searchEnvironmentPath: true)
+                        .Execute("status", waitForExit: true, configuration: x => x.StartInfo.WorkingDirectory = projFOlder.FullName);
+                }
+                catch (Exception e)
+                {
+                    StatusProgressStop();
+                    ShowStatusMessage("Error on git fetch ...", tooltip: null, logMessage: false);
+                    logWindow.LogMessage("Error on git command ..." , e.Message);
+                    return null;
+                }
             }
             var output = await Task.Run((Func<string>)run);
             var status = ReadGitInfo(output);
@@ -55,7 +65,7 @@ namespace MacroserviceExplorer
             var branch = match.Groups["branch"];
             var remoteCommits = match.Groups["remoteCommits"];
             if (match.Success)
-                return new GitStatus() { Branch = branch.Value, RemoteCommits = remoteCommits.Value.To<int>() };
+                return new GitStatus { Branch = branch.Value, RemoteCommits = remoteCommits.Value.To<int>() };
 
             pattern = @"Your branch and '(?<branch>[a-zA-Z/]*)' have diverged,\nand have (?<localCommits>\d*) and (?<remoteCommits>\d*) different commit";
             match = Regex.Match(input, pattern, options);
@@ -63,7 +73,7 @@ namespace MacroserviceExplorer
             remoteCommits = match.Groups["remoteCommits"];
             var localCommits = match.Groups["localCommits"];
 
-            return match.Success ? new GitStatus() { Branch = branch.Value, RemoteCommits = remoteCommits.Value.To<int>(), LocalCommits = localCommits.Value.To<int>() } : null;
+            return match.Success ? new GitStatus { Branch = branch.Value, RemoteCommits = remoteCommits.Value.To<int>(), LocalCommits = localCommits.Value.To<int>() } : null;
         }
 
         async Task GitUpdate(MacroserviceGridItem server)

@@ -13,7 +13,7 @@ namespace MacroserviceExplorer
     partial class MainWindow
     {
         public MacroserviceGridItem SelectedService { get; set; }
-        public List<MacroserviceGridItem> serviceData = new List<MacroserviceGridItem>();
+        public List<MacroserviceGridItem> ServiceData = new List<MacroserviceGridItem>();
         public ObservableCollection<MacroserviceGridItem> MacroserviceGridItems = new ObservableCollection<MacroserviceGridItem>();
 
         MacroserviceGridItem GetServiceFromButtonTag(object sender)
@@ -36,7 +36,7 @@ namespace MacroserviceExplorer
             }
 
             var uatMenuItem = new MenuItem { Header = "UAT" };
-            if (!string.IsNullOrEmpty(service.UatUrl))
+            if (service.UatUrl.HasValue())
             {
                 uatMenuItem.Header += $"\t  {service.UatUrl}";
                 uatMenuItem.Tag = service;
@@ -47,7 +47,7 @@ namespace MacroserviceExplorer
             cm.Items.Add(uatMenuItem);
 
             var liveMenuItem = new MenuItem { Header = "Live" };
-            if (!string.IsNullOrEmpty(service.LiveUrl))
+            if (service.LiveUrl.HasValue())
             {
                 liveMenuItem.Header += $"\t  {service.LiveUrl}";
                 liveMenuItem.Tag = service;
@@ -72,11 +72,11 @@ namespace MacroserviceExplorer
         {
             var service = (MacroserviceGridItem)menuitem.Tag;
             var address = menuitem.Header.ToString().Substring(menuitem.Header.ToString().IndexOf(" ", StringComparison.Ordinal) + 1);
-            if (address.Contains("localhost:") && service.Status != MacroserviceGridItem.enumStatus.Run)
+            if (address.Contains("localhost:") && service.Status != MacroserviceGridItem.EnumStatus.Run)
             {
                 void OnServiceOnPropertyChanged(object obj, PropertyChangedEventArgs args)
                 {
-                    if (args.PropertyName != nameof(service.Status) || service.Status != MacroserviceGridItem.enumStatus.Run) return;
+                    if (args.PropertyName != nameof(service.Status) || service.Status != MacroserviceGridItem.EnumStatus.Run) return;
                     service.PropertyChanged -= OnServiceOnPropertyChanged;
                     Helper.Launch(address);
                 }
@@ -101,11 +101,11 @@ namespace MacroserviceExplorer
             MacroserviceGridItems.Clear();
             if (txtSearch.Text.IsEmpty())
             {
-                MacroserviceGridItems.AddRange(serviceData);
+                MacroserviceGridItems.AddRange(ServiceData);
                 return;
             }
 
-            MacroserviceGridItems.AddRange(serviceData.Where(x => x.Service.ToLower().Contains(txtSearchText.ToLower()) || MSharpExtensions.OrEmpty(x.Port).Contains(txtSearchText)));
+            MacroserviceGridItems.AddRange(ServiceData.Where(x => x.Service.ToLower().Contains(txtSearchText.ToLower()) || x.Port.OrEmpty().Contains(txtSearchText)));
         }
 
     }
