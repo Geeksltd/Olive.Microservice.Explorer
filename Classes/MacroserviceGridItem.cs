@@ -261,7 +261,7 @@ namespace MacroserviceExplorer
             get => _newVersion;
             set
             {
-                if (!int.TryParse(value.Replace(".", ""), out _))
+                if (value.IsEmpty() || !int.TryParse(value.Replace(".", ""), out _))
                     return;
 
                 _newVersion = value;
