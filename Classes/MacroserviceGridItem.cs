@@ -127,7 +127,7 @@ namespace MacroserviceExplorer
             }
         }
 
-        public double RunImageOpacity => Status == EnumStatus.Stop ? 1 : .2;
+        public double RunImageOpacity => Status == EnumStatus.Run ? 1 : .2;
 
         int _procId;
         public int ProcId
