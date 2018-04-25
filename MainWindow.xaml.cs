@@ -111,7 +111,7 @@ namespace MacroserviceExplorer
                 logWindow.LogMessage("[Autorefresh End]", new string('=', 60));
 
             };
-            autoRefreshTimer.Interval = new TimeSpan(0, 0, 30);
+            autoRefreshTimer.Interval = new TimeSpan(0, 3, 0 );
             autoRefreshTimer.Start();
         }
 

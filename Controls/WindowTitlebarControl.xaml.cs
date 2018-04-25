@@ -35,10 +35,10 @@ namespace MacroserviceExplorer.Controls
             set => SetValue(TitleProperty, value);
         }
 
-        static void OnTitleChanged(DependencyObject d,
+        static void OnTitleChanged(DependencyObject dpObject,
             DependencyPropertyChangedEventArgs e)
         {
-            var titlebarControl = (WindowTitlebarControl)d;
+            var titlebarControl = (WindowTitlebarControl)dpObject;
             titlebarControl.OnTitleChanged(e);
         }
         void OnTitleChanged(DependencyPropertyChangedEventArgs e)

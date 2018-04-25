@@ -268,9 +268,6 @@
                                 <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="OpenCode_OnClick"  Tag="{Binding Service}" Visibility="{Binding VisibleCode}" ToolTip="Edit Macroservice Source Code in Visual Studio">
                                     <Image Source="{Binding VsCodeIcon}" Style="{StaticResource gridImage}"  Width="25"/>
                                 </Button>
-                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="VsDebuggerAttach_OnClick"  Tag="{Binding Service}" Visibility="{Binding VisibleDebug}" ToolTip="Attach Macroservice Process to Current Visual Studio for Debugging">
-                                    <Image Source="{Binding DebuggerIcon}" Style="{StaticResource gridImage}"  Width="25"/>
-                                </Button>
                                 <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="OpenExplorer_OnClick" Tag="{Binding Service}" Visibility="{Binding VisibleCode}" ToolTip="Brows Folder in Windows Explorer">
                                     <Image Source="Resources/folder2.png" Style="{StaticResource gridImage}"  Width="25"/>
                                 </Button>
@@ -279,12 +276,15 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
 
-                <DataGridTemplateColumn Header="Kestrel" SortMemberPath="VisibleCode" >
+                <DataGridTemplateColumn Header="Debug" SortMemberPath="VisibleCode" >
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
                                 <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="ShowKestrelLog_OnClick"  Tag="{Binding Service}" Visibility="{Binding VisibleKestrel}" ToolTip="Show the running Kestrel console log window.">
                                     <Image Source="/Resources/log.png" Style="{StaticResource gridImage}"  Width="25"/>
+                                </Button>
+                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="VsDebuggerAttach_OnClick"  Tag="{Binding Service}" Visibility="{Binding VisibleDebug}" ToolTip="Attach Macroservice Process to Current Visual Studio for Debugging">
+                                    <Image Source="{Binding DebuggerIcon}" Style="{StaticResource gridImage}"  Width="25"/>
                                 </Button>
                             </StackPanel>
                         </DataTemplate>
