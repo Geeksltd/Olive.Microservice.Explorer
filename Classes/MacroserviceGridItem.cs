@@ -175,7 +175,7 @@ namespace MacroserviceExplorer
         DTE2 _vsDTE;
         int _nugetUpdates;
         string _gitUpdates;
-        
+
 
         public DTE2 VsDTE
         {
@@ -254,9 +254,16 @@ namespace MacroserviceExplorer
         public void Stop()
         {
             Status = EnumStatus.Pending;
+            try
+            {
+                Process.GetProcessById(ProcId).Kill();
+            }
+            catch
+            {
+                // Already stopped.
+                // No logging is needed.
+            }
 
-            var process = Process.GetProcessById(ProcId);
-            process.Kill();
             Thread.Sleep(300);
             ProcId = GetProcessIdByPortNumber(Port.To<int>());
             if (ProcId < 0)
@@ -338,7 +345,7 @@ namespace MacroserviceExplorer
                     return;
 
                 _newVersion = value;
-                if (_newVersion.HasValue() && Version.HasValue() &&  new Version(_newVersion).CompareTo(new Version(Version)) > 0)
+                if (_newVersion.HasValue() && Version.HasValue() && new Version(_newVersion).CompareTo(new Version(Version)) > 0)
                     IsLatestVersion = true;
             }
         }
