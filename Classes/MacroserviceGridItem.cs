@@ -290,9 +290,15 @@ namespace MacroserviceExplorer
         public void Stop()
         {
             Status = EnumStatus.Pending;
-
-            var process = Process.GetProcessById(ProcId);
-            process.Kill();
+            try
+            {
+                Process.GetProcessById(ProcId).Kill();
+            }
+            catch
+            {
+                // Already stopped.
+                // No logging is needed.
+            }
             Thread.Sleep(300);
             ProcId = GetProcessIdByPortNumber(Port.To<int>());
             if (ProcId < 0)
