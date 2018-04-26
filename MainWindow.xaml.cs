@@ -158,7 +158,7 @@ namespace MacroserviceExplorer
                     service.Stop();
                     break;
                 case MacroserviceGridItem.EnumStatus.Stop:
-                    StartService(service);
+                    Start(service);
                     break;
                 case MacroserviceGridItem.EnumStatus.NoSourcerLocally:
                     break;
@@ -168,7 +168,7 @@ namespace MacroserviceExplorer
         }
 
 
-        void StartService(MacroserviceGridItem service)
+        void Start(MacroserviceGridItem service)
         {
             autoRefreshTimer.Stop();
             service.Status = MacroserviceGridItem.EnumStatus.Pending;
@@ -318,7 +318,7 @@ namespace MacroserviceExplorer
         {
             foreach (var service in MacroserviceGridItems)
                 if (service.Status == MacroserviceGridItem.EnumStatus.Stop)
-                    StartService(service);
+                    Start(service);
         }
 
         void StopAllMenuItem_Click(object sender, ExecutedRoutedEventArgs e)
@@ -334,7 +334,7 @@ namespace MacroserviceExplorer
         {
             foreach (var service in MacroserviceGridItems)
                 if (service.Status == MacroserviceGridItem.EnumStatus.Stop)
-                    StartService(service);
+                    Start(service);
 
         }
 

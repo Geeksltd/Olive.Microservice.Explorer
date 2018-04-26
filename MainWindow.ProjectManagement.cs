@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Threading;
 using System.Xml.Serialization;
 using NuGet;
@@ -112,10 +113,6 @@ namespace MacroserviceExplorer
                         FetchProjectNugetPackages(srv, proj);
 
                     srv.VsDTE = srv.GetVSDTE();
-
-                    if (!srv.WebsiteFolder.HasValue())
-                        continue;
-
                     //var gitUpdates = await GetGitUpdates(srv);
                     //srv.GitUpdates = gitUpdates.ToString();
 
@@ -130,10 +127,13 @@ namespace MacroserviceExplorer
             //    return false;
             //}
 
+            ProjextLoaded = true;
+
             if (Watcher == null)
                 StartFileSystemWatcher(ServicesJsonFile);
 
-            ProjextLoaded = true;
+            await Refresh();
+
             return true;
         }
 
@@ -230,7 +230,7 @@ namespace MacroserviceExplorer
 
             var nugetPackageRepo = PackageRepositoryFactory.Default.CreateRepository("https://packages.nuget.org/api/v2");
             var nugetPackageSet = new Dictionary<string, string>();
-            //List<IPackage> _packages = new List<IPackage>();
+
             foreach (var itm in proj.ItemGroup)
                 if (itm.PackageReference != null && itm.PackageReference.Length > 0)
                 {
@@ -241,66 +241,85 @@ namespace MacroserviceExplorer
                             Include = x.Include,
                             Version = x.Version
                         }).ToList();
-
-                    var nugetInitworker = new BackgroundWorker();
-                    nugetInitworker.DoWork += (sender, args) =>
-                    {
-                        var srv = (MacroserviceGridItem)args.Argument;
-
-                        foreach (MacroserviceGridItem.EnumProjects prj in Enum.GetValues(typeof(MacroserviceGridItem.EnumProjects)))
-                        {
-
-                            var packageReferences = srv.Projects[prj]?.PackageReferences;
-                            if (packageReferences == null) continue;
-                            List<IPackage> packages;
-                            try
-                            {
-                                packages = nugetPackageRepo.FindPackages(packageReferences.Where(x => !nugetPackageSet.ContainsKey(x.Include))
-                                        .Select(x => x.Include))
-                                    .ToList();
-                            }
-                            catch (Exception e)
-                            {
-                                logWindow.LogMessage("Error on git repository access:" , e.Message);
-                                return;
-                            }
-
-                            foreach (var packageRef in packageReferences)
-                            {
-                                packageRef.NewVersion = packages.FirstOrDefault(package => package.IsLatestVersion)?.Version.ToFullString();
-
-                                if (!nugetPackageSet.ContainsKey(packageRef.Include))
-                                    nugetPackageSet.Add(packageRef.Include, packageRef.NewVersion);
-                            }
-
-                            packageReferences.Where(pr => pr.NewVersion.IsEmpty()).Do(pref =>
-                            {
-                                pref.NewVersion = nugetPackageSet[pref.Include];
-                            });
-                        }
-                        args.Result = srv;
-
-                    };
-
-                    nugetInitworker.RunWorkerCompleted += (sender, args) =>
-                    {
-                        var srv = (MacroserviceGridItem)args.Result;
-                        if(srv == null)
-                            return;
-
-                        foreach (var projectRef in srv.Projects)
-                            if (projectRef.Value.PackageReferences != null)
-                                foreach (var nugetRef in projectRef.Value.PackageReferences)
-                                    if (nugetRef.IsLatestVersion)
-                                        srv.NugetUpdates++;
-
-                        logWindow.LogMessage($"Run Worker Completed ({srv.Service})");
-                        var worker = (BackgroundWorker)sender;
-                        worker.Dispose();
-                    };
-
-                    nugetInitworker.RunWorkerAsync(service);
                 }
+
+            var nugetInitworker = new BackgroundWorker();
+            nugetInitworker.DoWork += (sender, args) =>
+            {
+                var srv = (MacroserviceGridItem)args.Argument;
+                srv.NugetStatusImage = "Pending";
+                lock (nugetPackageSet)
+                {
+
+                    var packageReferences = srv.Projects[projEnum]?.PackageReferences;
+                    if (packageReferences == null) return;
+                    List<IPackage> packages;
+                    try
+                    {
+                        logWindow.LogMessage($"### > Begin Nuget Packages update check ... ({srv.Service} - {projEnum})");
+                        packages = nugetPackageRepo.FindPackages(packageReferences
+                                .Where(x => !nugetPackageSet.ContainsKey(x.Include))
+                                .Select(x => x.Include))
+                            .ToList();
+                        logWindow.LogMessage($"=== > End Nuget Packages update checking. ({srv.Service} - {projEnum})");
+
+                    }
+                    catch (Exception e)
+                    {
+                        srv.NugetUpdateErrorMessage = e.Message;
+                        args.Result = srv;
+                        return;
+                    }
+
+                    foreach (var packageRef in packageReferences)
+                    {
+                        packageRef.NewVersion = packages.FirstOrDefault(package => package.IsLatestVersion)
+                            ?.Version.ToFullString();
+
+                        if (!nugetPackageSet.ContainsKey(packageRef.Include))
+                            nugetPackageSet.Add(packageRef.Include, packageRef.NewVersion);
+                    }
+
+                    packageReferences.Where(pr => pr.NewVersion.IsEmpty()).Do(pref =>
+                    {
+                        pref.NewVersion = nugetPackageSet[pref.Include];
+                    });
+
+                }
+                args.Result = srv;
+
+            };
+
+            nugetInitworker.RunWorkerCompleted += (sender, args) =>
+            {
+                var srv = (MacroserviceGridItem)args.Result;
+                if (srv.NugetUpdateErrorMessage.HasValue())
+                {
+                    srv.NugetStatusImage = "Warning";
+                    logWindow.LogMessage($"!!! > Nuget update checking has been finished with no result ... ({srv.Service} - {projEnum}) ", srv.NugetUpdateErrorMessage);
+                    srv.NugetUpdateErrorMessage = null;
+                    return;
+                }
+
+                foreach (var projectRef in srv.Projects)
+                    if (projectRef.Value.PackageReferences != null)
+                        foreach (var nugetRef in projectRef.Value.PackageReferences)
+                            if (nugetRef.IsLatestVersion)
+                            {
+                                if(srv.AddNugetUpdatesList(projectRef.Key, nugetRef.Include, nugetRef.Version, nugetRef.NewVersion))
+                                    logWindow.LogMessage($"\t > Package '{nugetRef.Include}' updated, from version [{nugetRef.Version}] to [{nugetRef.NewVersion}] in ({srv.Service} - {projEnum}) project.");
+
+                            }
+
+                srv.NugetStatusImage = null;
+                logWindow.LogMessage($"@@@ > Nuget update Completed ({srv.Service} - {projEnum})");
+                var worker = (BackgroundWorker)sender;
+                worker.Dispose();
+            };
+
+            logWindow.LogMessage($"*** > Nuget update Check Async Started ({service.Service} - {projEnum})");
+            nugetInitworker.RunWorkerAsync(service);
+
         }
 
         void StartFileSystemWatcher(FileInfo fileInfo)
@@ -345,11 +364,33 @@ namespace MacroserviceExplorer
                     break;
                 case WatcherChangeTypes.All:
                     break;
-
                 default:
                     throw new ArgumentOutOfRangeException("");
             }
         }
 
+        void UIElement_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var service = GetServiceByTag(sender);
+
+            var nugetUpdatesWindow = new NugetUpdatesWindow
+            {
+                Owner = this,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                NugetList = service.NugetUpdatesList
+            };
+
+            var showDialog = nugetUpdatesWindow.ShowDialog();
+            switch (showDialog)
+            {
+                case true:
+                    // update
+                    break;
+                case null:
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 }

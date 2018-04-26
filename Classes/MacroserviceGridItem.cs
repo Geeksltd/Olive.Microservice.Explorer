@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -175,7 +176,7 @@ namespace MacroserviceExplorer
         DTE2 _vsDTE;
         int _nugetUpdates;
         string _gitUpdates;
-        
+
 
         public DTE2 VsDTE
         {
@@ -205,15 +206,7 @@ namespace MacroserviceExplorer
             }
         }
 
-        public int NugetUpdates
-        {
-            get => _nugetUpdates;
-            set
-            {
-                _nugetUpdates = value;
-                OnPropertyChanged(nameof(NugetUpdates));
-            }
-        }
+        public int NugetUpdates => NugetUpdatesList.Count;
 
         public string GitUpdates
         {
@@ -233,6 +226,49 @@ namespace MacroserviceExplorer
 
 
         public Visibility VisibleKestrel => ProcId <= 0 ? Visibility.Collapsed : Visibility.Visible;
+
+
+        public string NugetUpdateErrorMessage { get; set; }
+        public ObservableCollection<MyNugetRef> NugetUpdatesList { get; } = new ObservableCollection<MyNugetRef>();
+
+        public bool AddNugetUpdatesList(EnumProjects project,string packageName, string oldVersion, string newVersion)
+        {
+            lock (NugetUpdatesList)
+            {
+                var res = false;
+                var nugetRef = NugetUpdatesList.SingleOrDefault(nu => nu.Include == packageName);
+                if (nugetRef != null)
+                    NugetUpdatesList.Remove(nugetRef);
+                else
+                    res = true;
+
+                nugetRef = new MyNugetRef { Project = project, Include = packageName, Version = oldVersion, NewVersion = newVersion };
+                NugetUpdatesList.Add(nugetRef);
+
+                OnPropertyChanged(nameof(NugetUpdates));
+                return res;
+            }
+        }
+
+        string _nugetStatusImage;
+
+        public string NugetStatusImage
+        {
+            get
+            {
+                switch (_nugetStatusImage)
+                {
+                    case "Pending":
+                        return "Resources/loading.gif";
+                    case "Warning":
+                        return "Resources/warning1.gif";
+                    default:
+                        return null;
+                }
+            }
+            set => _nugetStatusImage = value;
+        }
+
 
         public enum EnumProjects
         {
@@ -338,11 +374,19 @@ namespace MacroserviceExplorer
                     return;
 
                 _newVersion = value;
-                if (_newVersion.HasValue() && Version.HasValue() &&  new Version(_newVersion).CompareTo(new Version(Version)) > 0)
+                if (_newVersion.HasValue() && Version.HasValue() &&
+                    new Version(_newVersion).CompareTo(new Version(Version)) > 0)
+                {
                     IsLatestVersion = true;
+                }
             }
         }
 
         public bool IsLatestVersion { get; set; }
+    }
+
+    public class MyNugetRef : NugetRef
+    {
+        public MacroserviceGridItem.EnumProjects Project { get; set; }
     }
 }

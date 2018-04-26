@@ -50,7 +50,9 @@ namespace MacroserviceExplorer
             }
             var output = await Task.Run((Func<string>)run);
             var status = ReadGitInfo(output);
-            ShowStatusMessage($"getting git commit count completed ... ({service.Service}) with {status?.RemoteCommits ?? 0} commit(s) in {status?.Branch ?? "it's branch"}", output);
+            if(status!=null)
+                ShowStatusMessage($"getting git commit count completed ... ({service.Service}) with {status?.RemoteCommits ?? 0} commit(s) in {status?.Branch ?? "it's branch"}", output);
+
             StatusProgressStop();
 
             return status?.RemoteCommits ?? 0;
@@ -58,6 +60,8 @@ namespace MacroserviceExplorer
 
         GitStatus ReadGitInfo(string input)
         {
+            if (input.IsEmpty())
+                return null;
             var pattern = @"Your branch is behind '(?<branch>[a-zA-Z/]*)' by (?<remoteCommits>\d*) commit";
             const RegexOptions options = RegexOptions.Multiline | RegexOptions.IgnoreCase;
 

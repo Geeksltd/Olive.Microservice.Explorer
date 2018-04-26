@@ -77,6 +77,9 @@
     <Compile Include="LogWindow.xaml.cs">
       <DependentUpon>LogWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="NugetUpdatesWindow.xaml.cs">
+      <DependentUpon>NugetUpdatesWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="TCPIP\ManagedIpHandlerApi.cs" />
     <Compile Include="TCPIP\PInvokeIPHelperAPI.cs" />
     <Compile Include="Utils\MenuItemExtensions.cs" />
@@ -129,7 +132,10 @@
     <Compile Include="MainWindow.RecentProvider.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
-
+    <Page Include="NugetUpdatesWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\Annotations.cs" />
@@ -281,6 +287,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\log.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\warning1.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -16,10 +16,10 @@ namespace MacroserviceExplorer
         public List<MacroserviceGridItem> ServiceData = new List<MacroserviceGridItem>();
         public ObservableCollection<MacroserviceGridItem> MacroserviceGridItems = new ObservableCollection<MacroserviceGridItem>();
 
-        MacroserviceGridItem GetServiceFromButtonTag(object sender)
+        MacroserviceGridItem GetServiceByTag(object sender)
         {
-            var btn = (Button)sender;
-            var serviceName = btn.Tag.ToString();
+            var element = (FrameworkElement)sender;
+            var serviceName = element.Tag.ToString();
             return MacroserviceGridItems.Single(s => s.Service == serviceName);
         }
 
@@ -82,7 +82,7 @@ namespace MacroserviceExplorer
                 }
 
                 service.PropertyChanged += OnServiceOnPropertyChanged;
-                StartService(service);
+                Start(service);
             }
             else
                 Helper.Launch(address);
@@ -91,7 +91,7 @@ namespace MacroserviceExplorer
         void Chrome_OnClick(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
-            var service = GetServiceFromButtonTag(sender);
+            var service = GetServiceByTag(sender);
 
             MakeChromeContextMenu(sender, service);
         }

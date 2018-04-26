@@ -238,7 +238,6 @@
                                         <Image Source="{Binding GitUpdateImage}" VerticalAlignment="Center" Margin="7,0,0,0" Style="{StaticResource gridImage}" />
                                     </StackPanel>
                                 </Button.Content>
-
                             </Button>
 
                         </DataTemplate>
@@ -248,14 +247,15 @@
                 <DataGridTemplateColumn Header="Nuget">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"  Visibility="{Binding VisibleCode}">
-                                <Border Background="#C9902D" CornerRadius="999" Padding="4" Width="20" Height="20">
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"  Orientation="Horizontal" Visibility="{Binding VisibleCode}">
+                                <Border  Tag="{Binding Service}" Background="#C9902D" CornerRadius="100" Padding="4" Width="40" Height="20" PreviewMouseLeftButtonDown="UIElement_OnPreviewMouseLeftButtonDown" Visibility="{Binding NugetStatusImage,Converter={StaticResource nullVisibilityConverter}}">
                                     <Border.ToolTip>
                                         <ToolTip  Content="{Binding NugetUpdates}"
-                                                  ContentStringFormat="There is {0} nuget package update(s) availabble.&#x0a; so click here for update all nuget references."/>
+                                                  ContentStringFormat="There is {0} nuget project update(s) availabble.&#x0a; so click here for update all nuget references."/>
                                     </Border.ToolTip>
                                     <TextBlock Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding NugetUpdates}"></TextBlock>
                                 </Border>
+                                <Image Style="{StaticResource gridImage}" gif:ImageBehavior.AnimatedSource="{Binding NugetStatusImage}" Margin="7,0,0,0" />
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
