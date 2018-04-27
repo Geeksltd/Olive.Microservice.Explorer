@@ -19,8 +19,8 @@ namespace MacroserviceExplorer
         MacroserviceGridItem GetServiceByTag(object sender)
         {
             var element = (FrameworkElement)sender;
-            var serviceName = element.Tag.ToString();
-            return MacroserviceGridItems.Single(s => s.Service == serviceName);
+            //var serviceName = element.Tag.ToString();
+            return element.Tag as MacroserviceGridItem;//MacroserviceGridItems.Single(s => s.Service == serviceName);
         }
 
         void MakeChromeContextMenu(object sender, MacroserviceGridItem service)

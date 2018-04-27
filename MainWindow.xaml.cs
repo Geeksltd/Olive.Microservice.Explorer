@@ -146,9 +146,7 @@ namespace MacroserviceExplorer
         void StartStop_OnClick(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
-            var btn = (Button)sender;
-            var serviceName = btn.Tag.ToString();
-            var service = MacroserviceGridItems.Single(s => s.Service == serviceName);
+            var service = GetServiceByTag(sender);
             switch (service.Status)
             {
                 case MacroserviceGridItem.EnumStatus.Pending:
@@ -211,9 +209,7 @@ namespace MacroserviceExplorer
         void OpenCode_OnClick(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
-            var btn = (Button)sender;
-            var serviceName = btn.Tag.ToString();
-            var service = MacroserviceGridItems.Single(s => s.Service == serviceName);
+            var service = GetServiceByTag(sender);
             var solutionFile = service.GetServiceSolutionFilePath();
             service.OpenVs(solutionFile);
         }
@@ -278,9 +274,7 @@ namespace MacroserviceExplorer
         void OpenExplorer_OnClick(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
-            var btn = (Button)sender;
-            var serviceName = btn.Tag.ToString();
-            var service = MacroserviceGridItems.Single(s => s.Service == serviceName);
+            var service = GetServiceByTag(sender);
             Process.Start(service.WebsiteFolder.AsDirectory().Parent?.FullName ?? throw new Exception("Macroservice projFolder Not Exists ..."));
 
         }
@@ -293,9 +287,7 @@ namespace MacroserviceExplorer
         void VsDebuggerAttach_OnClick(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
-            var btn = (Button)sender;
-            var serviceName = btn.Tag.ToString();
-            var service = MacroserviceGridItems.Single(s => s.Service == serviceName);
+            var service = GetServiceByTag(sender);
 
             if (service.VsDTE.Mode == vsIDEMode.vsIDEModeDebug)
             {
@@ -381,9 +373,7 @@ namespace MacroserviceExplorer
         async void GitUpdate_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
-            var btn = (Button)sender;
-            var serviceName = btn.Tag.ToString();
-            var service = MacroserviceGridItems.Single(s => s.Service == serviceName);
+            var service = GetServiceByTag(sender);
             await GitUpdate(service);
         }
 
@@ -396,9 +386,7 @@ namespace MacroserviceExplorer
         void ShowKestrelLog_OnClick(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
-            var btn = (Button)sender;
-            var serviceName = btn.Tag.ToString();
-            var service = MacroserviceGridItems.Single(s => s.Service == serviceName);
+            var service = GetServiceByTag(sender);
             var pid = service.ProcId;
             IntPtr mainWindowHandle;
             do

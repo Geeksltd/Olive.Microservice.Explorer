@@ -5,28 +5,62 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MacroserviceExplorer"
         xmlns:gif="http://wpfanimatedgif.codeplex.com"
-        mc:Ignorable="d" 
+        xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+        mc:Ignorable="d" x:Name="Window"
         WindowStyle="ToolWindow"
-        Title="Nuget Updates" Height="300" Width="300">
+        Title="Nuget Updates" Height="400" Width="500">
     <Window.Resources>
         <Style TargetType="Button" x:Key="gridButton">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
         </Style>
+        <local:ProjectTypeBackgroundColorConverter x:Key="projColorConverter" />
+        <local:DistinctConverter x:Key="distinctConverter" />
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
         </Grid.RowDefinitions>
-        <DataGrid Grid.Row="0" Name="nugetUpdatesGrid"  Padding="10" ItemsSource="{Binding}" SelectionMode="Single" AutoGenerateColumns="False" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#FF0D3E61" AlternationCount="2" IsReadOnly="True" VerticalContentAlignment="Center" 
-                  SelectedItem="{Binding Path=NugetList,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}, Mode=TwoWay}">
+
+        <StackPanel Grid.Row="0" Margin="5">
+            <TextBlock Margin="7">Select :</TextBlock>
+            <ItemsControl ItemsSource="{Binding Converter={StaticResource distinctConverter}}" >
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <CheckBox Checked="ToggleButton_OnChecked" Unchecked="ToggleButton_OnChecked" Margin="7" Tag="{Binding}">
+                            <TextBlock Text="{Binding}"></TextBlock>
+                        </CheckBox>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+        </StackPanel>
+
+        <DataGrid Grid.Row="1" x:Name="nugetUpdatesGrid" Padding="10" ItemsSource="{Binding}" CanUserAddRows="False" SelectionMode="Single" AutoGenerateColumns="False" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#FF0D3E61" AlternationCount="2" IsReadOnly="True" 
+                  VerticalContentAlignment="Center" >
+
             <DataGrid.CellStyle>
                 <Style TargetType="DataGridCell">
                     <Setter Property="BorderThickness" Value="0"/>
                     <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                 </Style>
             </DataGrid.CellStyle>
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="Background">
+                        <Setter.Value>
+                            <Binding Converter="{StaticResource projColorConverter}"></Binding>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </DataGrid.RowStyle>
             <DataGrid.Resources>
                 <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" 
                                  Color="#7BCEEA"/>
@@ -37,7 +71,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <CheckBox Tag="{Binding}"></CheckBox>
+                                <CheckBox Tag="{Binding}" IsChecked="{Binding Checked}" Checked="OnPackageChecked_OnChecked" Unchecked="OnPackageChecked_OnChecked"></CheckBox>
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
@@ -47,6 +81,16 @@
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="{Binding Project}"></TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Header="Package" >
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Include}"></TextBlock>
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
@@ -72,13 +116,16 @@
             </DataGrid.Columns>
 
         </DataGrid>
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Margin="5" Width="70" Name="btnUpdate">
-                <TextBlock Text="Update" ></TextBlock>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Margin="5" Width="120" Name="btnUpdate" IsDefault="True" Click="BtnUpdate_OnClick" Padding="8">
+                <TextBlock Text="Update Selected" ></TextBlock>
             </Button>
-            <Button Margin="5" Width="70">
+            <Button Margin="5" Width="120">
                 <TextBlock Text="Update All" ></TextBlock>
             </Button>
         </StackPanel>
     </Grid>
 </Window>
+
+
+

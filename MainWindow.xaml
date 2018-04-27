@@ -190,7 +190,7 @@
                 <DataGridTemplateColumn Header="Status" SortMemberPath="Status" >
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button Style="{StaticResource gridButton}" Tag="{Binding Service}" PreviewMouseLeftButtonDown="StartStop_OnClick" VerticalAlignment="Center" >
+                            <Button Style="{StaticResource gridButton}" Tag="{Binding}" PreviewMouseLeftButtonDown="StartStop_OnClick" VerticalAlignment="Center" >
                                 <Image Style="{StaticResource gridImage}" gif:ImageBehavior.AnimatedSource="{Binding RunImage}"  />
                             </Button>
                         </DataTemplate>
@@ -221,7 +221,7 @@
                 <DataGridTemplateColumn Header="Open" SortMemberPath="Port">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button PreviewMouseLeftButtonDown="Chrome_OnClick" Style="{StaticResource gridButton}" Tag="{Binding Service}" >
+                            <Button PreviewMouseLeftButtonDown="Chrome_OnClick" Style="{StaticResource gridButton}" Tag="{Binding}" >
                                 <Image Source="Resources/Chrome.png" Style="{StaticResource gridImage}" Opacity="{Binding RunImageOpacity}" />
                             </Button>
                         </DataTemplate>
@@ -231,7 +231,7 @@
                 <DataGridTemplateColumn Header="Git">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button PreviewMouseLeftButtonDown="GitUpdate_OnPreviewMouseLeftButtonDown" Style="{StaticResource gridButton}" Tag="{Binding Service}" Visibility="{Binding GitUpdates,Converter={StaticResource nullVisibilityConverter}}" >
+                            <Button PreviewMouseLeftButtonDown="GitUpdate_OnPreviewMouseLeftButtonDown" Style="{StaticResource gridButton}" Tag="{Binding}" Visibility="{Binding GitUpdates,Converter={StaticResource nullVisibilityConverter}}" >
                                 <Button.Content>
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="{Binding GitUpdates}" VerticalAlignment="Center" Margin="7,0,0,0" HorizontalAlignment="Center"></TextBlock>
@@ -248,7 +248,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"  Orientation="Horizontal" Visibility="{Binding VisibleCode}">
-                                <Border  Tag="{Binding Service}" Background="#C9902D" CornerRadius="100" Padding="4" Width="40" Height="20" PreviewMouseLeftButtonDown="UIElement_OnPreviewMouseLeftButtonDown" Visibility="{Binding NugetStatusImage,Converter={StaticResource nullVisibilityConverter}}">
+                                <Border  Tag="{Binding}" Background="#C9902D" CornerRadius="10" Padding="4" Width="30" Height="20" PreviewMouseLeftButtonDown="UIElement_OnPreviewMouseLeftButtonDown" >
                                     <Border.ToolTip>
                                         <ToolTip  Content="{Binding NugetUpdates}"
                                                   ContentStringFormat="There is {0} nuget project update(s) availabble.&#x0a; so click here for update all nuget references."/>
@@ -265,10 +265,10 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="OpenCode_OnClick"  Tag="{Binding Service}" Visibility="{Binding VisibleCode}" ToolTip="Edit Macroservice Source Code in Visual Studio">
+                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="OpenCode_OnClick"  Tag="{Binding}" Visibility="{Binding VisibleCode}" ToolTip="Edit Macroservice Source Code in Visual Studio">
                                     <Image Source="{Binding VsCodeIcon}" Style="{StaticResource gridImage}"  Width="25"/>
                                 </Button>
-                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="OpenExplorer_OnClick" Tag="{Binding Service}" Visibility="{Binding VisibleCode}" ToolTip="Brows Folder in Windows Explorer">
+                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="OpenExplorer_OnClick" Tag="{Binding}" Visibility="{Binding VisibleCode}" ToolTip="Brows Folder in Windows Explorer">
                                     <Image Source="Resources/folder2.png" Style="{StaticResource gridImage}"  Width="25"/>
                                 </Button>
                             </StackPanel>
@@ -280,10 +280,10 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="ShowKestrelLog_OnClick"  Tag="{Binding Service}" Visibility="{Binding VisibleKestrel}" ToolTip="Show the running Kestrel console log window.">
+                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="ShowKestrelLog_OnClick"  Tag="{Binding}" Visibility="{Binding VisibleKestrel}" ToolTip="Show the running Kestrel console log window.">
                                     <Image Source="/Resources/log.png" Style="{StaticResource gridImage}"  Width="25"/>
                                 </Button>
-                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="VsDebuggerAttach_OnClick"  Tag="{Binding Service}" Visibility="{Binding VisibleDebug}" ToolTip="Attach Macroservice Process to Current Visual Studio for Debugging">
+                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="VsDebuggerAttach_OnClick"  Tag="{Binding}" Visibility="{Binding VisibleDebug}" ToolTip="Attach Macroservice Process to Current Visual Studio for Debugging">
                                     <Image Source="{Binding DebuggerIcon}" Style="{StaticResource gridImage}"  Width="25"/>
                                 </Button>
                             </StackPanel>

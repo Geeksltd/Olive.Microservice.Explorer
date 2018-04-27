@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -247,7 +248,8 @@ namespace MacroserviceExplorer
             nugetInitworker.DoWork += (sender, args) =>
             {
                 var srv = (MacroserviceGridItem)args.Argument;
-                srv.NugetStatusImage = "Pending";
+                srv.NugetFetchTasks++;
+                //srv.NugetStatusImage = "Pending";
                 lock (nugetPackageSet)
                 {
 
@@ -257,10 +259,14 @@ namespace MacroserviceExplorer
                     try
                     {
                         logWindow.LogMessage($"### > Begin Nuget Packages update check ... ({srv.Service} - {projEnum})");
-                        packages = nugetPackageRepo.FindPackages(packageReferences
-                                .Where(x => !nugetPackageSet.ContainsKey(x.Include))
-                                .Select(x => x.Include))
-                            .ToList();
+                        foreach (var pkgref in packageReferences)
+                        {
+                            var latestPkgVersion = nugetPackageRepo.FindPackages(pkgref.Include, null, false, false).FirstOrDefault(package => package.IsLatestVersion);
+                            if (latestPkgVersion != null)
+                                pkgref.NewVersion = latestPkgVersion.Version.ToOriginalString();
+                        }
+
+
                         logWindow.LogMessage($"=== > End Nuget Packages update checking. ({srv.Service} - {projEnum})");
 
                     }
@@ -271,20 +277,6 @@ namespace MacroserviceExplorer
                         return;
                     }
 
-                    foreach (var packageRef in packageReferences)
-                    {
-                        packageRef.NewVersion = packages.FirstOrDefault(package => package.IsLatestVersion)
-                            ?.Version.ToFullString();
-
-                        if (!nugetPackageSet.ContainsKey(packageRef.Include))
-                            nugetPackageSet.Add(packageRef.Include, packageRef.NewVersion);
-                    }
-
-                    packageReferences.Where(pr => pr.NewVersion.IsEmpty()).Do(pref =>
-                    {
-                        pref.NewVersion = nugetPackageSet[pref.Include];
-                    });
-
                 }
                 args.Result = srv;
 
@@ -293,6 +285,7 @@ namespace MacroserviceExplorer
             nugetInitworker.RunWorkerCompleted += (sender, args) =>
             {
                 var srv = (MacroserviceGridItem)args.Result;
+                srv.NugetFetchTasks--;
                 if (srv.NugetUpdateErrorMessage.HasValue())
                 {
                     srv.NugetStatusImage = "Warning";
@@ -306,7 +299,7 @@ namespace MacroserviceExplorer
                         foreach (var nugetRef in projectRef.Value.PackageReferences)
                             if (nugetRef.IsLatestVersion)
                             {
-                                if(srv.AddNugetUpdatesList(projectRef.Key, nugetRef.Include, nugetRef.Version, nugetRef.NewVersion))
+                                if (srv.AddNugetUpdatesList(projectRef.Key, nugetRef.Include, nugetRef.Version, nugetRef.NewVersion))
                                     logWindow.LogMessage($"\t > Package '{nugetRef.Include}' updated, from version [{nugetRef.Version}] to [{nugetRef.NewVersion}] in ({srv.Service} - {projEnum}) project.");
 
                             }
@@ -377,14 +370,30 @@ namespace MacroserviceExplorer
             {
                 Owner = this,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                NugetList = service.NugetUpdatesList
+                NugetList = service.NugetUpdatesList,
+                Title = service.Service + " Microservice Nuget Updates"
             };
 
             var showDialog = nugetUpdatesWindow.ShowDialog();
             switch (showDialog)
             {
                 case true:
-                    // update
+                    var nugetUpdateWorker = new BackgroundWorker();
+                    nugetUpdateWorker.DoWork += (s1, e1) =>
+                    {
+                        service.NugetFetchTasks++;
+                        foreach (var nugetRef in nugetUpdatesWindow.NugetList.Where(itm => itm.Checked).ToArray())
+                        {
+                            if (!UpdateNugetPackages(service, nugetRef.Project, nugetRef.Include, nugetRef.NewVersion, nugetRef.Version)) continue;
+
+                            nugetRef.IsLatestVersion = true;
+                            service.DelNugetUpdatesList(nugetRef.Project, nugetRef.Include);
+                        }
+                    
+                    };
+                    nugetUpdateWorker.RunWorkerCompleted += (o, args) => service.NugetFetchTasks--;
+                    nugetUpdateWorker.RunWorkerAsync();
+
                     break;
                 case null:
                     break;
@@ -392,5 +401,57 @@ namespace MacroserviceExplorer
                     break;
             }
         }
+
+        readonly object _lock = new object();
+        bool UpdateNugetPackages(MacroserviceGridItem service, MacroserviceGridItem.EnumProjects projEnum, string packageName, string version, string fromVersion)
+        {
+            string projFolder;
+            switch (projEnum)
+            {
+                case MacroserviceGridItem.EnumProjects.Website:
+                    projFolder = service.WebsiteFolder;
+                    break;
+                case MacroserviceGridItem.EnumProjects.Domain:
+                    projFolder = Path.Combine(service.SolutionFolder, "Domain");
+                    break;
+                case MacroserviceGridItem.EnumProjects.Model:
+                    projFolder = Path.Combine(service.SolutionFolder, "M#", "Model");
+                    break;
+                case MacroserviceGridItem.EnumProjects.UI:
+                    projFolder = Path.Combine(service.SolutionFolder, "M#", "UI");
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(projEnum), projEnum, null);
+            }
+
+            if (projFolder.IsEmpty()) return false;
+
+            lock (_lock)
+            {
+                logWindow.LogMessage(
+                    $"&&& > nuget update package started ... [{service.Service} -> {projEnum} -> {packageName}] {fromVersion} to {version}", $"Command : \n {projFolder}>dotnet.exe add package {packageName} -v {version}");
+                string response = null;
+                try
+                {
+                    response = "dotnet.exe".AsFile(searchEnvironmentPath: true)
+                        .Execute($"add package {packageName} -v {version}", waitForExit: true,
+                            configuration: x => x.StartInfo.WorkingDirectory = projFolder);
+
+                }
+                catch (Exception e)
+                {
+                    logWindow.LogMessage(
+                        $"!!!!!! > nuget update error on [{service.Service} -> {projEnum} -> {packageName} ({fromVersion} to {version})] :",
+                        e.Message);
+                    return false;
+                }
+
+                logWindow.LogMessage(
+                    $"nuget update completed, [{service.Service} -> {projEnum} -> {packageName}] with result :",
+                    response);
+                return true;
+            }
+        }
+
     }
 }

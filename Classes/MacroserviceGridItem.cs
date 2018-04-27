@@ -12,6 +12,7 @@ using MacroserviceExplorer.Annotations;
 using MacroserviceExplorer.Classes.Web;
 using MacroserviceExplorer.TCPIP;
 using MacroserviceExplorer.Utils;
+using NuGet;
 using Process = System.Diagnostics.Process;
 using Thread = System.Threading.Thread;
 
@@ -242,12 +243,24 @@ namespace MacroserviceExplorer
                 else
                     res = true;
 
-                nugetRef = new MyNugetRef { Project = project, Include = packageName, Version = oldVersion, NewVersion = newVersion };
+                nugetRef = new MyNugetRef { Project = project, Include = packageName, Version = oldVersion, NewVersion = newVersion , IsLatestVersion = false};
                 NugetUpdatesList.Add(nugetRef);
 
                 OnPropertyChanged(nameof(NugetUpdates));
                 return res;
             }
+        }
+
+        public void DelNugetUpdatesList(EnumProjects project, string packageName)
+        {
+            NugetUpdatesList.RemoveAll(x => x.Project == project && x.Include == packageName);
+            OnPropertyChanged(nameof(NugetUpdates));
+        }
+
+        public void RemoveLatestVerions()
+        {
+            NugetUpdatesList.RemoveAll(itm => itm.IsLatestVersion);
+            OnPropertyChanged(nameof(NugetUpdates));
         }
 
         string _nugetStatusImage;
@@ -269,6 +282,27 @@ namespace MacroserviceExplorer
             set => _nugetStatusImage = value;
         }
 
+        int _nugetFetchTasks;
+
+        public int NugetFetchTasks
+        {
+            get => _nugetFetchTasks;
+            set
+            {
+                if (value <= 0)
+                {
+                    NugetStatusImage = null;
+                    _nugetFetchTasks = 0;
+                    NugetStatusImage = "Stop";
+                }
+                else
+                    NugetStatusImage = "Pending";
+
+                _nugetFetchTasks = value;
+                OnPropertyChanged(nameof(NugetFetchTasks));
+                OnPropertyChanged(nameof(NugetStatusImage));
+            }
+        }
 
         public enum EnumProjects
         {
@@ -394,5 +428,6 @@ namespace MacroserviceExplorer
     public class MyNugetRef : NugetRef
     {
         public MacroserviceGridItem.EnumProjects Project { get; set; }
+        public bool Checked { get; set; }
     }
 }
