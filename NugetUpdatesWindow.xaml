@@ -24,7 +24,7 @@
             <RowDefinition Height="Auto"></RowDefinition>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Margin="5">
+        <StackPanel Grid.Row="0" Margin="5" Visibility="Collapsed">
             <TextBlock Margin="7">Select :</TextBlock>
             <ItemsControl ItemsSource="{Binding Converter={StaticResource distinctConverter}}" >
                 <ItemsControl.ItemsPanel>
@@ -120,7 +120,7 @@
             <Button Margin="5" Width="120" Name="btnUpdate" IsDefault="True" Click="BtnUpdate_OnClick" Padding="8">
                 <TextBlock Text="Update Selected" ></TextBlock>
             </Button>
-            <Button Margin="5" Width="120">
+            <Button Margin="5" Width="120" Click="UpdateAll_OnClick">
                 <TextBlock Text="Update All" ></TextBlock>
             </Button>
         </StackPanel>

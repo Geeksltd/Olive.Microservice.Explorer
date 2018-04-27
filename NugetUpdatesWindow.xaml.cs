@@ -135,6 +135,12 @@ namespace MacroserviceExplorer
             if (chk.IsChecked != null)
                 nugetRef.Checked = chk.IsChecked.Value;
         }
+
+        void UpdateAll_OnClick(object sender, RoutedEventArgs e)
+        {
+            _nugetList.ForEach(itm=>itm.Checked = true);
+            DialogResult = true;
+        }
     }
 
     public class ProjectTypeBackgroundColorConverter : IValueConverter
