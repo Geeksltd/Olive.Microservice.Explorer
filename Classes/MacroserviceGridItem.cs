@@ -175,7 +175,6 @@ namespace MacroserviceExplorer
         public object Tag { get; set; }
 
         DTE2 _vsDTE;
-        int _nugetUpdates;
         string _gitUpdates;
 
 
@@ -207,8 +206,6 @@ namespace MacroserviceExplorer
             }
         }
 
-        public int NugetUpdates => NugetUpdatesList.Count;
-
         public string GitUpdates
         {
             get => _gitUpdates;
@@ -228,6 +225,9 @@ namespace MacroserviceExplorer
 
         public Visibility VisibleKestrel => ProcId <= 0 ? Visibility.Collapsed : Visibility.Visible;
 
+
+
+        public int NugetUpdates => NugetUpdatesList.Count;
 
         public string NugetUpdateErrorMessage { get; set; }
         public ObservableCollection<MyNugetRef> NugetUpdatesList { get; } = new ObservableCollection<MyNugetRef>();
@@ -254,12 +254,6 @@ namespace MacroserviceExplorer
         public void DelNugetUpdatesList(EnumProjects project, string packageName)
         {
             NugetUpdatesList.RemoveAll(x => x.Project == project && x.Include == packageName);
-            OnPropertyChanged(nameof(NugetUpdates));
-        }
-
-        public void RemoveLatestVerions()
-        {
-            NugetUpdatesList.RemoveAll(itm => itm.IsLatestVersion);
             OnPropertyChanged(nameof(NugetUpdates));
         }
 

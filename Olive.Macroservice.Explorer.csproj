@@ -87,6 +87,7 @@
     <Compile Include="Utils\ForegroundColorConverter.cs" />
     <Compile Include="Utils\Helper.cs" />
     <Compile Include="Utils\MyEnumWindows.cs" />
+    <Compile Include="Utils\IntVisibilityConverter.cs" />
     <Compile Include="Utils\NullVisibilityConverter.cs" />
     <Compile Include="Utils\ParentProcessUtilities.cs" />
     <Compile Include="Utils\WatermarkAdorner.cs" />

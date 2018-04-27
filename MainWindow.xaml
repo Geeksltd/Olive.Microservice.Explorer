@@ -38,6 +38,7 @@
 
         <local:ForegroundColorConverter x:Key="myConverter"></local:ForegroundColorConverter>
         <local:NullVisibilityConverter x:Key="nullVisibilityConverter"></local:NullVisibilityConverter>
+        <local:IntVisibilityConverter x:Key="intVisibilityConverter"></local:IntVisibilityConverter>
     </Window.Resources>
     <Window.CommandBindings>
         <CommandBinding Command="Open" Executed="OpenProject_Executed"></CommandBinding>
@@ -247,8 +248,8 @@
                 <DataGridTemplateColumn Header="Nuget">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"  Orientation="Horizontal" Visibility="{Binding VisibleCode}">
-                                <Border  Tag="{Binding}" Background="#C9902D" CornerRadius="10" Padding="4" Width="30" Height="20" PreviewMouseLeftButtonDown="UIElement_OnPreviewMouseLeftButtonDown" >
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"  Orientation="Horizontal" >
+                                <Border  Tag="{Binding}" Background="#C9902D" CornerRadius="10" Padding="4" Width="30" Height="20" PreviewMouseLeftButtonDown="UIElement_OnPreviewMouseLeftButtonDown"  Visibility="{Binding NugetUpdates,Converter={StaticResource intVisibilityConverter}}">
                                     <Border.ToolTip>
                                         <ToolTip  Content="{Binding NugetUpdates}"
                                                   ContentStringFormat="There is {0} nuget project update(s) availabble.&#x0a; so click here for update all nuget references."/>
