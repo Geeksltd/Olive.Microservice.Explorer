@@ -110,8 +110,8 @@ namespace MacroserviceExplorer
                     srv.SolutionFolder = projFolder;
                     srv.WebsiteFolder = websiteFolder;
 
-                    foreach (MacroserviceGridItem.EnumProjects proj in Enum.GetValues(typeof(MacroserviceGridItem.EnumProjects)))
-                        FetchProjectNugetPackages(srv, proj);
+                    //foreach (MacroserviceGridItem.EnumProjects proj in Enum.GetValues(typeof(MacroserviceGridItem.EnumProjects)))
+                    //    FetchProjectNugetPackages(srv, proj);
 
                     srv.VsDTE = srv.GetVSDTE();
                     //var gitUpdates = await GetGitUpdates(srv);
@@ -185,6 +185,9 @@ namespace MacroserviceExplorer
                 if (srv.WebsiteFolder.HasValue())
                 {
                     srv.UpdateProcessStatus();
+
+                    foreach (MacroserviceGridItem.EnumProjects proj in Enum.GetValues(typeof(MacroserviceGridItem.EnumProjects)))
+                        FetchProjectNugetPackages(srv, proj);
 
                     var gitUpdates = await GetGitUpdates(srv);
                     srv.GitUpdates = gitUpdates.ToString();
