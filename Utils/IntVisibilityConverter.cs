@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 
-namespace MacroserviceExplorer
+namespace MicroserviceExplorer
 {
     public class IntVisibilityConverter : IValueConverter
     {

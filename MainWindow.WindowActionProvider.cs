@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Threading;
 
-namespace MacroserviceExplorer
+namespace MicroserviceExplorer
 {
     partial class MainWindow
     {

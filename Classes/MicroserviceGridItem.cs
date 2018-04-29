@@ -8,24 +8,35 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using EnvDTE;
 using EnvDTE80;
-using MacroserviceExplorer.Annotations;
-using MacroserviceExplorer.Classes.Web;
-using MacroserviceExplorer.TCPIP;
-using MacroserviceExplorer.Utils;
+using MicroserviceExplorer.Annotations;
+using MicroserviceExplorer.Classes.Web;
+using MicroserviceExplorer.TCPIP;
+using MicroserviceExplorer.Utils;
 using NuGet;
 using Process = System.Diagnostics.Process;
 using Thread = System.Threading.Thread;
 
-namespace MacroserviceExplorer
+namespace MicroserviceExplorer
 {
-    public class MacroserviceGridItem : INotifyPropertyChanged
+    public sealed class MicroserviceGridItem : INotifyPropertyChanged
     {
+        public readonly Dictionary<EnumProjects, ProjectRef> Projects = new Dictionary<EnumProjects, ProjectRef>
+        {
+            { EnumProjects.Website , new ProjectRef()},
+            { EnumProjects.Domain , new ProjectRef()},
+            { EnumProjects.Model , new ProjectRef()},
+            { EnumProjects.UI , new ProjectRef()},
+        };
+
+        int _nugetFetchTasks;
+        readonly double runImageOpacity = .2;
+
         #region INotifyPropertyChanged Implementations
 
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
@@ -34,10 +45,7 @@ namespace MacroserviceExplorer
 
         #region Overrides of ToString Object
 
-        public override string ToString()
-        {
-            return $"\'{Service}\' port : {Port} Status : {Status}";
-        }
+        public override string ToString() => $"\'{Service}\' port : {Port} Status : {Status}";
 
         #endregion
 
@@ -129,7 +137,7 @@ namespace MacroserviceExplorer
             }
         }
 
-        public double RunImageOpacity => Status == EnumStatus.Run ? 1 : .2;
+        public double RunImageOpacity => Status == EnumStatus.Run ? 1 : runImageOpacity;
 
         int _procId;
         public int ProcId
@@ -164,11 +172,11 @@ namespace MacroserviceExplorer
 
         public string SolutionFolder { get; set; }
 
-        public object PortIcon => int.TryParse(Port, out var _) ? null : "Resources/Warning.png";
+        public object PortIcon => Port.TryParseAs<int>().HasValue ? null : "Resources/Warning.png";
 
         public string PortTooltip => PortIcon != null ? $"launchsettings.json File Not Found in this location :\n{WebsiteFolder}\\Properties\\launchSettings.json" : null;
 
-        public Visibility VisibleCode => string.IsNullOrEmpty(PortTooltip) ? Visibility.Visible : Visibility.Hidden;
+        public Visibility VisibleCode => PortTooltip.IsEmpty() ? Visibility.Visible : Visibility.Hidden;
 
         public object VsCodeIcon => VsDTE == null ? "Resources/VS.png" : "Resources/VS2.png";
 
@@ -232,7 +240,7 @@ namespace MacroserviceExplorer
         public string NugetUpdateErrorMessage { get; set; }
         public ObservableCollection<MyNugetRef> NugetUpdatesList { get; } = new ObservableCollection<MyNugetRef>();
 
-        public bool AddNugetUpdatesList(EnumProjects project,string packageName, string oldVersion, string newVersion)
+        public bool AddNugetUpdatesList(EnumProjects project, string packageName, string oldVersion, string newVersion)
         {
             lock (NugetUpdatesList)
             {
@@ -243,7 +251,7 @@ namespace MacroserviceExplorer
                 else
                     res = true;
 
-                nugetRef = new MyNugetRef { Project = project, Include = packageName, Version = oldVersion, NewVersion = newVersion , IsLatestVersion = false};
+                nugetRef = new MyNugetRef { Project = project, Include = packageName, Version = oldVersion, NewVersion = newVersion, IsLatestVersion = false };
                 NugetUpdatesList.Add(nugetRef);
 
                 OnPropertyChanged(nameof(NugetUpdates));
@@ -276,7 +284,6 @@ namespace MacroserviceExplorer
             set => _nugetStatusImage = value;
         }
 
-        int _nugetFetchTasks;
 
         public int NugetFetchTasks
         {
@@ -305,15 +312,6 @@ namespace MacroserviceExplorer
             Model,
             UI
         }
-
-
-        public Dictionary<EnumProjects, ProjectRef> Projects = new Dictionary<EnumProjects, ProjectRef>()
-        {
-            { EnumProjects.Website , new ProjectRef()},
-            { EnumProjects.Domain , new ProjectRef()},
-            { EnumProjects.Model , new ProjectRef()},
-            { EnumProjects.UI , new ProjectRef()},
-        };
 
         public void Stop()
         {
@@ -362,21 +360,20 @@ namespace MacroserviceExplorer
                 Process.Start(solutionFile.FullName);
         }
 
-        public DTE2 GetVSDTE()
-        {
-            return GetVSDTE(GetServiceSolutionFilePath());
-        }
+        public DTE2 GetVSDTE() => GetVSDTE(GetServiceSolutionFilePath());
 
-        public DTE2 GetVSDTE(FileInfo solutionFile)
+        static DTE2 GetVSDTE(FileSystemInfo solutionFile)
         {
             if (solutionFile == null)
                 return null;
             try
             {
-                return Helper.GetVsInstances().FirstOrDefault(dte2 => string.Equals(dte2.Solution.FullName, solutionFile.FullName, StringComparison.CurrentCultureIgnoreCase));
+                return Helper.GetVsInstances().FirstOrDefault(dte2 => string.Equals(dte2.Solution.FullName,
+                    solutionFile.FullName, StringComparison.CurrentCultureIgnoreCase));
             }
-            catch (Exception)
+            catch
             {
+
                 return null;
             }
 
@@ -404,7 +401,7 @@ namespace MacroserviceExplorer
             get => _newVersion;
             set
             {
-                if (value.IsEmpty() || !int.TryParse(value.Replace(".", ""), out _))
+                if (value.IsEmpty() || !int.TryParse(value.Remove("."), out _))
                     return;
 
                 _newVersion = value;
@@ -421,7 +418,7 @@ namespace MacroserviceExplorer
 
     public class MyNugetRef : NugetRef
     {
-        public MacroserviceGridItem.EnumProjects Project { get; set; }
+        public MicroserviceGridItem.EnumProjects Project { get; set; }
         public bool Checked { get; set; }
     }
 }

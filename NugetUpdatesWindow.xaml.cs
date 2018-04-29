@@ -7,10 +7,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
-using GCop.Core;
 using MessageBox = System.Windows.Forms.MessageBox;
 
-namespace MacroserviceExplorer
+namespace MicroserviceExplorer
 {
     /// <summary>
     /// Interaction logic for NugetUpdatesWindow.xaml
@@ -58,22 +57,22 @@ namespace MacroserviceExplorer
             {
                 case "All":
                     foreach (var proj in list)
-                        SetCheckBoxValue(proj, chk.IsChecked != null && chk.IsChecked.Value);
+                        SetCheckBoxValue(proj, chk.IsChecked != null && (bool) chk.IsChecked);
 
-                    SetCheckBoxValue("None", !(chk.IsChecked != null && chk.IsChecked.Value));
+                    SetCheckBoxValue("None", !(chk.IsChecked != null && (bool) chk.IsChecked));
                     break;
 
                 case "None":
 
                     foreach (var proj in list)
-                        SetCheckBoxValue(proj, !(chk.IsChecked != null && chk.IsChecked.Value));
+                        SetCheckBoxValue(proj, !(chk.IsChecked != null && (bool) chk.IsChecked));
 
-                    SetCheckBoxValue("All", !(chk.IsChecked != null && chk.IsChecked.Value));
+                    SetCheckBoxValue("All", !(chk.IsChecked != null && (bool) chk.IsChecked));
                     break;
                 default:
-                    _nugetList.Where(ng=>ng.Project.ToString() == chkTitle).ForEach(itm=>
+                    _nugetList.Where(ng=>ng.Project.ToString() == chkTitle).Do(itm=>
                     {
-                        itm.Checked = (chk.IsChecked != null && chk.IsChecked.Value);
+                        itm.Checked = (chk.IsChecked != null && (bool) chk.IsChecked);
                     });
                     CollectionViewSource.GetDefaultView(_nugetList).Refresh();
                     break;
@@ -103,7 +102,7 @@ namespace MacroserviceExplorer
                     foundChild = FindChild<T>(child, childName);
                     if (foundChild != null) break;
                 }
-                else if (!string.IsNullOrEmpty(childName))
+                else if (childName.HasValue())
                 {
                     if (!(child is FrameworkElement frameworkElement) || frameworkElement.Tag == null || frameworkElement.Tag.ToString() != childName) continue;
                     foundChild = (T)child;
@@ -122,8 +121,8 @@ namespace MacroserviceExplorer
 
         void BtnUpdate_OnClick(object sender, RoutedEventArgs e)
         {
-            if (!_nugetList.Any(itm => itm.Checked))
-                MessageBox.Show("There is not selected package to update ...", "Please select an item atleast ");
+            if (_nugetList.None(itm => itm.Checked))
+                MessageBox.Show(@"There is not selected package to update ...", @"Please select an item atleast ");
             else
                 DialogResult = true;
         }
@@ -138,7 +137,7 @@ namespace MacroserviceExplorer
 
         void UpdateAll_OnClick(object sender, RoutedEventArgs e)
         {
-            _nugetList.ForEach(itm=>itm.Checked = true);
+            _nugetList.Do(itm=>itm.Checked = true);
             DialogResult = true;
         }
     }
@@ -155,13 +154,13 @@ namespace MacroserviceExplorer
 
             switch (myNugetRef.Project)
             {
-                case MacroserviceGridItem.EnumProjects.Website:
+                case MicroserviceGridItem.EnumProjects.Website:
                     return new SolidColorBrush(Colors.Aquamarine);
-                case MacroserviceGridItem.EnumProjects.Domain:
+                case MicroserviceGridItem.EnumProjects.Domain:
                     return new SolidColorBrush(Colors.Cornsilk);
-                case MacroserviceGridItem.EnumProjects.Model:
+                case MicroserviceGridItem.EnumProjects.Model:
                     return new SolidColorBrush(Colors.GhostWhite);
-                case MacroserviceGridItem.EnumProjects.UI:
+                case MicroserviceGridItem.EnumProjects.UI:
                     return new SolidColorBrush(Colors.PaleTurquoise);
                 default:
                     return new SolidColorBrush(Colors.White);

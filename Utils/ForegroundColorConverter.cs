@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace MacroserviceExplorer
+namespace MicroserviceExplorer
 {
     public class ForegroundColorConverter : IValueConverter
     {

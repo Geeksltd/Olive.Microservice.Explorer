@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 
-namespace MacroserviceExplorer
+namespace MicroserviceExplorer
 {
     partial class MainWindow
     {
@@ -15,7 +15,7 @@ namespace MacroserviceExplorer
             public int LocalCommits { get; set; }
         }
 
-        async Task<int> GetGitUpdates(MacroserviceGridItem service)
+        async Task<int> CalculateGitUpdates(MicroserviceGridItem service)
         {
             if (service.WebsiteFolder.IsEmpty()) return 0;
 
@@ -77,13 +77,20 @@ namespace MacroserviceExplorer
             remoteCommits = match.Groups["remoteCommits"];
             var localCommits = match.Groups["localCommits"];
 
-            return match.Success ? new GitStatus { Branch = branch.Value, RemoteCommits = remoteCommits.Value.To<int>(), LocalCommits = localCommits.Value.To<int>() } : null;
+            if (match.Success)
+                return new GitStatus
+                {
+                    Branch = branch.Value,
+                    RemoteCommits = remoteCommits.Value.To<int>(),
+                    LocalCommits = localCommits.Value.To<int>()
+                };
+            else return null;
         }
 
-        async Task GitUpdate(MacroserviceGridItem server)
+        async Task GitUpdate(MicroserviceGridItem server)
         {
 
-            autoRefreshTimer.Stop();
+            AutoRefreshTimer.Stop();
             var projFOlder = server.WebsiteFolder.AsDirectory().Parent;
             string run()
             {
@@ -108,7 +115,7 @@ namespace MacroserviceExplorer
                 ShowStatusMessage("git pull completed ...", output);
 
             StatusProgressStop();
-            autoRefreshTimer.Start();
+            AutoRefreshTimer.Start();
         }
 
     }

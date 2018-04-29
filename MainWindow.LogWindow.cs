@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace MacroserviceExplorer
+namespace MicroserviceExplorer
 {
     partial class MainWindow
     {

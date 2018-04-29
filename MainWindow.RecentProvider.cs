@@ -6,16 +6,16 @@ using System.Windows.Controls;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace MacroserviceExplorer
+namespace MicroserviceExplorer
 {
     partial class MainWindow
     {
         List<string> _recentFiles = new List<string>();
         const string RecentsXml = "Recents.xml";
 
-        async void RecentMenuItem_Click(object sender, RoutedEventArgs e)
+        void RecentMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            await LoadFile(((MenuItem)e.Source).Header.ToString());
+            var loadFile = LoadFile(((MenuItem)e.Source).Header.ToString());
         }
 
         void SaveRecentFilesXml()

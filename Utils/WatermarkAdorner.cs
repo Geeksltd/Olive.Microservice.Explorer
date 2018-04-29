@@ -9,7 +9,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Media;
 
-namespace MacroserviceExplorer.Utils
+namespace MicroserviceExplorer.Utils
 {
     /// <summary>
     /// Adorner for the watermark
@@ -19,40 +19,37 @@ namespace MacroserviceExplorer.Utils
         #region Private Fields
 
         /// <summary>
-        /// <see cref="ContentPresenter"/> that holds the watermark
+        /// <see cref="System.Windows.Controls.ContentPresenter"/> that holds the watermark
         /// </summary>
-        private readonly ContentPresenter contentPresenter;
+        readonly ContentPresenter ContentPresenter;
 
         #endregion
 
         #region Constructor
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="WatermarkAdorner"/> class
-        /// </summary>
-        /// <param name="adornedElement"><see cref="UIElement"/> to be adorned</param>
-        /// <param name="watermark">The watermark</param>
         public WatermarkAdorner(UIElement adornedElement, object watermark) :
             base(adornedElement)
         {
             this.IsHitTestVisible = false;
 
-            this.contentPresenter = new ContentPresenter();
-            this.contentPresenter.Content = watermark;
-            this.contentPresenter.Opacity = 0.5;
-            this.contentPresenter.Margin = new Thickness(Control.Margin.Left + Control.Padding.Left,
+            this.ContentPresenter = new ContentPresenter();
+            this.ContentPresenter.Content = watermark;
+            this.ContentPresenter.Opacity = 0.5;
+            this.ContentPresenter.Margin = new Thickness(Control.Margin.Left + Control.Padding.Left,
                 Control.Margin.Top + Control.Padding.Top, 0, 0);
 
             if (this.Control is ItemsControl && !(this.Control is ComboBox))
             {
-                this.contentPresenter.VerticalAlignment = VerticalAlignment.Center;
-                this.contentPresenter.HorizontalAlignment = HorizontalAlignment.Center;
+                this.ContentPresenter.VerticalAlignment = VerticalAlignment.Center;
+                this.ContentPresenter.HorizontalAlignment = HorizontalAlignment.Center;
             }
 
             // Hide the control adorner when the adorned element is hidden
-            Binding binding = new Binding("IsVisible");
-            binding.Source = adornedElement;
-            binding.Converter = new BooleanToVisibilityConverter();
+            var binding = new Binding("IsVisible")
+            {
+                Source = adornedElement,
+                Converter = new BooleanToVisibilityConverter()
+            };
             this.SetBinding(VisibilityProperty, binding);
         }
 
@@ -63,10 +60,7 @@ namespace MacroserviceExplorer.Utils
         /// <summary>
         /// Gets the number of children for the <see cref="ContainerVisual"/>.
         /// </summary>
-        protected override int VisualChildrenCount
-        {
-            get { return 1; }
-        }
+        protected override int VisualChildrenCount => 1;
 
         #endregion
 
@@ -75,10 +69,7 @@ namespace MacroserviceExplorer.Utils
         /// <summary>
         /// Gets the control that is being adorned
         /// </summary>
-        private Control Control
-        {
-            get { return (Control)this.AdornedElement; }
-        }
+        private Control Control => (Control)this.AdornedElement;
 
         #endregion
 
@@ -89,10 +80,7 @@ namespace MacroserviceExplorer.Utils
         /// </summary>
         /// <param name="index">A 32-bit signed integer that represents the index value of the child <see cref="Visual"/>. The value of index must be between 0 and <see cref="VisualChildrenCount"/> - 1.</param>
         /// <returns>The child <see cref="Visual"/>.</returns>
-        protected override Visual GetVisualChild(int index)
-        {
-            return this.contentPresenter;
-        }
+        protected override Visual GetVisualChild(int index) => this.ContentPresenter;
 
         /// <summary>
         /// Implements any custom measuring behavior for the adorner.
@@ -102,7 +90,7 @@ namespace MacroserviceExplorer.Utils
         protected override Size MeasureOverride(Size constraint)
         {
             // Here's the secret to getting the adorner to cover the whole control
-            this.contentPresenter.Measure(Control.RenderSize);
+            this.ContentPresenter.Measure(Control.RenderSize);
             return Control.RenderSize;
         }
 
@@ -113,7 +101,7 @@ namespace MacroserviceExplorer.Utils
         /// <returns>The actual size used.</returns>
         protected override Size ArrangeOverride(Size finalSize)
         {
-            this.contentPresenter.Arrange(new Rect(finalSize));
+            this.ContentPresenter.Arrange(new Rect(finalSize));
             return finalSize;
         }
 

@@ -8,13 +8,13 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using EnvDTE;
-using MacroserviceExplorer.Utils;
+using MicroserviceExplorer.Utils;
 using Button = System.Windows.Controls.Button;
 using MessageBox = System.Windows.Forms.MessageBox;
 using Process = System.Diagnostics.Process;
 
 
-namespace MacroserviceExplorer
+namespace MicroserviceExplorer
 {
 
     public partial class MainWindow : IDisposable
@@ -82,16 +82,16 @@ namespace MacroserviceExplorer
             StartAutoRefresh();
         }
 
-        readonly DispatcherTimer autoRefreshTimer = new DispatcherTimer();
+        readonly DispatcherTimer AutoRefreshTimer = new DispatcherTimer();
         void StartAutoRefresh()
         {
-            autoRefreshTimer.Tick += async (sender, args) =>
+            AutoRefreshTimer.Tick += async (sender, args) =>
             {
 
                 logWindow.LogMessage("[Autorefresh Begin]");
                 var gridHasFocused = srvGrid.IsFocused;
 
-                MacroserviceGridItem selItem = null;
+                MicroserviceGridItem selItem = null;
                 if (SelectedService != null)
                     selItem = SelectedService;
 
@@ -108,11 +108,11 @@ namespace MacroserviceExplorer
                 if (gridHasFocused)
                     srvGrid.Focus();
 
-                logWindow.LogMessage("[Autorefresh End]", new string('=', 60));
+                logWindow.LogMessage("[Autorefresh End]");
 
             };
-            autoRefreshTimer.Interval = new TimeSpan(0, 3, 0 );
-            autoRefreshTimer.Start();
+            AutoRefreshTimer.Interval = new TimeSpan(0, 3, 0 );
+            AutoRefreshTimer.Start();
         }
 
 
@@ -129,7 +129,7 @@ namespace MacroserviceExplorer
             ReloadRecentFiles();
             //logWindow.ShowInTaskbar = false;
             //logWindow.Hide();
-            while (_recentFiles.Count > 0)
+            while (_recentFiles.Any())
             {
                 if (await LoadFile(_recentFiles[_recentFiles.Count - 1]))
                     break;
@@ -149,27 +149,27 @@ namespace MacroserviceExplorer
             var service = GetServiceByTag(sender);
             switch (service.Status)
             {
-                case MacroserviceGridItem.EnumStatus.Pending:
+                case MicroserviceGridItem.EnumStatus.Pending:
                     MessageBox.Show("Macroservice is loading.\nPlease Wait ...", @"Loading ...");
                     break;
-                case MacroserviceGridItem.EnumStatus.Run:
+                case MicroserviceGridItem.EnumStatus.Run:
                     service.Stop();
                     break;
-                case MacroserviceGridItem.EnumStatus.Stop:
+                case MicroserviceGridItem.EnumStatus.Stop:
                     Start(service);
                     break;
-                case MacroserviceGridItem.EnumStatus.NoSourcerLocally:
+                case MicroserviceGridItem.EnumStatus.NoSourcerLocally:
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException($@"Service.Status out of range");
             }
         }
 
 
-        void Start(MacroserviceGridItem service)
+        void Start(MicroserviceGridItem service)
         {
-            autoRefreshTimer.Stop();
-            service.Status = MacroserviceGridItem.EnumStatus.Pending;
+            AutoRefreshTimer.Stop();
+            service.Status = MicroserviceGridItem.EnumStatus.Pending;
             var proc = new Process
             {
                 StartInfo = new ProcessStartInfo
@@ -195,14 +195,14 @@ namespace MacroserviceExplorer
         void DispatcherTimer_Tick(object sender, EventArgs e)
         {
             var timer = (DispatcherTimer)sender;
-            var service = (MacroserviceGridItem)timer.Tag;
+            var service = (MicroserviceGridItem)timer.Tag;
             service.UpdateProcessStatus();
             if (service.ProcId < 0) return;
 
             timer.Stop();
             timer.Tick -= DispatcherTimer_Tick;
-            service.Status = MacroserviceGridItem.EnumStatus.Run;
-            autoRefreshTimer.Start();
+            service.Status = MicroserviceGridItem.EnumStatus.Run;
+            AutoRefreshTimer.Start();
         }
 
 
@@ -216,7 +216,7 @@ namespace MacroserviceExplorer
 
         async void OpenProject_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            var openFileDialog = new System.Windows.Forms.OpenFileDialog()
+            using (var openFileDialog = new System.Windows.Forms.OpenFileDialog
             {
                 CheckFileExists = true,
                 CheckPathExists = true,
@@ -225,22 +225,24 @@ namespace MacroserviceExplorer
                 Multiselect = false,
                 SupportMultiDottedExtensions = true,
                 Title = $@"Select {Services_file_name} file"
-            };
-            if (openFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
-                return;
-
-            if (_recentFiles.Count == 0 || !_recentFiles.Contains(openFileDialog.FileName))
+            })
             {
-                if (_recentFiles.Count == 0)
-                    mnuRecentFiles.Items.Clear();
+                if (openFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+                    return;
 
-                _recentFiles.Add(openFileDialog.FileName);
-                AddRecentMenuItem(openFileDialog.FileName);
+                if (_recentFiles.None() || !_recentFiles.Contains(openFileDialog.FileName))
+                {
+                    if (_recentFiles.None())
+                        mnuRecentFiles.Items.Clear();
 
-                SaveRecentFilesXml();
+                    _recentFiles.Add(openFileDialog.FileName);
+                    AddRecentMenuItem(openFileDialog.FileName);
+
+                    SaveRecentFilesXml();
+                }
+
+                await LoadFile(openFileDialog.FileName);
             }
-
-            await LoadFile(openFileDialog.FileName);
         }
 
         async Task Refresh()
@@ -252,7 +254,7 @@ namespace MacroserviceExplorer
             }
 
             if (!ProjextLoaded)
-                autoRefreshTimer.Stop();
+                AutoRefreshTimer.Stop();
         }
 
         void EditProject_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -266,9 +268,9 @@ namespace MacroserviceExplorer
             Close();
         }
 
-        async void RefreshMenuItem_OnClick(object sender, ExecutedRoutedEventArgs e)
+        void RefreshMenuItem_OnClick(object sender, ExecutedRoutedEventArgs e)
         {
-            await Refresh();
+            var refresh = Refresh();
         }
 
         void OpenExplorer_OnClick(object sender, MouseButtonEventArgs e)
@@ -309,7 +311,7 @@ namespace MacroserviceExplorer
         void RunAllMenuItem_Click(object sender, ExecutedRoutedEventArgs e)
         {
             foreach (var service in MacroserviceGridItems)
-                if (service.Status == MacroserviceGridItem.EnumStatus.Stop)
+                if (service.Status == MicroserviceGridItem.EnumStatus.Stop)
                     Start(service);
         }
 
@@ -317,7 +319,7 @@ namespace MacroserviceExplorer
         {
             foreach (var service in MacroserviceGridItems)
             {
-                if (service.Status == MacroserviceGridItem.EnumStatus.Run)
+                if (service.Status == MicroserviceGridItem.EnumStatus.Run)
                     service.Stop();
             }
         }
@@ -325,7 +327,7 @@ namespace MacroserviceExplorer
         void RunAllFilteredMenuItem_Click(object sender, ExecutedRoutedEventArgs e)
         {
             foreach (var service in MacroserviceGridItems)
-                if (service.Status == MacroserviceGridItem.EnumStatus.Stop)
+                if (service.Status == MicroserviceGridItem.EnumStatus.Stop)
                     Start(service);
 
         }
@@ -334,15 +336,15 @@ namespace MacroserviceExplorer
         {
             foreach (var service in MacroserviceGridItems)
             {
-                if (service.Status == MacroserviceGridItem.EnumStatus.Run)
+                if (service.Status == MicroserviceGridItem.EnumStatus.Run)
                     service.Stop();
             }
         }
 
-        async void WindowTitlebarControl_OnRefreshClicked(object sender, EventArgs e)
-        {
-            await Refresh();
-        }
+         void WindowTitlebarControl_OnRefreshClicked(object sender, EventArgs e)
+         {
+             var refresh = Refresh();
+         }
 
         void MnuAlwaysOnTop_OnChecked(object sender, RoutedEventArgs e)
         {
@@ -416,15 +418,15 @@ namespace System
 {
     public static class TempExtDeleteMeAfterNugetUpdate
     {
-        public static string GetFisrtFile(this string fileWildcard, string basePath)
+        public static string GetFisrtFile(this string @this, string basePath)
         {
-            if (!fileWildcard.Contains("*"))
-                fileWildcard = "*" + fileWildcard;
+            if (!@this.Contains("*"))
+                @this = "*" + @this;
 
             var path = basePath.AsDirectory();
             if (!path.Exists) return null;
 
-            var file = path.GetFiles(fileWildcard).FirstOrDefault();
+            var file = path.GetFiles(@this).FirstOrDefault();
             return file?.FullName;
         }
     }
