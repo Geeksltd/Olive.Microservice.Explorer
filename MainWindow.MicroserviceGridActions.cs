@@ -14,13 +14,13 @@ namespace MicroserviceExplorer
     {
         public MicroserviceItem SelectedService { get; set; }
         public List<MicroserviceItem> ServiceData = new List<MicroserviceItem>();
-        public ObservableCollection<MicroserviceItem> MacroserviceGridItems = new ObservableCollection<MicroserviceItem>();
+        public ObservableCollection<MicroserviceItem> MicroserviceGridItems = new ObservableCollection<MicroserviceItem>();
 
         MicroserviceItem GetServiceByTag(object sender)
         {
             var element = (FrameworkElement)sender;
             //var serviceName = element.Tag.ToString();
-            return element.Tag as MicroserviceItem;//MacroserviceGridItems.Single(s => s.Service == serviceName);
+            return element.Tag as MicroserviceItem;//MicroserviceGridItems.Single(s => s.Service == serviceName);
         }
 
         void MakeChromeContextMenu(object sender, MicroserviceItem service)
@@ -98,14 +98,14 @@ namespace MicroserviceExplorer
 
         void FilterListBy(string txtSearchText)
         {
-            MacroserviceGridItems.Clear();
+            MicroserviceGridItems.Clear();
             if (txtSearch.Text.IsEmpty())
             {
-                MacroserviceGridItems.AddRange(ServiceData);
+                MicroserviceGridItems.AddRange(ServiceData);
                 return;
             }
 
-            MacroserviceGridItems.AddRange(ServiceData.Where(x => x.Service.ToLower().Contains(txtSearchText.ToLower()) || x.Port.OrEmpty().Contains(txtSearchText)));
+            MicroserviceGridItems.AddRange(ServiceData.Where(x => x.Service.ToLower().Contains(txtSearchText.ToLower()) || x.Port.OrEmpty().Contains(txtSearchText)));
         }
 
     }

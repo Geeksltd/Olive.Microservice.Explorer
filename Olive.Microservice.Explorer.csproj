@@ -293,5 +293,8 @@
   <ItemGroup>
     <Resource Include="Resources\warning1.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\git_progress.gif" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Media;
 using EnvDTE;
 using EnvDTE80;
 using MicroserviceExplorer.Annotations;
@@ -77,20 +78,20 @@ namespace MicroserviceExplorer
 
         public FontWeight ServiceFontWeight => Status == EnumStatus.Run ? FontWeights.Bold : FontWeights.Regular;
 
-        public System.Windows.Media.Brush ServiceColor
+        public Brush ServiceColor
         {
             get
             {
                 switch (Status)
                 {
                     case EnumStatus.NoSourcerLocally:
-                        return System.Windows.Media.Brushes.DimGray;
+                        return Brushes.DimGray;
                     case EnumStatus.Stop:
-                        return System.Windows.Media.Brushes.DarkRed;
+                        return Brushes.DarkRed;
                     case EnumStatus.Run:
-                        return System.Windows.Media.Brushes.Green;
+                        return Brushes.Green;
                     default:
-                        return System.Windows.Media.Brushes.Black;
+                        return Brushes.Black;
                 }
             }
         }
@@ -148,6 +149,7 @@ namespace MicroserviceExplorer
                 _procId = value;
                 if (_procId > 0)
                     ProcessName = Process.GetProcessById(_procId).ProcessName;
+
                 OnPropertyChanged(nameof(ProcId));
                 OnPropertyChanged(nameof(ProcessName));
                 OnPropertyChanged(nameof(VisibleKestrel));
@@ -230,6 +232,9 @@ namespace MicroserviceExplorer
 
         public object GitUpdateImage => GitUpdates.HasValue() ? "Resources/git.png" : null;
 
+        public object GitStatusImage => GitUpdateIsInProgress ? "Resources/git_progress.gif" : null;
+
+
 
         public Visibility VisibleKestrel => ProcId <= 0 ? Visibility.Collapsed : Visibility.Visible;
 
@@ -239,6 +244,30 @@ namespace MicroserviceExplorer
 
         public string NugetUpdateErrorMessage { get; set; }
         public ObservableCollection<MyNugetRef> NugetUpdatesList { get; } = new ObservableCollection<MyNugetRef>();
+
+        public string GetAbsoluteProjFolder(EnumProjects projEnum)
+        {
+            string projFolder;
+            switch (projEnum)
+            {
+                case EnumProjects.Website:
+                    projFolder = WebsiteFolder;
+                    break;
+                case EnumProjects.Domain:
+                    projFolder = Path.Combine(SolutionFolder, "Domain");
+                    break;
+                case EnumProjects.Model:
+                    projFolder = Path.Combine(SolutionFolder, "M#", "Model");
+                    break;
+                case EnumProjects.UI:
+                    projFolder = Path.Combine(SolutionFolder, "M#", "UI");
+                    break;
+                default:
+                    projFolder = null;
+                    break;
+            }
+            return projFolder;
+        }
 
         public bool AddNugetUpdatesList(EnumProjects project, string packageName, string oldVersion, string newVersion)
         {
@@ -259,7 +288,7 @@ namespace MicroserviceExplorer
             }
         }
 
-        public void DelNugetUpdatesList(EnumProjects project, string packageName)
+        public void DelNugetPAckageFromUpdatesList(EnumProjects project, string packageName)
         {
             NugetUpdatesList.RemoveAll(x => x.Project == project && x.Include == packageName);
             OnPropertyChanged(nameof(NugetUpdates));
@@ -290,10 +319,10 @@ namespace MicroserviceExplorer
             get => _nugetFetchTasks;
             set
             {
-                if (value <= 0)
+                if (value <= 0 && !NugetUpdateIsInProgress)
                 {
                     NugetStatusImage = null;
-                    _nugetFetchTasks = 0;
+                    value = 0;
                     NugetStatusImage = "Stop";
                 }
                 else
@@ -302,6 +331,32 @@ namespace MicroserviceExplorer
                 _nugetFetchTasks = value;
                 OnPropertyChanged(nameof(NugetFetchTasks));
                 OnPropertyChanged(nameof(NugetStatusImage));
+                OnPropertyChanged(nameof(NugetUpdateIsInProgress));
+            }
+        }
+
+        bool _gitUpdateIsInProgress;
+
+        public bool GitUpdateIsInProgress
+        {
+            get => _gitUpdateIsInProgress;
+            set
+            {
+                _gitUpdateIsInProgress = value;
+                OnPropertyChanged(nameof(GitStatusImage));
+            }
+        }
+
+        bool _nugetUpdateIsInProgress;
+
+        public bool NugetUpdateIsInProgress
+        {
+            get => _nugetUpdateIsInProgress;
+            set
+            {
+                _nugetUpdateIsInProgress = value;
+                OnPropertyChanged(nameof(NugetUpdateIsInProgress));
+                OnPropertyChanged(nameof(NugetFetchTasks));
             }
         }
 
@@ -344,7 +399,7 @@ namespace MicroserviceExplorer
         public void UpdateProcessStatus()
         {
             ProcId = GetProcessIdByPortNumber(Port.To<int>());
-            Status = ProcId < 0 ? EnumStatus.Stop : EnumStatus.Run;
+            Status = ProcId < 0 ? Status : EnumStatus.Run;
 
         }
 
@@ -368,7 +423,7 @@ namespace MicroserviceExplorer
                 return null;
             try
             {
-                return Helper.GetVsInstances().FirstOrDefault(dte2 => string.Equals(dte2.Solution.FullName,
+                return Helper.GetVsInstances().FirstOrDefault(dte2 => String.Equals(dte2.Solution.FullName,
                     solutionFile.FullName, StringComparison.CurrentCultureIgnoreCase));
             }
             catch
@@ -383,7 +438,6 @@ namespace MicroserviceExplorer
         {
             return !Directory.Exists(WebsiteFolder) ? null : WebsiteFolder.AsDirectory().Parent?.GetFiles("*.sln").FirstOrDefault();
         }
-
     }
 
     public class ProjectRef
