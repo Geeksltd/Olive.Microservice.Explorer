@@ -15,7 +15,7 @@ namespace MicroserviceExplorer
             public int LocalCommits { get; set; }
         }
 
-        async Task<int> CalculateGitUpdates(MicroserviceGridItem service)
+        async Task<int> CalculateGitUpdates(MicroserviceItem service)
         {
             if (service.WebsiteFolder.IsEmpty()) return 0;
 
@@ -87,7 +87,7 @@ namespace MicroserviceExplorer
             else return null;
         }
 
-        async Task GitUpdate(MicroserviceGridItem server)
+        async Task GitUpdate(MicroserviceItem server)
         {
 
             AutoRefreshTimer.Stop();

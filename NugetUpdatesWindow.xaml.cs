@@ -32,19 +32,8 @@ namespace MicroserviceExplorer
         public NugetUpdatesWindow()
         {
             InitializeComponent();
-
         }
 
-        void CollectionViewSource_Filter(object sender, FilterEventArgs e)
-        {
-            //ICollectionView cvTasks = CollectionViewSource.GetDefaultView(dataGrid1.ItemsSource);
-            if (!(e.Item is MyNugetRef t)) return;
-
-            //if (this.cbCompleteFilter.IsChecked == true && t.Complete == true)
-            //    e.Accepted = false;
-            //else
-            //    e.Accepted = true;
-        }
 
         
         void ToggleButton_OnChecked(object sender, RoutedEventArgs e)
@@ -53,26 +42,27 @@ namespace MicroserviceExplorer
             var list = _nugetList.Distinct(dist => dist.Project).Select(itm => itm.Project.ToString()).ToList();
 
             var chkTitle = chk.DataContext.ToString();
+            var value = chk.IsChecked == null || !(bool) chk.IsChecked;
             switch (chkTitle)
             {
                 case "All":
                     foreach (var proj in list)
-                        SetCheckBoxValue(proj, chk.IsChecked != null && (bool) chk.IsChecked);
+                        SetCheckBoxValue(proj, !value);
 
-                    SetCheckBoxValue("None", !(chk.IsChecked != null && (bool) chk.IsChecked));
+                    SetCheckBoxValue("None", value);
                     break;
 
                 case "None":
 
                     foreach (var proj in list)
-                        SetCheckBoxValue(proj, !(chk.IsChecked != null && (bool) chk.IsChecked));
+                        SetCheckBoxValue(proj, value);
 
-                    SetCheckBoxValue("All", !(chk.IsChecked != null && (bool) chk.IsChecked));
+                    SetCheckBoxValue("All", value);
                     break;
                 default:
                     _nugetList.Where(ng=>ng.Project.ToString() == chkTitle).Do(itm=>
                     {
-                        itm.Checked = (chk.IsChecked != null && (bool) chk.IsChecked);
+                        itm.Checked = !(chk.IsChecked == null || !(bool) chk.IsChecked);
                     });
                     CollectionViewSource.GetDefaultView(_nugetList).Refresh();
                     break;
@@ -131,7 +121,7 @@ namespace MicroserviceExplorer
         {
             var chk = (CheckBox) sender;
             var nugetRef = (MyNugetRef)chk.Tag;
-            if (chk.IsChecked != null)
+            if (chk.IsChecked.HasValue )
                 nugetRef.Checked = chk.IsChecked.Value;
         }
 
@@ -154,13 +144,13 @@ namespace MicroserviceExplorer
 
             switch (myNugetRef.Project)
             {
-                case MicroserviceGridItem.EnumProjects.Website:
+                case MicroserviceItem.EnumProjects.Website:
                     return new SolidColorBrush(Colors.Aquamarine);
-                case MicroserviceGridItem.EnumProjects.Domain:
+                case MicroserviceItem.EnumProjects.Domain:
                     return new SolidColorBrush(Colors.Cornsilk);
-                case MicroserviceGridItem.EnumProjects.Model:
+                case MicroserviceItem.EnumProjects.Model:
                     return new SolidColorBrush(Colors.GhostWhite);
-                case MicroserviceGridItem.EnumProjects.UI:
+                case MicroserviceItem.EnumProjects.UI:
                     return new SolidColorBrush(Colors.PaleTurquoise);
                 default:
                     return new SolidColorBrush(Colors.White);
@@ -169,7 +159,8 @@ namespace MicroserviceExplorer
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            return value;
         }
 
         #endregion

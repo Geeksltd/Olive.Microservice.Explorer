@@ -12,18 +12,18 @@ namespace MicroserviceExplorer
 {
     partial class MainWindow
     {
-        public MicroserviceGridItem SelectedService { get; set; }
-        public List<MicroserviceGridItem> ServiceData = new List<MicroserviceGridItem>();
-        public ObservableCollection<MicroserviceGridItem> MacroserviceGridItems = new ObservableCollection<MicroserviceGridItem>();
+        public MicroserviceItem SelectedService { get; set; }
+        public List<MicroserviceItem> ServiceData = new List<MicroserviceItem>();
+        public ObservableCollection<MicroserviceItem> MacroserviceGridItems = new ObservableCollection<MicroserviceItem>();
 
-        MicroserviceGridItem GetServiceByTag(object sender)
+        MicroserviceItem GetServiceByTag(object sender)
         {
             var element = (FrameworkElement)sender;
             //var serviceName = element.Tag.ToString();
-            return element.Tag as MicroserviceGridItem;//MacroserviceGridItems.Single(s => s.Service == serviceName);
+            return element.Tag as MicroserviceItem;//MacroserviceGridItems.Single(s => s.Service == serviceName);
         }
 
-        void MakeChromeContextMenu(object sender, MicroserviceGridItem service)
+        void MakeChromeContextMenu(object sender, MicroserviceItem service)
         {
             var cm = new ContextMenu();
             if (int.TryParse(service.Port, out var port))
@@ -70,13 +70,13 @@ namespace MicroserviceExplorer
 
         void BrowsMacroservice(MenuItem menuitem)
         {
-            var service = (MicroserviceGridItem)menuitem.Tag;
+            var service = (MicroserviceItem)menuitem.Tag;
             var address = menuitem.Header.ToString().Substring(menuitem.Header.ToString().IndexOf(" ", StringComparison.Ordinal) + 1);
-            if (address.Contains("localhost:") && service.Status != MicroserviceGridItem.EnumStatus.Run)
+            if (address.Contains("localhost:") && service.Status != MicroserviceItem.EnumStatus.Run)
             {
                 void OnServiceOnPropertyChanged(object obj, PropertyChangedEventArgs args)
                 {
-                    if (args.PropertyName != nameof(service.Status) || service.Status != MicroserviceGridItem.EnumStatus.Run) return;
+                    if (args.PropertyName != nameof(service.Status) || service.Status != MicroserviceItem.EnumStatus.Run) return;
                     service.PropertyChanged -= OnServiceOnPropertyChanged;
                     Helper.Launch(address);
                 }

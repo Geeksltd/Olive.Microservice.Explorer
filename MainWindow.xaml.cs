@@ -91,7 +91,7 @@ namespace MicroserviceExplorer
                 logWindow.LogMessage("[Autorefresh Begin]");
                 var gridHasFocused = srvGrid.IsFocused;
 
-                MicroserviceGridItem selItem = null;
+                MicroserviceItem selItem = null;
                 if (SelectedService != null)
                     selItem = SelectedService;
 
@@ -149,16 +149,16 @@ namespace MicroserviceExplorer
             var service = GetServiceByTag(sender);
             switch (service.Status)
             {
-                case MicroserviceGridItem.EnumStatus.Pending:
+                case MicroserviceItem.EnumStatus.Pending:
                     MessageBox.Show("Macroservice is loading.\nPlease Wait ...", @"Loading ...");
                     break;
-                case MicroserviceGridItem.EnumStatus.Run:
+                case MicroserviceItem.EnumStatus.Run:
                     service.Stop();
                     break;
-                case MicroserviceGridItem.EnumStatus.Stop:
+                case MicroserviceItem.EnumStatus.Stop:
                     Start(service);
                     break;
-                case MicroserviceGridItem.EnumStatus.NoSourcerLocally:
+                case MicroserviceItem.EnumStatus.NoSourcerLocally:
                     break;
                 default:
                     throw new ArgumentOutOfRangeException($@"Service.Status out of range");
@@ -166,16 +166,16 @@ namespace MicroserviceExplorer
         }
 
 
-        void Start(MicroserviceGridItem service)
+        void Start(MicroserviceItem service)
         {
             AutoRefreshTimer.Stop();
-            service.Status = MicroserviceGridItem.EnumStatus.Pending;
+            service.Status = MicroserviceItem.EnumStatus.Pending;
             var proc = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
                     FileName = "dotnet",
-                    Arguments = "run --no-build --project " + service.WebsiteFolder,
+                    Arguments = "run --project " + service.WebsiteFolder,
                     UseShellExecute = true,
                     CreateNoWindow = true,
                     WindowStyle = ProcessWindowStyle.Minimized
@@ -186,22 +186,22 @@ namespace MicroserviceExplorer
             proc.Start();
 
 
-            var dispatcherTimer = new DispatcherTimer { Tag = service };
-            dispatcherTimer.Tick += DispatcherTimer_Tick;
-            dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
-            dispatcherTimer.Start();
+            var microserviceRunCheckingTimer = new DispatcherTimer { Tag = service };
+            microserviceRunCheckingTimer.Tick += DispatcherTimer_Tick;
+            microserviceRunCheckingTimer.Interval = new TimeSpan(0, 0, 1);
+            microserviceRunCheckingTimer.Start();
         }
 
         void DispatcherTimer_Tick(object sender, EventArgs e)
         {
             var timer = (DispatcherTimer)sender;
-            var service = (MicroserviceGridItem)timer.Tag;
+            var service = (MicroserviceItem)timer.Tag;
             service.UpdateProcessStatus();
             if (service.ProcId < 0) return;
 
             timer.Stop();
             timer.Tick -= DispatcherTimer_Tick;
-            service.Status = MicroserviceGridItem.EnumStatus.Run;
+            service.Status = MicroserviceItem.EnumStatus.Run;
             AutoRefreshTimer.Start();
         }
 
@@ -311,7 +311,7 @@ namespace MicroserviceExplorer
         void RunAllMenuItem_Click(object sender, ExecutedRoutedEventArgs e)
         {
             foreach (var service in MacroserviceGridItems)
-                if (service.Status == MicroserviceGridItem.EnumStatus.Stop)
+                if (service.Status == MicroserviceItem.EnumStatus.Stop)
                     Start(service);
         }
 
@@ -319,7 +319,7 @@ namespace MicroserviceExplorer
         {
             foreach (var service in MacroserviceGridItems)
             {
-                if (service.Status == MicroserviceGridItem.EnumStatus.Run)
+                if (service.Status == MicroserviceItem.EnumStatus.Run)
                     service.Stop();
             }
         }
@@ -327,7 +327,7 @@ namespace MicroserviceExplorer
         void RunAllFilteredMenuItem_Click(object sender, ExecutedRoutedEventArgs e)
         {
             foreach (var service in MacroserviceGridItems)
-                if (service.Status == MicroserviceGridItem.EnumStatus.Stop)
+                if (service.Status == MicroserviceItem.EnumStatus.Stop)
                     Start(service);
 
         }
@@ -336,7 +336,7 @@ namespace MicroserviceExplorer
         {
             foreach (var service in MacroserviceGridItems)
             {
-                if (service.Status == MicroserviceGridItem.EnumStatus.Run)
+                if (service.Status == MicroserviceItem.EnumStatus.Run)
                     service.Stop();
             }
         }

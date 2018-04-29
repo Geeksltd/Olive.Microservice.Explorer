@@ -59,7 +59,7 @@ namespace MicroserviceExplorer
                 var srv = ServiceData.SingleOrDefault(srvc => srvc.Service == serviceName);
                 if (srv == null)
                 {
-                    srv = new MicroserviceGridItem();
+                    srv = new MicroserviceItem();
                     ServiceData.Add(srv);
                 }
                 string liveUrl = null;
@@ -71,7 +71,7 @@ namespace MicroserviceExplorer
                 }
 
                 var port = "";
-                var status = MicroserviceGridItem.EnumStatus.NoSourcerLocally;
+                var status = MicroserviceItem.EnumStatus.NoSourcerLocally;
                 var parentFullName = ServicesJsonFile.Directory?.Parent?.FullName ?? "";
                 var projFolder = Path.Combine(parentFullName, serviceName);
                 var websiteFolder = Path.Combine(projFolder, "website");
@@ -84,7 +84,7 @@ namespace MicroserviceExplorer
                     var launchSettingsJObject = Newtonsoft.Json.Linq.JObject.Parse(launchSettingsAllText);
                     var appUrl = launchSettingsJObject["profiles"]["Website"]["applicationUrl"].ToString();
                     port = appUrl.Substring(appUrl.LastIndexOf(":", StringComparison.Ordinal) + 1);
-                    status = MicroserviceGridItem.EnumStatus.Stop;
+                    status = MicroserviceItem.EnumStatus.Stop;
                     if (!port.TryParseAs<int>().HasValue)
                     {
                         var pos = 0;
@@ -164,7 +164,7 @@ namespace MicroserviceExplorer
                 }
                 else
                 {
-                    srv.Status = MicroserviceGridItem.EnumStatus.NoSourcerLocally;
+                    srv.Status = MicroserviceItem.EnumStatus.NoSourcerLocally;
                     srv.WebsiteFolder = null;
                     srv.ProcId = -1;
                     srv.VsDTE = null;
@@ -179,7 +179,7 @@ namespace MicroserviceExplorer
                 {
                     srv.UpdateProcessStatus();
 
-                    foreach (MicroserviceGridItem.EnumProjects proj in Enum.GetValues(typeof(MicroserviceGridItem.EnumProjects)))
+                    foreach (MicroserviceItem.EnumProjects proj in Enum.GetValues(typeof(MicroserviceItem.EnumProjects)))
                         FetchProjectNugetPackages(srv, proj);
 
                     var gitUpdates = await CalculateGitUpdates(srv);
@@ -188,28 +188,28 @@ namespace MicroserviceExplorer
 
                 }
                 else
-                    srv.Status = MicroserviceGridItem.EnumStatus.NoSourcerLocally;
+                    srv.Status = MicroserviceItem.EnumStatus.NoSourcerLocally;
 
             }
 
             return true;
         }
 
-        void FetchProjectNugetPackages(MicroserviceGridItem service, MicroserviceGridItem.EnumProjects projEnum)
+        void FetchProjectNugetPackages(MicroserviceItem service, MicroserviceItem.EnumProjects projEnum)
         {
             string projFolder;
             switch (projEnum)
             {
-                case MicroserviceGridItem.EnumProjects.Website:
+                case MicroserviceItem.EnumProjects.Website:
                     projFolder = service.WebsiteFolder;
                     break;
-                case MicroserviceGridItem.EnumProjects.Domain:
+                case MicroserviceItem.EnumProjects.Domain:
                     projFolder = Path.Combine(service.SolutionFolder, "Domain");
                     break;
-                case MicroserviceGridItem.EnumProjects.Model:
+                case MicroserviceItem.EnumProjects.Model:
                     projFolder = Path.Combine(service.SolutionFolder, "M#", "Model");
                     break;
-                case MicroserviceGridItem.EnumProjects.UI:
+                case MicroserviceItem.EnumProjects.UI:
                     projFolder = Path.Combine(service.SolutionFolder, "M#", "UI");
                     break;
                 default:
@@ -244,7 +244,7 @@ namespace MicroserviceExplorer
             {
                 nugetInitworker.DoWork += (sender, args) =>
                 {
-                    var srv = (MicroserviceGridItem) args.Argument;
+                    var srv = (MicroserviceItem) args.Argument;
                     srv.NugetFetchTasks++;
                     //srv.NugetStatusImage = "Pending";
                     lock (_lock)
@@ -283,7 +283,7 @@ namespace MicroserviceExplorer
 
                 nugetInitworker.RunWorkerCompleted += (sender, args) =>
                 {
-                    var srv = (MicroserviceGridItem) args.Result;
+                    var srv = (MicroserviceItem) args.Result;
                     srv.NugetFetchTasks--;
                     if (srv.NugetUpdateErrorMessage.HasValue())
                     {
@@ -410,21 +410,21 @@ namespace MicroserviceExplorer
         }
 
         readonly object _lock = new object();
-        bool UpdateNugetPackages(MicroserviceGridItem service, MicroserviceGridItem.EnumProjects projEnum, string packageName, string version, string fromVersion)
+        bool UpdateNugetPackages(MicroserviceItem service, MicroserviceItem.EnumProjects projEnum, string packageName, string version, string fromVersion)
         {
             string projFolder;
             switch (projEnum)
             {
-                case MicroserviceGridItem.EnumProjects.Website:
+                case MicroserviceItem.EnumProjects.Website:
                     projFolder = service.WebsiteFolder;
                     break;
-                case MicroserviceGridItem.EnumProjects.Domain:
+                case MicroserviceItem.EnumProjects.Domain:
                     projFolder = Path.Combine(service.SolutionFolder, "Domain");
                     break;
-                case MicroserviceGridItem.EnumProjects.Model:
+                case MicroserviceItem.EnumProjects.Model:
                     projFolder = Path.Combine(service.SolutionFolder, "M#", "Model");
                     break;
-                case MicroserviceGridItem.EnumProjects.UI:
+                case MicroserviceItem.EnumProjects.UI:
                     projFolder = Path.Combine(service.SolutionFolder, "M#", "UI");
                     break;
                 default:

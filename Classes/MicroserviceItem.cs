@@ -18,7 +18,7 @@ using Thread = System.Threading.Thread;
 
 namespace MicroserviceExplorer
 {
-    public sealed class MicroserviceGridItem : INotifyPropertyChanged
+    public sealed class MicroserviceItem : INotifyPropertyChanged
     {
         public readonly Dictionary<EnumProjects, ProjectRef> Projects = new Dictionary<EnumProjects, ProjectRef>
         {
@@ -418,7 +418,7 @@ namespace MicroserviceExplorer
 
     public class MyNugetRef : NugetRef
     {
-        public MicroserviceGridItem.EnumProjects Project { get; set; }
+        public MicroserviceItem.EnumProjects Project { get; set; }
         public bool Checked { get; set; }
     }
 }
