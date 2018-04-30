@@ -399,6 +399,7 @@ namespace MicroserviceExplorer
         public void UpdateProcessStatus()
         {
             ProcId = GetProcessIdByPortNumber(Port.To<int>());
+            
             Status = ProcId < 0 ? Status : EnumStatus.Run;
 
         }

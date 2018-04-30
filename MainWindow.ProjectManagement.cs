@@ -79,7 +79,10 @@ namespace MicroserviceExplorer
                 var procId = -1;
 
                 if (File.Exists(launchSettings))
+                {
+                    status = MicroserviceItem.EnumStatus.Pending;
                     port = GetPortNumberFromLaunchSettingsFile(launchSettings);
+                }
                 else
                     websiteFolder = null;
 
@@ -124,6 +127,7 @@ namespace MicroserviceExplorer
                 if (File.Exists(launchSettings))
                 {
                     srv.Port = GetPortNumberFromLaunchSettingsFile(launchSettings);
+                    srv.Status = MicroserviceItem.EnumStatus.Stop;
                 }
                 else
                 {
@@ -136,16 +140,15 @@ namespace MicroserviceExplorer
                     continue;
                 }
 
-                if (!srv.WebsiteFolder.HasValue())
+                if (srv.WebsiteFolder.IsEmpty())
                     srv.Status = MicroserviceItem.EnumStatus.NoSourcerLocally;
             }
 
             OnAutoRefreshProcessTimerOnTick(null, null);
-            OnAutoRefreshTimerOnTick(null,null);
+            OnAutoRefreshTimerOnTick(null, null);
 
             StartAutoRefresh();
             StartAutoRefreshProcess();
-
             return true;
         }
 
