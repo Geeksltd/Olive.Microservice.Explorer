@@ -374,7 +374,7 @@ namespace MacroserviceExplorer
                 Owner = this,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 NugetList = service.NugetUpdatesList,
-                Title = service.Service + " Microservice Nuget Updates"
+                Title = service.Service + ": Nuget Updates"
             };
 
             var showDialog = nugetUpdatesWindow.ShowDialog();
@@ -392,7 +392,7 @@ namespace MacroserviceExplorer
                             nugetRef.IsLatestVersion = true;
                             service.DelNugetUpdatesList(nugetRef.Project, nugetRef.Include);
                         }
-                    
+
                     };
                     nugetUpdateWorker.RunWorkerCompleted += (o, args) => service.NugetFetchTasks--;
                     nugetUpdateWorker.RunWorkerAsync();
