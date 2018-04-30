@@ -9,11 +9,12 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 
-namespace MacroserviceExplorer.Utils
+namespace MicroserviceExplorer.Utils
 {
     /// <summary>
     /// Class that provides the Watermark attached property
     /// </summary>
+    [EscapeGCop("This class is from outside resources")]
     public static class WatermarkService
     {
         /// <summary>
@@ -23,25 +24,25 @@ namespace MacroserviceExplorer.Utils
             "Watermark",
             typeof(object),
             typeof(WatermarkService),
-            new FrameworkPropertyMetadata((object)null, new PropertyChangedCallback(OnWatermarkChanged)));
+            new FrameworkPropertyMetadata((object)null, OnWatermarkChanged));
 
         #region Private Fields
 
         /// <summary>
         /// Dictionary of ItemsControls
         /// </summary>
-        private static readonly Dictionary<object, ItemsControl> itemsControls = new Dictionary<object, ItemsControl>();
+        static readonly Dictionary<object, ItemsControl> ItemsControls = new Dictionary<object, ItemsControl>();
 
         #endregion
 
         /// <summary>
         /// Gets the Watermark property.  This dependency property indicates the watermark for the control.
         /// </summary>
-        /// <param name="d"><see cref="DependencyObject"/> to get the property from</param>
+        /// <param name="dependencyObject"><see cref="DependencyObject"/> to get the property from</param>
         /// <returns>The value of the Watermark property</returns>
-        public static object GetWatermark(DependencyObject d)
+        static object GetWatermark(DependencyObject dependencyObject)
         {
-            return (object)d.GetValue(WatermarkProperty);
+            return (object)dependencyObject.GetValue(WatermarkProperty);
         }
 
         /// <summary>
@@ -57,37 +58,41 @@ namespace MacroserviceExplorer.Utils
         /// <summary>
         /// Handles changes to the Watermark property.
         /// </summary>
-        /// <param name="d"><see cref="DependencyObject"/> that fired the event</param>
-        /// <param name="e">A <see cref="DependencyPropertyChangedEventArgs"/> that contains the event data.</param>
-        private static void OnWatermarkChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        /// <param name="dependencyObject"><see cref="DependencyObject"/> that fired the event</param>
+        /// <param name="_">A <see cref="DependencyPropertyChangedEventArgs"/> that contains the event data.</param>
+        private static void OnWatermarkChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs _)
         {
-            Control control = (Control)d;
+            var control = (Control)dependencyObject;
             control.Loaded += Control_Loaded;
 
-            if (d is ComboBox)
+            switch (dependencyObject)
             {
-                control.GotKeyboardFocus += Control_GotKeyboardFocus;
-                control.LostKeyboardFocus += Control_Loaded;
+                case ComboBox _:
+                    control.GotKeyboardFocus += Control_GotKeyboardFocus;
+                    control.LostKeyboardFocus += Control_Loaded;
+                    break;
+                case TextBox _:
+                    control.GotKeyboardFocus += Control_GotKeyboardFocus;
+                    control.LostKeyboardFocus += Control_Loaded;
+                    ((TextBox)control).TextChanged += Control_GotKeyboardFocus;
+                    break;
+                default:
+                    break;
             }
-            else if (d is TextBox)
+
+            switch (dependencyObject)
             {
-                control.GotKeyboardFocus += Control_GotKeyboardFocus;
-                control.LostKeyboardFocus += Control_Loaded;
-                ((TextBox)control).TextChanged += Control_GotKeyboardFocus;
-            }
+                case ItemsControl i when !(i is ComboBox):
+                    // for Items property  
+                    i.ItemContainerGenerator.ItemsChanged += ItemsChanged;
+                    ItemsControls.Add(i.ItemContainerGenerator, i);
 
-            if (d is ItemsControl && !(d is ComboBox))
-            {
-                ItemsControl i = (ItemsControl)d;
-
-                // for Items property  
-                i.ItemContainerGenerator.ItemsChanged += ItemsChanged;
-                itemsControls.Add(i.ItemContainerGenerator, i);
-
-                // for ItemsSource property  
-                DependencyPropertyDescriptor prop =
-                    DependencyPropertyDescriptor.FromProperty(ItemsControl.ItemsSourceProperty, i.GetType());
-                prop.AddValueChanged(i, ItemsSourceChanged);
+                    // for ItemsSource property  
+                    var prop = DependencyPropertyDescriptor.FromProperty(ItemsControl.ItemsSourceProperty, i.GetType());
+                    prop.AddValueChanged(i, ItemsSourceChanged);
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -98,16 +103,16 @@ namespace MacroserviceExplorer.Utils
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">A <see cref="RoutedEventArgs"/> that contains the event data.</param>
-        private static void Control_GotKeyboardFocus(object sender, RoutedEventArgs e)
+        static void Control_GotKeyboardFocus(object sender, RoutedEventArgs e)
         {
-            Control c = (Control)sender;
-            if (ShouldShowWatermark(c))
+            var control = (Control)sender;
+            if (ShouldShowWatermark(control))
             {
-                ShowWatermark(c);
+                ShowWatermark(control);
             }
             else
             {
-                RemoveWatermark(c);
+                RemoveWatermark(control);
             }
         }
 
@@ -132,21 +137,21 @@ namespace MacroserviceExplorer.Utils
         /// <param name="e">A <see cref="EventArgs"/> that contains the event data.</param>
         private static void ItemsSourceChanged(object sender, EventArgs e)
         {
-            ItemsControl c = (ItemsControl)sender;
-            if (c.ItemsSource != null)
+            var itemsControl = (ItemsControl)sender;
+            if (itemsControl.ItemsSource != null)
             {
-                if (ShouldShowWatermark(c))
+                if (ShouldShowWatermark(itemsControl))
                 {
-                    ShowWatermark(c);
+                    ShowWatermark(itemsControl);
                 }
                 else
                 {
-                    RemoveWatermark(c);
+                    RemoveWatermark(itemsControl);
                 }
             }
             else
             {
-                ShowWatermark(c);
+                ShowWatermark(itemsControl);
             }
         }
 
@@ -158,7 +163,7 @@ namespace MacroserviceExplorer.Utils
         private static void ItemsChanged(object sender, ItemsChangedEventArgs e)
         {
             ItemsControl control;
-            if (itemsControls.TryGetValue(sender, out control))
+            if (ItemsControls.TryGetValue(sender, out control))
             {
                 if (ShouldShowWatermark(control))
                 {
@@ -221,25 +226,20 @@ namespace MacroserviceExplorer.Utils
         /// <summary>
         /// Indicates whether or not the watermark should be shown on the specified control
         /// </summary>
-        /// <param name="c"><see cref="Control"/> to test</param>
+        /// <param name="control"><see cref="Control"/> to test</param>
         /// <returns>true if the watermark should be shown; false otherwise</returns>
-        private static bool ShouldShowWatermark(Control c)
+        private static bool ShouldShowWatermark(Control control)
         {
-            if (c is ComboBox)
+            switch (control)
             {
-                return (c as ComboBox).Text == string.Empty;
-            }
-            else if (c is TextBoxBase)
-            {
-                return (c as TextBox).Text == string.Empty;
-            }
-            else if (c is ItemsControl)
-            {
-                return (c as ItemsControl).Items.Count == 0;
-            }
-            else
-            {
-                return false;
+                case ComboBox _:
+                    return (control as ComboBox)?.Text == string.Empty;
+                case TextBoxBase _:
+                    return (control as TextBox)?.Text == string.Empty;
+                case ItemsControl _:
+                    return ((ItemsControl) control).Items.Count == 0;
+                default:
+                    return false;
             }
         }
 

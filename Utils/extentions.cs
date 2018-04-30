@@ -10,7 +10,7 @@ using System.Windows.Data;
 using System.Windows.Markup;
 using System.Windows.Media;
 
-namespace MacroserviceExplorer.Utils
+namespace MicroserviceExplorer.Utils
 {
 
     [MarkupExtensionReturnType(typeof(Color))]
@@ -26,9 +26,9 @@ namespace MacroserviceExplorer.Utils
         {
         }
 
-        public IValueConverter Converter { get; set; }
-        public object ConverterParameter { get; set; }
-        public object CachedValue { get; set; }
+        IValueConverter Converter;
+        object ConverterParameter;
+        object CachedValue;
 
         public override object ProvideValue(IServiceProvider provider)
         {
@@ -37,7 +37,6 @@ namespace MacroserviceExplorer.Utils
                 return CachedValue;
 
             var value = base.ProvideValue(provider);
-            Expression e;
 
             if (value is Expression)
                 value = Application.Current.TryFindResource(this.ResourceKey);
@@ -65,7 +64,7 @@ namespace MacroserviceExplorer.Utils
         }
 
         #region INotifyPropertyChanged Members
-
+        [EscapeGCop("It's not applicable because class needs INotifyPropertyChanged interface")]
         public event PropertyChangedEventHandler PropertyChanged;
 
         #endregion

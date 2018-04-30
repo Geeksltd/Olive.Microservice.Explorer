@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MacroserviceExplorer.Classes
+namespace MicroserviceExplorer.Classes
 {
     // NOTE: Generated code may require at least .NET Framework 4.5 or .NET Core/Standard 2.0.
     /// <remarks/>
+    [EscapeGCop("This class is auto generated.")]
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
@@ -46,6 +47,7 @@ namespace MacroserviceExplorer.Classes
     }
 
     /// <remarks/>
+    [EscapeGCop("This class is auto generated.")]
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
@@ -90,6 +92,8 @@ namespace MacroserviceExplorer.Classes
     }
 
     /// <remarks/>
+
+    [EscapeGCop("This class is auto generated.")]
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]

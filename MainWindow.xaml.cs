@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -8,13 +9,13 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using EnvDTE;
-using MacroserviceExplorer.Utils;
+using MicroserviceExplorer.Utils;
 using Button = System.Windows.Controls.Button;
 using MessageBox = System.Windows.Forms.MessageBox;
 using Process = System.Diagnostics.Process;
 
 
-namespace MacroserviceExplorer
+namespace MicroserviceExplorer
 {
 
     public partial class MainWindow : IDisposable
@@ -68,6 +69,8 @@ namespace MacroserviceExplorer
         }));
 
         #endregion
+        readonly DispatcherTimer AutoRefreshTimer = new DispatcherTimer();
+        readonly DispatcherTimer AutoRefreshProcessTimer = new DispatcherTimer();
 
         public MainWindow()
         {
@@ -78,41 +81,81 @@ namespace MacroserviceExplorer
             logWindow = new LogWindow();
 
             this.Focus();
-            DataContext = MacroserviceGridItems;
-            StartAutoRefresh();
+            DataContext = MicroserviceGridItems;
+
+            AutoRefreshTimer.Tick += OnAutoRefreshTimerOnTick;
+            AutoRefreshTimer.Interval = new TimeSpan(0, 3, 0);
+
+            AutoRefreshProcessTimer.Tick += OnAutoRefreshProcessTimerOnTick;
+            AutoRefreshProcessTimer.Interval = new TimeSpan(0, 0, 2);
+
         }
 
-        readonly DispatcherTimer autoRefreshTimer = new DispatcherTimer();
-        void StartAutoRefresh()
+
+        void StartAutoRefreshProcess()
         {
-            autoRefreshTimer.Tick += async (sender, args) =>
+            AutoRefreshProcessTimer.Start();
+        }
+
+        bool AutoRefreshProcessTimerInProgress;
+        async void OnAutoRefreshProcessTimerOnTick(object sender, EventArgs args)
+        {
+            if(AutoRefreshProcessTimerInProgress)
+                return;
+
+            AutoRefreshProcessTimerInProgress = true;
+            foreach (var service in MicroserviceGridItems)
             {
+                if (service.WebsiteFolder.IsEmpty() || service.Port.IsEmpty()) continue;
+                service.UpdateProcessStatus();
+                service.VsDTE = service.GetVSDTE();
+            }
+            AutoRefreshProcessTimerInProgress = false;
+        }
 
-                logWindow.LogMessage("[Autorefresh Begin]");
-                var gridHasFocused = srvGrid.IsFocused;
+        void StartAutoRefresh()
+        {            
+            AutoRefreshTimer.Start();
+        }
 
-                MacroserviceGridItem selItem = null;
-                if (SelectedService != null)
-                    selItem = SelectedService;
+        bool AutoRefreshTimerInProgress;
+        void OnAutoRefreshTimerOnTick(object sender, EventArgs args)
+        {
+            if(AutoRefreshTimerInProgress)
+                return;
+            AutoRefreshTimerInProgress = true;
+            logWindow.LogMessage("[Auto Refresh Started ...]");
 
-                await Refresh();
+            foreach (var service in MicroserviceGridItems)
+                if (service.WebsiteFolder.HasValue())
+                    using (var worker = new BackgroundWorker())
+                    {
+                        worker.DoWork += (o, eventArgs) =>
+                        {
+                            if (!service.GitUpdateIsInProgress)
+                            {
+                                service.GitUpdateIsInProgress = true;
+                                service.GitUpdates = CalculateGitUpdates(service).ToString();
+                            }
 
-                foreach (var service in MacroserviceGridItems)
-                {
-                    if (service.WebsiteFolder.IsEmpty() || service.Port.IsEmpty()) continue;
+                            if (service.NugetUpdateIsInProgress) return;
 
-                    service.UpdateProcessStatus();
-                }
-                srvGrid.SelectedItem = selItem;
+                            service.NugetUpdateIsInProgress = true;
+                            foreach (MicroserviceItem.EnumProjects proj in Enum.GetValues(typeof(MicroserviceItem.EnumProjects)))
+                                FetchProjectNugetPackages(service, proj);
+                        };
 
-                if (gridHasFocused)
-                    srvGrid.Focus();
+                        worker.RunWorkerCompleted += (o, eventArgs) =>
+                        {
+                            service.GitUpdateIsInProgress = false;
+                            service.NugetUpdateIsInProgress = false;
+                        };
 
-                logWindow.LogMessage("[Autorefresh End]", new string('=', 60));
+                        worker.RunWorkerAsync();
+                    }
 
-            };
-            autoRefreshTimer.Interval = new TimeSpan(0, 3, 0 );
-            autoRefreshTimer.Start();
+            AutoRefreshTimerInProgress = false;
+            logWindow.LogMessage("[Auto Refresh Finish]");
         }
 
 
@@ -121,7 +164,7 @@ namespace MacroserviceExplorer
             if (!File.Exists(RecentsXml))
             {
                 OpenProject_Executed(sender, null);
-                if (!ProjextLoaded)
+                if (!ProjectLoaded)
                     ExitMenuItem_Click(sender, e);
                 return;
             }
@@ -129,19 +172,19 @@ namespace MacroserviceExplorer
             ReloadRecentFiles();
             //logWindow.ShowInTaskbar = false;
             //logWindow.Hide();
-            while (_recentFiles.Count > 0)
+            while (_recentFiles.Any())
             {
                 if (await LoadFile(_recentFiles[_recentFiles.Count - 1]))
                     break;
             }
 
-            if (ProjextLoaded) return;
+            if (ProjectLoaded) return;
 
             File.Delete(RecentsXml);
             MainWindow_OnLoaded(sender, e);
 
         }
-        
+
 
         void StartStop_OnClick(object sender, MouseButtonEventArgs e)
         {
@@ -149,27 +192,27 @@ namespace MacroserviceExplorer
             var service = GetServiceByTag(sender);
             switch (service.Status)
             {
-                case MacroserviceGridItem.EnumStatus.Pending:
+                case MicroserviceItem.EnumStatus.Pending:
                     MessageBox.Show("Macroservice is loading.\nPlease Wait ...", @"Loading ...");
                     break;
-                case MacroserviceGridItem.EnumStatus.Run:
+                case MicroserviceItem.EnumStatus.Run:
                     service.Stop();
                     break;
-                case MacroserviceGridItem.EnumStatus.Stop:
+                case MicroserviceItem.EnumStatus.Stop:
                     Start(service);
                     break;
-                case MacroserviceGridItem.EnumStatus.NoSourcerLocally:
+                case MicroserviceItem.EnumStatus.NoSourcerLocally:
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException($@"Service.Status out of range");
             }
         }
 
 
-        void Start(MacroserviceGridItem service)
+        void Start(MicroserviceItem service)
         {
-            autoRefreshTimer.Stop();
-            service.Status = MacroserviceGridItem.EnumStatus.Pending;
+            //AutoRefreshTimer.Stop();
+            service.Status = MicroserviceItem.EnumStatus.Pending;
             var proc = new Process
             {
                 StartInfo = new ProcessStartInfo
@@ -185,25 +228,26 @@ namespace MacroserviceExplorer
 
             proc.Start();
 
+            Console.Beep();
 
-            var dispatcherTimer = new DispatcherTimer { Tag = service };
-            dispatcherTimer.Tick += DispatcherTimer_Tick;
-            dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
-            dispatcherTimer.Start();
+            //var microserviceRunCheckingTimer = new DispatcherTimer { Tag = service };
+            //microserviceRunCheckingTimer.Tick += microserviceRunCheckingTimer_Tick;
+            //microserviceRunCheckingTimer.Interval = new TimeSpan(0, 0, 1);
+            //microserviceRunCheckingTimer.Start();
         }
 
-        void DispatcherTimer_Tick(object sender, EventArgs e)
-        {
-            var timer = (DispatcherTimer)sender;
-            var service = (MacroserviceGridItem)timer.Tag;
-            service.UpdateProcessStatus();
-            if (service.ProcId < 0) return;
+        //void microserviceRunCheckingTimer_Tick(object sender, EventArgs e)
+        //{
+        //    var timer = (DispatcherTimer)sender;
+        //    var service = (MicroserviceItem)timer.Tag;
+        //    service.UpdateProcessStatus();
+        //    if (service.ProcId < 0) return;
 
-            timer.Stop();
-            timer.Tick -= DispatcherTimer_Tick;
-            service.Status = MacroserviceGridItem.EnumStatus.Run;
-            autoRefreshTimer.Start();
-        }
+        //    timer.Stop();
+        //    timer.Tick -= microserviceRunCheckingTimer_Tick;
+        //    service.Status = MicroserviceItem.EnumStatus.Run;
+        //    AutoRefreshTimer.Start();
+        //}
 
 
         void OpenCode_OnClick(object sender, MouseButtonEventArgs e)
@@ -216,7 +260,7 @@ namespace MacroserviceExplorer
 
         async void OpenProject_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            var openFileDialog = new System.Windows.Forms.OpenFileDialog()
+            using (var openFileDialog = new System.Windows.Forms.OpenFileDialog
             {
                 CheckFileExists = true,
                 CheckPathExists = true,
@@ -225,34 +269,33 @@ namespace MacroserviceExplorer
                 Multiselect = false,
                 SupportMultiDottedExtensions = true,
                 Title = $@"Select {Services_file_name} file"
-            };
-            if (openFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
-                return;
-
-            if (_recentFiles.Count == 0 || !_recentFiles.Contains(openFileDialog.FileName))
+            })
             {
-                if (_recentFiles.Count == 0)
-                    mnuRecentFiles.Items.Clear();
+                if (openFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+                    return;
 
-                _recentFiles.Add(openFileDialog.FileName);
-                AddRecentMenuItem(openFileDialog.FileName);
+                if (_recentFiles.None() || !_recentFiles.Contains(openFileDialog.FileName))
+                {
+                    if (_recentFiles.None())
+                        mnuRecentFiles.Items.Clear();
 
-                SaveRecentFilesXml();
+                    _recentFiles.Add(openFileDialog.FileName);
+                    AddRecentMenuItem(openFileDialog.FileName);
+
+                    SaveRecentFilesXml();
+                }
+
+                await LoadFile(openFileDialog.FileName);
             }
-
-            await LoadFile(openFileDialog.FileName);
         }
 
         async Task Refresh()
         {
-
             if (ServicesJsonFile != null)
-            {
                 await RefreshFile(ServicesJsonFile.FullName);
-            }
 
-            if (!ProjextLoaded)
-                autoRefreshTimer.Stop();
+            if (!ProjectLoaded)
+                AutoRefreshTimer.Stop();
         }
 
         void EditProject_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -266,9 +309,9 @@ namespace MacroserviceExplorer
             Close();
         }
 
-        async void RefreshMenuItem_OnClick(object sender, ExecutedRoutedEventArgs e)
+        void RefreshMenuItem_OnClick(object sender, ExecutedRoutedEventArgs e)
         {
-            await Refresh();
+            var refresh = Refresh();
         }
 
         void OpenExplorer_OnClick(object sender, MouseButtonEventArgs e)
@@ -308,40 +351,40 @@ namespace MacroserviceExplorer
 
         void RunAllMenuItem_Click(object sender, ExecutedRoutedEventArgs e)
         {
-            foreach (var service in MacroserviceGridItems)
-                if (service.Status == MacroserviceGridItem.EnumStatus.Stop)
+            foreach (var service in MicroserviceGridItems)
+                if (service.Status == MicroserviceItem.EnumStatus.Stop)
                     Start(service);
         }
 
         void StopAllMenuItem_Click(object sender, ExecutedRoutedEventArgs e)
         {
-            foreach (var service in MacroserviceGridItems)
+            foreach (var service in MicroserviceGridItems)
             {
-                if (service.Status == MacroserviceGridItem.EnumStatus.Run)
+                if (service.Status == MicroserviceItem.EnumStatus.Run)
                     service.Stop();
             }
         }
 
         void RunAllFilteredMenuItem_Click(object sender, ExecutedRoutedEventArgs e)
         {
-            foreach (var service in MacroserviceGridItems)
-                if (service.Status == MacroserviceGridItem.EnumStatus.Stop)
+            foreach (var service in MicroserviceGridItems)
+                if (service.Status == MicroserviceItem.EnumStatus.Stop)
                     Start(service);
 
         }
 
         void StopAllFilteredMenuItem_Click(object sender, ExecutedRoutedEventArgs e)
         {
-            foreach (var service in MacroserviceGridItems)
+            foreach (var service in MicroserviceGridItems)
             {
-                if (service.Status == MacroserviceGridItem.EnumStatus.Run)
+                if (service.Status == MicroserviceItem.EnumStatus.Run)
                     service.Stop();
             }
         }
 
-        async void WindowTitlebarControl_OnRefreshClicked(object sender, EventArgs e)
+        void WindowTitlebarControl_OnRefreshClicked(object sender, EventArgs e)
         {
-            await Refresh();
+            var refresh = Refresh();
         }
 
         void MnuAlwaysOnTop_OnChecked(object sender, RoutedEventArgs e)
@@ -416,15 +459,15 @@ namespace System
 {
     public static class TempExtDeleteMeAfterNugetUpdate
     {
-        public static string GetFisrtFile(this string fileWildcard, string basePath)
+        public static string GetFisrtFile(this string @this, string basePath)
         {
-            if (!fileWildcard.Contains("*"))
-                fileWildcard = "*" + fileWildcard;
+            if (!@this.Contains("*"))
+                @this = "*" + @this;
 
             var path = basePath.AsDirectory();
             if (!path.Exists) return null;
 
-            var file = path.GetFiles(fileWildcard).FirstOrDefault();
+            var file = path.GetFiles(@this).FirstOrDefault();
             return file?.FullName;
         }
     }

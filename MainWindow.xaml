@@ -1,11 +1,11 @@
-﻿<Window xmlns:Controls="clr-namespace:MacroserviceExplorer.Controls"  x:Class="MacroserviceExplorer.MainWindow"
+﻿<Window xmlns:Controls="clr-namespace:MicroserviceExplorer.Controls"  x:Class="MicroserviceExplorer.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:gif="http://wpfanimatedgif.codeplex.com"        
-        xmlns:local="clr-namespace:MacroserviceExplorer"
-        xmlns:utils="clr-namespace:MacroserviceExplorer.Utils"
+        xmlns:local="clr-namespace:MicroserviceExplorer"
+        xmlns:utils="clr-namespace:MicroserviceExplorer.Utils"
         mc:Ignorable="d" 
         Name="window"
         Title="Olive Microservice Explorer"         
@@ -39,6 +39,7 @@
         <local:ForegroundColorConverter x:Key="myConverter"></local:ForegroundColorConverter>
         <local:NullVisibilityConverter x:Key="nullVisibilityConverter"></local:NullVisibilityConverter>
         <local:IntVisibilityConverter x:Key="intVisibilityConverter"></local:IntVisibilityConverter>
+        <local:BoolVisibilityConverter x:Key="boolVisibilityConverter"></local:BoolVisibilityConverter>
     </Window.Resources>
     <Window.CommandBindings>
         <CommandBinding Command="Open" Executed="OpenProject_Executed"></CommandBinding>
@@ -232,15 +233,17 @@
                 <DataGridTemplateColumn Header="Git">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button PreviewMouseLeftButtonDown="GitUpdate_OnPreviewMouseLeftButtonDown" Style="{StaticResource gridButton}" Tag="{Binding}" Visibility="{Binding GitUpdates,Converter={StaticResource nullVisibilityConverter}}" >
-                                <Button.Content>
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{Binding GitUpdates}" VerticalAlignment="Center" Margin="7,0,0,0" HorizontalAlignment="Center"></TextBlock>
-                                        <Image Source="{Binding GitUpdateImage}" VerticalAlignment="Center" Margin="7,0,0,0" Style="{StaticResource gridImage}" />
-                                    </StackPanel>
-                                </Button.Content>
-                            </Button>
-
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"  Orientation="Horizontal" >
+                                <Button PreviewMouseLeftButtonDown="GitUpdate_OnPreviewMouseLeftButtonDown" Style="{StaticResource gridButton}" Tag="{Binding}" Visibility="{Binding GitUpdates,Converter={StaticResource nullVisibilityConverter}}" >
+                                    <Button.Content>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding GitUpdates}" VerticalAlignment="Center" Margin="7,0,0,0" HorizontalAlignment="Center"></TextBlock>
+                                            <Image Source="{Binding GitUpdateImage}" VerticalAlignment="Center" Margin="7,0,0,0" Style="{StaticResource gridImage}" />
+                                        </StackPanel>
+                                    </Button.Content>
+                                </Button>
+                                <Image Style="{StaticResource gridImage}" gif:ImageBehavior.AnimatedSource="{Binding GitStatusImage}" Margin="7,0,0,0" Visibility="{Binding GitUpdateIsInProgress,Converter={StaticResource boolVisibilityConverter}}"/>
+                            </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
@@ -294,7 +297,7 @@
 
             </DataGrid.Columns>
         </DataGrid>
-        
+
         <StatusBar Grid.Row="5">
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>

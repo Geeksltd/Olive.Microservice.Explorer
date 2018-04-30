@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MacroserviceExplorer.Utils
+namespace MicroserviceExplorer.Utils
 {
     /// <summary>
     /// A utility class to determine a process parent.
@@ -16,24 +16,19 @@ namespace MacroserviceExplorer.Utils
     public struct ParentProcessUtilities
     {
         // These members must match PROCESS_BASIC_INFORMATION
-        internal IntPtr Reserved1;
-        internal IntPtr PebBaseAddress;
-        internal IntPtr Reserved2_0;
-        internal IntPtr Reserved2_1;
-        internal IntPtr UniqueProcessId;
-        internal IntPtr InheritedFromUniqueProcessId;
+        readonly IntPtr Reserved1;
 
-        [DllImport("ntdll.dll")]
-        private static extern int NtQueryInformationProcess(IntPtr processHandle, int processInformationClass, ref ParentProcessUtilities processInformation, int processInformationLength, out int returnLength);
+        readonly IntPtr PebBaseAddress;
+        readonly IntPtr Reserved2_0;
+        readonly IntPtr Reserved2_1;
+        readonly IntPtr UniqueProcessId;
+        IntPtr InheritedFromUniqueProcessId;
 
         /// <summary>
         /// Gets the parent process of the current process.
         /// </summary>
         /// <returns>An instance of the Process class.</returns>
-        public static Process GetParentProcess()
-        {
-            return GetParentProcess(Process.GetCurrentProcess().Handle);
-        }
+        public static Process GetParentProcess() => GetParentProcess(Process.GetCurrentProcess().Handle);
 
         /// <summary>
         /// Gets the parent process of specified process.
@@ -42,7 +37,7 @@ namespace MacroserviceExplorer.Utils
         /// <returns>An instance of the Process class.</returns>
         public static Process GetParentProcess(int id)
         {
-            Process process = Process.GetProcessById(id);
+            var process = Process.GetProcessById(id);
             return GetParentProcess(process.Handle);
         }
 
@@ -51,11 +46,10 @@ namespace MacroserviceExplorer.Utils
         /// </summary>
         /// <param name="handle">The process handle.</param>
         /// <returns>An instance of the Process class.</returns>
-        public static Process GetParentProcess(IntPtr handle)
+        static Process GetParentProcess(IntPtr handle)
         {
-            ParentProcessUtilities pbi = new ParentProcessUtilities();
-            int returnLength;
-            int status = NtQueryInformationProcess(handle, 0, ref pbi, Marshal.SizeOf(pbi), out returnLength);
+            var pbi = new ParentProcessUtilities();
+            var status = NativeMethods.NtQueryInformationProcess(handle, 0, ref pbi, Marshal.SizeOf(pbi), out var returnLength);
             if (status != 0)
                 throw new Win32Exception(status);
 

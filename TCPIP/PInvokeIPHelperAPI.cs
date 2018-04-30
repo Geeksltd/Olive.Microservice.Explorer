@@ -6,29 +6,19 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MacroserviceExplorer.TCPIP
+namespace MicroserviceExplorer.TCPIP
 {
     #region P/Invoke IP Helper API
 
     /// <summary>
     /// <see cref="http://msdn2.microsoft.com/en-us/library/aa366073.aspx"/>
     /// </summary>
+    [EscapeGCop("This class is from outside resources")]
     public static class IpHelper
     {
         #region Public Fields
 
-        public const string DllName = "iphlpapi.dll";
         public const int AfInet = 2;
-
-        #endregion
-
-        #region Public Methods
-
-        /// <summary>
-        /// <see cref="http://msdn2.microsoft.com/en-us/library/aa365928.aspx"/>
-        /// </summary>
-        [DllImport(IpHelper.DllName, SetLastError = true)]
-        public static extern uint GetExtendedTcpTable(IntPtr tcpTable, ref int tcpTableLength, bool sort, int ipVersion, TcpTableType tcpTableType, int reserved);
 
         #endregion
 

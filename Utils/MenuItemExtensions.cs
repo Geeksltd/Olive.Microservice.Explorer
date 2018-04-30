@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 
-namespace MacroserviceExplorer.Utils
+namespace MicroserviceExplorer.Utils
 {
 
     public class MenuItemExtensions : DependencyObject
@@ -22,43 +22,36 @@ namespace MacroserviceExplorer.Utils
             element.SetValue(GroupNameProperty, value);
         }
 
-        public static String GetGroupName(MenuItem element)
-        {
-            return element.GetValue(GroupNameProperty).ToString();
-        }
+        static string GetGroupName(DependencyObject element) => element.GetValue(GroupNameProperty).ToString();
 
-        private static void OnGroupNameChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        static void OnGroupNameChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs dependencyPropertyChangedEventArgs)
         {
             //Add an entry to the group name collection
-            var menuItem = d as MenuItem;
 
-            if (menuItem != null)
+            if (!(dependencyObject is MenuItem menuItem)) return;
+            var newGroupName = dependencyPropertyChangedEventArgs.NewValue.ToString();
+            var oldGroupName = dependencyPropertyChangedEventArgs.OldValue.ToString();
+            if (newGroupName.IsEmpty())
             {
-                String newGroupName = e.NewValue.ToString();
-                String oldGroupName = e.OldValue.ToString();
-                if (String.IsNullOrEmpty(newGroupName))
+                //Removing the toggle button from grouping
+                RemoveCheckboxFromGrouping(menuItem);
+            }
+            else
+            {
+                //Switching to a new group
+                if (newGroupName == oldGroupName) return;
+
+                if (oldGroupName.HasValue())
                 {
-                    //Removing the toggle button from grouping
+                    //Remove the old group mapping
                     RemoveCheckboxFromGrouping(menuItem);
                 }
-                else
-                {
-                    //Switching to a new group
-                    if (newGroupName != oldGroupName)
-                    {
-                        if (!String.IsNullOrEmpty(oldGroupName))
-                        {
-                            //Remove the old group mapping
-                            RemoveCheckboxFromGrouping(menuItem);
-                        }
-                        ElementToGroupNames.Add(menuItem, e.NewValue.ToString());
-                        menuItem.Checked += MenuItemChecked;
-                    }
-                }
+                ElementToGroupNames.Add(menuItem, dependencyPropertyChangedEventArgs.NewValue.ToString());
+                menuItem.Checked += MenuItemChecked;
             }
         }
 
-        private static void RemoveCheckboxFromGrouping(MenuItem checkBox)
+        static void RemoveCheckboxFromGrouping(MenuItem checkBox)
         {
             ElementToGroupNames.Remove(checkBox);
             checkBox.Checked -= MenuItemChecked;

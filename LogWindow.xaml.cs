@@ -15,7 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 
-namespace MacroserviceExplorer
+namespace MicroserviceExplorer
 {
     /// <summary>
     /// Interaction logic for LogWindow.xaml
@@ -24,6 +24,20 @@ namespace MacroserviceExplorer
     {
         public static readonly DependencyProperty TextLogProperty =
             DependencyProperty.Register("TextLog", typeof(string), typeof(Window) /*, new PropertyMetadata(false) */);
+
+        readonly int stringLineLength = 30;
+
+        public LogWindow()
+        {
+            InitializeComponent();
+            TextLog = "Logger Started ...\n";
+        }
+
+        void LogWindow_OnClosing(object sender, CancelEventArgs e)
+        {
+            Hide();
+            e.Cancel = true;
+        }
 
         public string TextLog
         {
@@ -39,32 +53,21 @@ namespace MacroserviceExplorer
             }
         }
         public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string name)
+
+        void OnPropertyChanged(string name)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
-
-        public LogWindow()
-        {
-            InitializeComponent();
-            TextLog = "Logger Started ...\n";
-        }
-
-        void LogWindow_OnClosing(object sender, CancelEventArgs e)
-        {
-            Hide();
-            e.Cancel = true;
         }
 
         public void LogMessage(string message, string description = null)
         {
             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MainWindow.MyDelegate(() =>
             {
-                TextLog += $"{DateTime.Now.ToLongTimeString()}  \t{message}{Environment.NewLine}";
+                TextLog += $"{LocalTime.Now.ToLongTimeString()}  \t{message}{Environment.NewLine}";
                 if (description.HasValue())
                     TextLog += "decription : \t" + description?.Replace("\n", "\n\t\t") + Environment.NewLine;
 
-                TextLog += $"{new string('-', 30)}{Environment.NewLine}";
+                TextLog += $"{new string('-', stringLineLength)}{Environment.NewLine}";
 
             }));
 

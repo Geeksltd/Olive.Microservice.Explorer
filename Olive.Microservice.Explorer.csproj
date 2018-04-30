@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{464203BA-3D5F-405A-B1F4-AEF602C1AFAB}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>MacroserviceExplorer</RootNamespace>
-    <AssemblyName>MacroserviceExplorer</AssemblyName>
+    <RootNamespace>MicroserviceExplorer</RootNamespace>
+    <AssemblyName>MicroserviceExplorer</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -74,6 +74,7 @@
     <Compile Include="Controls\WindowTitlebarControl.xaml.cs">
       <DependentUpon>WindowTitlebarControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="LogWindow.xaml.cs">
       <DependentUpon>LogWindow.xaml</DependentUpon>
     </Compile>
@@ -88,6 +89,7 @@
     <Compile Include="Utils\Helper.cs" />
     <Compile Include="Utils\MyEnumWindows.cs" />
     <Compile Include="Utils\IntVisibilityConverter.cs" />
+    <Compile Include="Utils\NativeMethods.cs" />
     <Compile Include="Utils\NullVisibilityConverter.cs" />
     <Compile Include="Utils\ParentProcessUtilities.cs" />
     <Compile Include="Utils\WatermarkAdorner.cs" />
@@ -109,7 +111,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Classes\MacroserviceGridItem.cs" />
+    <Compile Include="Classes\MicroserviceItem.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -120,8 +122,7 @@
     <Compile Include="MainWindow.ProjectManagement.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MainWindow.Empty.cs" />
-    <Compile Include="MainWindow.MacroserviceGridActions.cs">
+    <Compile Include="MainWindow.MicroserviceGridActions.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="MainWindow.LogWindow.cs">
@@ -291,6 +292,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\warning1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\git_progress.gif" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

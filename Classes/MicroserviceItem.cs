@@ -6,26 +6,38 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Media;
 using EnvDTE;
 using EnvDTE80;
-using MacroserviceExplorer.Annotations;
-using MacroserviceExplorer.Classes.Web;
-using MacroserviceExplorer.TCPIP;
-using MacroserviceExplorer.Utils;
+using MicroserviceExplorer.Annotations;
+using MicroserviceExplorer.Classes.Web;
+using MicroserviceExplorer.TCPIP;
+using MicroserviceExplorer.Utils;
 using NuGet;
 using Process = System.Diagnostics.Process;
 using Thread = System.Threading.Thread;
 
-namespace MacroserviceExplorer
+namespace MicroserviceExplorer
 {
-    public class MacroserviceGridItem : INotifyPropertyChanged
+    public sealed class MicroserviceItem : INotifyPropertyChanged
     {
+        public readonly Dictionary<EnumProjects, ProjectRef> Projects = new Dictionary<EnumProjects, ProjectRef>
+        {
+            { EnumProjects.Website , new ProjectRef()},
+            { EnumProjects.Domain , new ProjectRef()},
+            { EnumProjects.Model , new ProjectRef()},
+            { EnumProjects.UI , new ProjectRef()},
+        };
+
+        int _nugetFetchTasks;
+        readonly double runImageOpacity = .2;
+
         #region INotifyPropertyChanged Implementations
 
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
@@ -34,10 +46,7 @@ namespace MacroserviceExplorer
 
         #region Overrides of ToString Object
 
-        public override string ToString()
-        {
-            return $"\'{Service}\' port : {Port} Status : {Status}";
-        }
+        public override string ToString() => $"\'{Service}\' port : {Port} Status : {Status}";
 
         #endregion
 
@@ -69,20 +78,20 @@ namespace MacroserviceExplorer
 
         public FontWeight ServiceFontWeight => Status == EnumStatus.Run ? FontWeights.Bold : FontWeights.Regular;
 
-        public System.Windows.Media.Brush ServiceColor
+        public Brush ServiceColor
         {
             get
             {
                 switch (Status)
                 {
                     case EnumStatus.NoSourcerLocally:
-                        return System.Windows.Media.Brushes.DimGray;
+                        return Brushes.DimGray;
                     case EnumStatus.Stop:
-                        return System.Windows.Media.Brushes.DarkRed;
+                        return Brushes.DarkRed;
                     case EnumStatus.Run:
-                        return System.Windows.Media.Brushes.Green;
+                        return Brushes.Green;
                     default:
-                        return System.Windows.Media.Brushes.Black;
+                        return Brushes.Black;
                 }
             }
         }
@@ -129,7 +138,7 @@ namespace MacroserviceExplorer
             }
         }
 
-        public double RunImageOpacity => Status == EnumStatus.Run ? 1 : .2;
+        public double RunImageOpacity => Status == EnumStatus.Run ? 1 : runImageOpacity;
 
         int _procId;
         public int ProcId
@@ -140,6 +149,7 @@ namespace MacroserviceExplorer
                 _procId = value;
                 if (_procId > 0)
                     ProcessName = Process.GetProcessById(_procId).ProcessName;
+
                 OnPropertyChanged(nameof(ProcId));
                 OnPropertyChanged(nameof(ProcessName));
                 OnPropertyChanged(nameof(VisibleKestrel));
@@ -164,11 +174,11 @@ namespace MacroserviceExplorer
 
         public string SolutionFolder { get; set; }
 
-        public object PortIcon => int.TryParse(Port, out var _) ? null : "Resources/Warning.png";
+        public object PortIcon => Port.TryParseAs<int>().HasValue ? null : "Resources/Warning.png";
 
         public string PortTooltip => PortIcon != null ? $"launchsettings.json File Not Found in this location :\n{WebsiteFolder}\\Properties\\launchSettings.json" : null;
 
-        public Visibility VisibleCode => string.IsNullOrEmpty(PortTooltip) ? Visibility.Visible : Visibility.Hidden;
+        public Visibility VisibleCode => PortTooltip.IsEmpty() ? Visibility.Visible : Visibility.Hidden;
 
         public object VsCodeIcon => VsDTE == null ? "Resources/VS.png" : "Resources/VS2.png";
 
@@ -222,6 +232,9 @@ namespace MacroserviceExplorer
 
         public object GitUpdateImage => GitUpdates.HasValue() ? "Resources/git.png" : null;
 
+        public object GitStatusImage => GitUpdateIsInProgress ? "Resources/git_progress.gif" : null;
+
+
 
         public Visibility VisibleKestrel => ProcId <= 0 ? Visibility.Collapsed : Visibility.Visible;
 
@@ -232,7 +245,31 @@ namespace MacroserviceExplorer
         public string NugetUpdateErrorMessage { get; set; }
         public ObservableCollection<MyNugetRef> NugetUpdatesList { get; } = new ObservableCollection<MyNugetRef>();
 
-        public bool AddNugetUpdatesList(EnumProjects project,string packageName, string oldVersion, string newVersion)
+        public string GetAbsoluteProjFolder(EnumProjects projEnum)
+        {
+            string projFolder;
+            switch (projEnum)
+            {
+                case EnumProjects.Website:
+                    projFolder = WebsiteFolder;
+                    break;
+                case EnumProjects.Domain:
+                    projFolder = Path.Combine(SolutionFolder, "Domain");
+                    break;
+                case EnumProjects.Model:
+                    projFolder = Path.Combine(SolutionFolder, "M#", "Model");
+                    break;
+                case EnumProjects.UI:
+                    projFolder = Path.Combine(SolutionFolder, "M#", "UI");
+                    break;
+                default:
+                    projFolder = null;
+                    break;
+            }
+            return projFolder;
+        }
+
+        public bool AddNugetUpdatesList(EnumProjects project, string packageName, string oldVersion, string newVersion)
         {
             lock (NugetUpdatesList)
             {
@@ -243,7 +280,7 @@ namespace MacroserviceExplorer
                 else
                     res = true;
 
-                nugetRef = new MyNugetRef { Project = project, Include = packageName, Version = oldVersion, NewVersion = newVersion , IsLatestVersion = false};
+                nugetRef = new MyNugetRef { Project = project, Include = packageName, Version = oldVersion, NewVersion = newVersion, IsLatestVersion = false };
                 NugetUpdatesList.Add(nugetRef);
 
                 OnPropertyChanged(nameof(NugetUpdates));
@@ -251,7 +288,7 @@ namespace MacroserviceExplorer
             }
         }
 
-        public void DelNugetUpdatesList(EnumProjects project, string packageName)
+        public void DelNugetPAckageFromUpdatesList(EnumProjects project, string packageName)
         {
             NugetUpdatesList.RemoveAll(x => x.Project == project && x.Include == packageName);
             OnPropertyChanged(nameof(NugetUpdates));
@@ -276,17 +313,16 @@ namespace MacroserviceExplorer
             set => _nugetStatusImage = value;
         }
 
-        int _nugetFetchTasks;
 
         public int NugetFetchTasks
         {
             get => _nugetFetchTasks;
             set
             {
-                if (value <= 0)
+                if (value <= 0 && !NugetUpdateIsInProgress)
                 {
                     NugetStatusImage = null;
-                    _nugetFetchTasks = 0;
+                    value = 0;
                     NugetStatusImage = "Stop";
                 }
                 else
@@ -295,6 +331,32 @@ namespace MacroserviceExplorer
                 _nugetFetchTasks = value;
                 OnPropertyChanged(nameof(NugetFetchTasks));
                 OnPropertyChanged(nameof(NugetStatusImage));
+                OnPropertyChanged(nameof(NugetUpdateIsInProgress));
+            }
+        }
+
+        bool _gitUpdateIsInProgress;
+
+        public bool GitUpdateIsInProgress
+        {
+            get => _gitUpdateIsInProgress;
+            set
+            {
+                _gitUpdateIsInProgress = value;
+                OnPropertyChanged(nameof(GitStatusImage));
+            }
+        }
+
+        bool _nugetUpdateIsInProgress;
+
+        public bool NugetUpdateIsInProgress
+        {
+            get => _nugetUpdateIsInProgress;
+            set
+            {
+                _nugetUpdateIsInProgress = value;
+                OnPropertyChanged(nameof(NugetUpdateIsInProgress));
+                OnPropertyChanged(nameof(NugetFetchTasks));
             }
         }
 
@@ -305,15 +367,6 @@ namespace MacroserviceExplorer
             Model,
             UI
         }
-
-
-        public Dictionary<EnumProjects, ProjectRef> Projects = new Dictionary<EnumProjects, ProjectRef>()
-        {
-            { EnumProjects.Website , new ProjectRef()},
-            { EnumProjects.Domain , new ProjectRef()},
-            { EnumProjects.Model , new ProjectRef()},
-            { EnumProjects.UI , new ProjectRef()},
-        };
 
         public void Stop()
         {
@@ -346,7 +399,7 @@ namespace MacroserviceExplorer
         public void UpdateProcessStatus()
         {
             ProcId = GetProcessIdByPortNumber(Port.To<int>());
-            Status = ProcId < 0 ? EnumStatus.Stop : EnumStatus.Run;
+            Status = ProcId < 0 ? Status : EnumStatus.Run;
 
         }
 
@@ -362,21 +415,20 @@ namespace MacroserviceExplorer
                 Process.Start(solutionFile.FullName);
         }
 
-        public DTE2 GetVSDTE()
-        {
-            return GetVSDTE(GetServiceSolutionFilePath());
-        }
+        public DTE2 GetVSDTE() => GetVSDTE(GetServiceSolutionFilePath());
 
-        public DTE2 GetVSDTE(FileInfo solutionFile)
+        static DTE2 GetVSDTE(FileSystemInfo solutionFile)
         {
             if (solutionFile == null)
                 return null;
             try
             {
-                return Helper.GetVsInstances().FirstOrDefault(dte2 => string.Equals(dte2.Solution.FullName, solutionFile.FullName, StringComparison.CurrentCultureIgnoreCase));
+                return Helper.GetVsInstances().FirstOrDefault(dte2 => String.Equals(dte2.Solution.FullName,
+                    solutionFile.FullName, StringComparison.CurrentCultureIgnoreCase));
             }
-            catch (Exception)
+            catch
             {
+
                 return null;
             }
 
@@ -386,7 +438,6 @@ namespace MacroserviceExplorer
         {
             return !Directory.Exists(WebsiteFolder) ? null : WebsiteFolder.AsDirectory().Parent?.GetFiles("*.sln").FirstOrDefault();
         }
-
     }
 
     public class ProjectRef
@@ -404,7 +455,7 @@ namespace MacroserviceExplorer
             get => _newVersion;
             set
             {
-                if (value.IsEmpty() || !int.TryParse(value.Replace(".", ""), out _))
+                if (value.IsEmpty() || !int.TryParse(value.Remove("."), out _))
                     return;
 
                 _newVersion = value;
@@ -421,7 +472,7 @@ namespace MacroserviceExplorer
 
     public class MyNugetRef : NugetRef
     {
-        public MacroserviceGridItem.EnumProjects Project { get; set; }
+        public MicroserviceItem.EnumProjects Project { get; set; }
         public bool Checked { get; set; }
     }
 }

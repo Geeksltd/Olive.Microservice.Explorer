@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Threading;
 
-namespace MacroserviceExplorer
+namespace MicroserviceExplorer
 {
     partial class MainWindow
     {
@@ -77,6 +77,9 @@ namespace MacroserviceExplorer
         void MainWindow_OnClosed(object sender, EventArgs e)
         {
             StopWatcher();
+
+            if(notifyIcon == null) return;
+
             notifyIcon.Visible = false;
             notifyIcon.Dispose();
         }

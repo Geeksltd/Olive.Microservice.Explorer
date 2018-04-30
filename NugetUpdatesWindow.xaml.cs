@@ -7,10 +7,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
-using GCop.Core;
 using MessageBox = System.Windows.Forms.MessageBox;
 
-namespace MacroserviceExplorer
+namespace MicroserviceExplorer
 {
     /// <summary>
     /// Interaction logic for NugetUpdatesWindow.xaml
@@ -33,19 +32,8 @@ namespace MacroserviceExplorer
         public NugetUpdatesWindow()
         {
             InitializeComponent();
-
         }
 
-        void CollectionViewSource_Filter(object sender, FilterEventArgs e)
-        {
-            //ICollectionView cvTasks = CollectionViewSource.GetDefaultView(dataGrid1.ItemsSource);
-            if (!(e.Item is MyNugetRef t)) return;
-
-            //if (this.cbCompleteFilter.IsChecked == true && t.Complete == true)
-            //    e.Accepted = false;
-            //else
-            //    e.Accepted = true;
-        }
 
         
         void ToggleButton_OnChecked(object sender, RoutedEventArgs e)
@@ -54,26 +42,27 @@ namespace MacroserviceExplorer
             var list = _nugetList.Distinct(dist => dist.Project).Select(itm => itm.Project.ToString()).ToList();
 
             var chkTitle = chk.DataContext.ToString();
+            var value = chk.IsChecked == null || !(bool) chk.IsChecked;
             switch (chkTitle)
             {
                 case "All":
                     foreach (var proj in list)
-                        SetCheckBoxValue(proj, chk.IsChecked != null && chk.IsChecked.Value);
+                        SetCheckBoxValue(proj, !value);
 
-                    SetCheckBoxValue("None", !(chk.IsChecked != null && chk.IsChecked.Value));
+                    SetCheckBoxValue("None", value);
                     break;
 
                 case "None":
 
                     foreach (var proj in list)
-                        SetCheckBoxValue(proj, !(chk.IsChecked != null && chk.IsChecked.Value));
+                        SetCheckBoxValue(proj, value);
 
-                    SetCheckBoxValue("All", !(chk.IsChecked != null && chk.IsChecked.Value));
+                    SetCheckBoxValue("All", value);
                     break;
                 default:
-                    _nugetList.Where(ng=>ng.Project.ToString() == chkTitle).ForEach(itm=>
+                    _nugetList.Where(ng=>ng.Project.ToString() == chkTitle).Do(itm=>
                     {
-                        itm.Checked = (chk.IsChecked != null && chk.IsChecked.Value);
+                        itm.Checked = !(chk.IsChecked == null || !(bool) chk.IsChecked);
                     });
                     CollectionViewSource.GetDefaultView(_nugetList).Refresh();
                     break;
@@ -103,7 +92,7 @@ namespace MacroserviceExplorer
                     foundChild = FindChild<T>(child, childName);
                     if (foundChild != null) break;
                 }
-                else if (!string.IsNullOrEmpty(childName))
+                else if (childName.HasValue())
                 {
                     if (!(child is FrameworkElement frameworkElement) || frameworkElement.Tag == null || frameworkElement.Tag.ToString() != childName) continue;
                     foundChild = (T)child;
@@ -122,8 +111,8 @@ namespace MacroserviceExplorer
 
         void BtnUpdate_OnClick(object sender, RoutedEventArgs e)
         {
-            if (!_nugetList.Any(itm => itm.Checked))
-                MessageBox.Show("There is not selected package to update ...", "Please select an item atleast ");
+            if (_nugetList.None(itm => itm.Checked))
+                MessageBox.Show(@"There is not selected package to update ...", @"Please select an item atleast ");
             else
                 DialogResult = true;
         }
@@ -132,13 +121,13 @@ namespace MacroserviceExplorer
         {
             var chk = (CheckBox) sender;
             var nugetRef = (MyNugetRef)chk.Tag;
-            if (chk.IsChecked != null)
+            if (chk.IsChecked.HasValue )
                 nugetRef.Checked = chk.IsChecked.Value;
         }
 
         void UpdateAll_OnClick(object sender, RoutedEventArgs e)
         {
-            _nugetList.ForEach(itm=>itm.Checked = true);
+            _nugetList.Do(itm=>itm.Checked = true);
             DialogResult = true;
         }
     }
@@ -155,13 +144,13 @@ namespace MacroserviceExplorer
 
             switch (myNugetRef.Project)
             {
-                case MacroserviceGridItem.EnumProjects.Website:
+                case MicroserviceItem.EnumProjects.Website:
                     return new SolidColorBrush(Colors.Aquamarine);
-                case MacroserviceGridItem.EnumProjects.Domain:
+                case MicroserviceItem.EnumProjects.Domain:
                     return new SolidColorBrush(Colors.Cornsilk);
-                case MacroserviceGridItem.EnumProjects.Model:
+                case MicroserviceItem.EnumProjects.Model:
                     return new SolidColorBrush(Colors.GhostWhite);
-                case MacroserviceGridItem.EnumProjects.UI:
+                case MicroserviceItem.EnumProjects.UI:
                     return new SolidColorBrush(Colors.PaleTurquoise);
                 default:
                     return new SolidColorBrush(Colors.White);
@@ -170,7 +159,8 @@ namespace MacroserviceExplorer
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            return value;
         }
 
         #endregion

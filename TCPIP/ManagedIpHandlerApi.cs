@@ -7,13 +7,15 @@ using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using MicroserviceExplorer.Utils;
 
 
-namespace MacroserviceExplorer.TCPIP
+namespace MicroserviceExplorer.TCPIP
 {
 
     #region Managed IP Helper API
 
+    [EscapeGCop("It's not applicable because its part of other resources")]
     public class TcpTable : IEnumerable<TcpRow>
     {
         #region Private Fields
@@ -59,6 +61,7 @@ namespace MacroserviceExplorer.TCPIP
         #endregion
     }
 
+    [EscapeGCop("It's not applicable because its part of other resources")]
     public class TcpRow
     {
         #region Private Fields
@@ -124,12 +127,12 @@ namespace MacroserviceExplorer.TCPIP
             var tcpTable = IntPtr.Zero;
             var tcpTableLength = 0;
 
-            if (IpHelper.GetExtendedTcpTable(tcpTable, ref tcpTableLength, sorted, IpHelper.AfInet,
+            if (NativeMethods.GetExtendedTcpTable(tcpTable, ref tcpTableLength, sorted, IpHelper.AfInet,
                     IpHelper.TcpTableType.OwnerPidAll, 0) == 0) return new TcpTable(tcpRows);
             try
             {
                 tcpTable = Marshal.AllocHGlobal(tcpTableLength);
-                if (IpHelper.GetExtendedTcpTable(tcpTable, ref tcpTableLength, sort: true, ipVersion: IpHelper.AfInet, tcpTableType: IpHelper.TcpTableType.OwnerPidAll, reserved: 0) == 0)
+                if (NativeMethods.GetExtendedTcpTable(tcpTable, ref tcpTableLength, sort: true, ipVersion: IpHelper.AfInet, tcpTableType: IpHelper.TcpTableType.OwnerPidAll, reserved: 0) == 0)
                 {
                     var table = (IpHelper.TcpTable)Marshal.PtrToStructure(tcpTable, typeof(IpHelper.TcpTable));
 

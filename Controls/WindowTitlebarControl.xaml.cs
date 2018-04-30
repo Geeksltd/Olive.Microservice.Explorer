@@ -13,13 +13,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace MacroserviceExplorer.Controls
+namespace MicroserviceExplorer.Controls
 {
     /// <summary>
     /// Interaction logic for WindowTitlebarControl.xaml
     /// </summary>
-    public partial class WindowTitlebarControl : UserControl
+    public sealed partial class WindowTitlebarControl : UserControl
     {
+
         public WindowTitlebarControl()
         {
             InitializeComponent();
@@ -47,25 +48,6 @@ namespace MacroserviceExplorer.Controls
         }
 
         #endregion
-
-        #region AlwaysOnTop
-
-        public static readonly DependencyProperty AlwaysOnTopProperty =
-            DependencyProperty.Register("AlwaysOnTop", typeof(bool), typeof(WindowTitlebarControl), new PropertyMetadata(false, OnAlwaysOnTopChanged));
-
-        public bool AlwaysOnTop
-        {
-            get => (bool)GetValue(AlwaysOnTopProperty);
-            set => SetValue(AlwaysOnTopProperty, value);
-        }
-
-        static void OnAlwaysOnTopChanged(DependencyObject d,DependencyPropertyChangedEventArgs e)
-        {            
-        }
-
-
-        #endregion
-
 
         void UIElement_OnMouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -101,16 +83,11 @@ namespace MacroserviceExplorer.Controls
         }
 
 
-        public event EventHandler RefreshClicked;
-        protected virtual void OnRefreshClicked()
+        public event EventHandler<EventArgs> RefreshClicked;
+
+        void OnRefreshClicked()
         {
             RefreshClicked?.Invoke(this, EventArgs.Empty);
-        }
-
-        public event EventHandler<bool> AlwayOnTopCheckaged;
-        protected virtual void OnAlwayOnTopCheckaged(bool e)
-        {
-            AlwayOnTopCheckaged?.Invoke(this, e);
         }
 
     }
