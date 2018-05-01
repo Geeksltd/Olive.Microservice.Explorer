@@ -278,11 +278,6 @@ namespace MicroserviceExplorer
             var projFolder = service.GetAbsoluteProjFolder(projEnum);
             if (projFolder.IsEmpty()) return false;
 
-            if (service.NugetUpdates > 0)
-            {
-                MessageBox.Show("Nuget Package updating is in progress now, Please try later ...", "Update is in progress");
-                return false;
-            }
 
             lock (_lock)
             {
