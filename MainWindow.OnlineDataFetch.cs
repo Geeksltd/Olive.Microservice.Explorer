@@ -206,7 +206,7 @@ namespace MicroserviceExplorer
                 catch (Exception e)
                 {
                     srv.NugetUpdateErrorMessage = e.Message;
-                    args.Result = srv;
+                    args.Result = new { service = srv, projEnum };
                     return;
                 }
             }
