@@ -11,6 +11,7 @@
     using Olive.Entities;
     using Olive.Entities.Data;
     /// <summary>A factory that can instantiate Data Provider objects for MY.MICROSERVICE.NAME</summary>
+    [EscapeGCop("Auto generated code.")]
     public class AdoDotNetDataProviderFactory : IDataProviderFactory
     {
         string ConnectionStringKey;

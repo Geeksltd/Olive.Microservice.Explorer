@@ -11,6 +11,8 @@
     using Olive.Hangfire;
     using Olive.Mvc.Testing;
     using System;
+    using System.Threading.Tasks;
+    using Olive.Entities.Data;
 
     public class Startup : Olive.Mvc.Startup
     {
@@ -23,13 +25,21 @@
             services.AddSwagger();
         }
 
+        public override async Task OnStartUpAsync(IApplicationBuilder app, IHostingEnvironment env)
+        {
+            if (env.IsDevelopment())
+                await app.InitializeTempDatabase<SqlServerManager>(() => ReferenceData.Create());
+
+            // Add any other initialization logic that needs the database to be ready here.
+        }
+
         public override void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            app.ConfigureSwagger();
-            app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowCredentials());
-            app.UseWebTest(ReferenceData.Create, config => config.AddTasks());
-
             base.Configure(app, env);
+            if (env.IsDevelopment()) app.UseWebTest(config => config.AddTasks());
+            app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowCredentials());
+            app.ConfigureSwagger();
+
             Console.Title = Microservice.Me.Name;
 
             if (Config.Get<bool>("Automated.Tasks:Enabled"))
