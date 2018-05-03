@@ -16,6 +16,7 @@ using MicroserviceExplorer.Utils;
 using NuGet;
 using Process = System.Diagnostics.Process;
 using Thread = System.Threading.Thread;
+using System.Threading.Tasks;
 
 namespace MicroserviceExplorer
 {
@@ -403,9 +404,9 @@ namespace MicroserviceExplorer
 
         }
 
-        public void OpenVs(FileInfo solutionFile)
+        public async Task OpenVs(FileInfo solutionFile)
         {
-            var dte2 = VsDTE ?? GetVSDTE(solutionFile);
+            var dte2 = VsDTE ?? await GetVSDTE(solutionFile);
             if (dte2 != null)
             {
                 dte2.MainWindow.Visible = true;
@@ -415,12 +416,22 @@ namespace MicroserviceExplorer
                 Process.Start(solutionFile.FullName);
         }
 
-        public DTE2 GetVSDTE() => GetVSDTE(GetServiceSolutionFilePath());
+        public Task<DTE2> GetVSDTE() => GetVSDTE(GetServiceSolutionFilePath());
 
-        static DTE2 GetVSDTE(FileSystemInfo solutionFile)
+        static async Task<DTE2> GetVSDTE(FileSystemInfo solutionFile)
         {
-            if (solutionFile == null)
-                return null;
+            if (solutionFile == null) return null;
+
+            DTE2 result = null;
+
+            await Task.WhenAny(Task.Delay(2.Seconds()),
+                Task.Run(() => result = FindVSDTE(solutionFile)));
+
+            return result;
+        }
+
+        static DTE2 FindVSDTE(FileSystemInfo solutionFile)
+        {
             try
             {
                 return Helper.GetVsInstances().FirstOrDefault(dte2 => String.Equals(dte2.Solution.FullName,
@@ -428,11 +439,11 @@ namespace MicroserviceExplorer
             }
             catch
             {
-
+                // Failed? 
                 return null;
             }
-
         }
+
 
         public FileInfo GetServiceSolutionFilePath()
         {

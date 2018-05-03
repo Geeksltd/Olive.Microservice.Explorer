@@ -100,28 +100,34 @@ namespace MicroserviceExplorer
         bool AutoRefreshProcessTimerInProgress;
         async void OnAutoRefreshProcessTimerOnTick(object sender, EventArgs args)
         {
-            if(AutoRefreshProcessTimerInProgress)
+            if (AutoRefreshProcessTimerInProgress)
                 return;
 
             AutoRefreshProcessTimerInProgress = true;
-            foreach (var service in MicroserviceGridItems)
-            {
-                if (service.WebsiteFolder.IsEmpty() || service.Port.IsEmpty()) continue;
-                service.UpdateProcessStatus();
-                service.VsDTE = service.GetVSDTE();
-            }
+
+            var relevantItems = MicroserviceGridItems
+                .Where(x => x.WebsiteFolder.HasValue())
+                .Where(x => x.Port.HasValue())
+                .ToArray();
+
+            relevantItems.Do(x => x.UpdateProcessStatus());
+
+            if (false /*Broken*/)
+                foreach (var service in relevantItems)
+                    service.VsDTE = await service.GetVSDTE();
+
             AutoRefreshProcessTimerInProgress = false;
         }
 
         void StartAutoRefresh()
-        {            
+        {
             AutoRefreshTimer.Start();
         }
 
         bool AutoRefreshTimerInProgress;
         void OnAutoRefreshTimerOnTick(object sender, EventArgs args)
         {
-            if(AutoRefreshTimerInProgress)
+            if (AutoRefreshTimerInProgress)
                 return;
             AutoRefreshTimerInProgress = true;
             logWindow.LogMessage("[Auto Refresh Started ...]");
@@ -250,12 +256,12 @@ namespace MicroserviceExplorer
         //}
 
 
-        void OpenCode_OnClick(object sender, MouseButtonEventArgs e)
+        async void OpenCode_OnClick(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
             var service = GetServiceByTag(sender);
             var solutionFile = service.GetServiceSolutionFilePath();
-            service.OpenVs(solutionFile);
+            await service.OpenVs(solutionFile);
         }
 
         async void OpenProject_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -327,7 +333,7 @@ namespace MicroserviceExplorer
 
         }
 
-        void VsDebuggerAttach_OnClick(object sender, MouseButtonEventArgs e)
+        async void VsDebuggerAttach_OnClick(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
             var service = GetServiceByTag(sender);
@@ -342,11 +348,8 @@ namespace MicroserviceExplorer
             var process = processes.SingleOrDefault(x => x.ProcessID == service.ProcId);
             if (process == null) return;
 
-            service.OpenVs(service.GetServiceSolutionFilePath());
+            await service.OpenVs(service.GetServiceSolutionFilePath());
             process.Attach();
-
-
-
         }
 
         void RunAllMenuItem_Click(object sender, ExecutedRoutedEventArgs e)
