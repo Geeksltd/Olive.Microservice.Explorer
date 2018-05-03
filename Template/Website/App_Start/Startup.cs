@@ -18,6 +18,12 @@
     {
         protected override CultureInfo GetRequestCulture() => new CultureInfo("en-GB");
 
+        protected override void ConfigureApplicationCookie(CookieAuthenticationOptions options)
+        {
+            base.ConfigureApplicationCookie(options);
+            options.DataProtectionProvider = new SymmetricKeyDataProtector("Auth");
+        }
+
         public override void ConfigureServices(IServiceCollection services)
         {
             base.ConfigureServices(services);
@@ -25,19 +31,17 @@
             services.AddSwagger();
         }
 
-        public override async Task OnStartUpAsync(IApplicationBuilder app, IHostingEnvironment env)
+        protected override void ConfigureSecurity(IApplicationBuilder app, IHostingEnvironment env)
         {
-            if (env.IsDevelopment())
-                await app.InitializeTempDatabase<SqlServerManager>(() => ReferenceData.Create());
-
-            // Add any other initialization logic that needs the database to be ready here.
+            app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowCredentials().AllowAnyMethod());
+            base.ConfigureSecurity(app, env);
         }
 
         public override void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             base.Configure(app, env);
-            if (env.IsDevelopment()) app.UseWebTest(config => config.AddTasks());
-            app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowCredentials());
+            if (env.IsDevelopment()) app.UseWebTest(config => config.AddTasks().AddClearApiCache());
+
             app.ConfigureSwagger();
 
             Console.Title = Microservice.Me.Name;
@@ -46,10 +50,12 @@
                 app.UseScheduledTasks(TaskManager.Run);
         }
 
-        protected override void ConfigureApplicationCookie(CookieAuthenticationOptions options)
+        public override async Task OnStartUpAsync(IApplicationBuilder app, IHostingEnvironment env)
         {
-            base.ConfigureApplicationCookie(options);
-            options.DataProtectionProvider = new SymmetricKeyDataProtector("Auth");
+            if (env.IsDevelopment())
+                await app.InitializeTempDatabase<SqlServerManager>(() => ReferenceData.Create());
+
+            // Add any other initialization logic that needs the database to be ready here.
         }
     }
 }
