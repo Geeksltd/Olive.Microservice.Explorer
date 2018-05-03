@@ -94,14 +94,9 @@ namespace MicroserviceExplorer
                 srv.ProcId = procId;
                 srv.SolutionFolder = projFolder;
                 srv.WebsiteFolder = websiteFolder;
-
-                //srv.VsDTE = srv.GetVSDTE();
-
             }
 
-
             FilterListBy(txtSearch.Text);
-
 
             ProjectLoaded = true;
 
@@ -143,9 +138,6 @@ namespace MicroserviceExplorer
                 if (srv.WebsiteFolder.IsEmpty())
                     srv.Status = MicroserviceItem.EnumStatus.NoSourcerLocally;
             }
-
-            OnAutoRefreshProcessTimerOnTick(null, null);
-            OnAutoRefreshTimerOnTick(null, null);
 
             StartAutoRefresh();
             StartAutoRefreshProcess();
@@ -244,6 +236,6 @@ namespace MicroserviceExplorer
             }
         }
 
-        
+
     }
 }
