@@ -95,7 +95,7 @@ namespace MicroserviceExplorer
                 srv.SolutionFolder = projFolder;
                 srv.WebsiteFolder = websiteFolder;
 
-                srv.VsDTE = srv.GetVSDTE();
+                //srv.VsDTE = srv.GetVSDTE();
 
             }
 
