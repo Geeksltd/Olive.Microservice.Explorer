@@ -65,10 +65,10 @@ namespace MicroserviceExplorer
             var menuitem = (MenuItem)sender;
             menuitem.Click -= BrowsItem_Click;
 
-            BrowsMacroservice(menuitem);
+            BrowsMicroservice(menuitem);
         }
 
-        void BrowsMacroservice(MenuItem menuitem)
+        void BrowsMicroservice(MenuItem menuitem)
         {
             var service = (MicroserviceItem)menuitem.Tag;
             var address = menuitem.Header.ToString().Substring(menuitem.Header.ToString().IndexOf(" ", StringComparison.Ordinal) + 1);

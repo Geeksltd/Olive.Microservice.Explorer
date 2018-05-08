@@ -25,25 +25,25 @@ namespace MicroserviceExplorer
 
         void InitNotifyIcon()
         {
-            using (var components = new Container())
+            var components = new Container();
+
+            notifyIcon = new System.Windows.Forms.NotifyIcon(components)
             {
-                notifyIcon = new System.Windows.Forms.NotifyIcon(components)
-                {
-                    ContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(),
-                    Icon = Properties.Resources.Olive,
-                    Text = @"Olive Macroservice Explorer",
-                    Visible = true,
-                };
-                notifyIcon.ContextMenuStrip.Items.Add(new System.Windows.Forms.ToolStripMenuItem("Open Explorer Window", null, TrayOpenWindow));
+                ContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(),
+                Icon = Properties.Resources.Olive,
+                Text = @"Olive Microservice Explorer",
+                Visible = true,
+            };
+            notifyIcon.ContextMenuStrip.Items.Add(new System.Windows.Forms.ToolStripMenuItem("Open Explorer Window", null, TrayOpenWindow));
 
-                notifyIcon.ContextMenuStrip.Items.Add(new System.Windows.Forms.ToolStripMenuItem("Exit", null, ExitMenuItem_Click));
+            notifyIcon.ContextMenuStrip.Items.Add(new System.Windows.Forms.ToolStripMenuItem("Exit", null, ExitMenuItem_Click));
 
-                //notifyIcon.ContextMenuStrip.Opening += ContextMenuStrip_Opening;
-                notifyIcon.Click += TrayOpenWindow;
-                //notifyIcon.MouseUp += notifyIcon_MouseUp;
-            }
-
+            //notifyIcon.ContextMenuStrip.Opening += ContextMenuStrip_Opening;
+            notifyIcon.Click += TrayOpenWindow;
+            //notifyIcon.MouseUp += notifyIcon_MouseUp;
         }
+
+
 
         void StatusProgressStart()
         {

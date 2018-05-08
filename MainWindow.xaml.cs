@@ -206,7 +206,7 @@ namespace MicroserviceExplorer
             switch (service.Status)
             {
                 case MicroserviceItem.EnumStatus.Pending:
-                    MessageBox.Show("Macroservice is loading.\nPlease Wait ...", @"Loading ...");
+                    MessageBox.Show("Microservice is loading.\nPlease Wait ...", @"Loading ...");
                     break;
                 case MicroserviceItem.EnumStatus.Run:
                     service.Stop();
@@ -331,7 +331,7 @@ namespace MicroserviceExplorer
         {
             e.Handled = true;
             var service = GetServiceByTag(sender);
-            Process.Start(service.WebsiteFolder.AsDirectory().Parent?.FullName ?? throw new Exception("Macroservice projFolder Not Exists ..."));
+            Process.Start(service.WebsiteFolder.AsDirectory().Parent?.FullName ?? throw new Exception("Microservice projFolder Not Exists ..."));
 
         }
         void TextBoxBase_OnTextChanged(object sender, TextChangedEventArgs e)
@@ -456,7 +456,7 @@ namespace MicroserviceExplorer
                 WindowApi.ShowWindow(mainWindowHandle);
             else
             {
-                MessageBox.Show("Last Kestrel process was attached to none console window style.\n So if you want to see Kestrel log window, please stop and start macroserice again.", "There is not kestrel window-habdle");
+                MessageBox.Show("Last Kestrel process was attached to none console window style.\n So if you want to see Kestrel log window, please stop and start Microserice again.", "There is not kestrel window-habdle");
             }
         }
 

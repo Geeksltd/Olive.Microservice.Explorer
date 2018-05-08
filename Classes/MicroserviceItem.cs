@@ -149,8 +149,17 @@ namespace MicroserviceExplorer
             {
                 _procId = value;
                 if (_procId > 0)
+                {
                     ProcessName = Process.GetProcessById(_procId).ProcessName;
+                    Status = EnumStatus.Run;
+                }
+                else
+                {
+                    ProcessName = null;
+                    Status = EnumStatus.Stop;
+                }
 
+                OnPropertyChanged(nameof(Status));
                 OnPropertyChanged(nameof(ProcId));
                 OnPropertyChanged(nameof(ProcessName));
                 OnPropertyChanged(nameof(VisibleKestrel));
@@ -400,9 +409,6 @@ namespace MicroserviceExplorer
         public void UpdateProcessStatus()
         {
             ProcId = GetProcessIdByPortNumber(Port.To<int>());
-            
-            Status = ProcId < 0 ? Status : EnumStatus.Run;
-
         }
 
         public async Task OpenVs(FileInfo solutionFile)
