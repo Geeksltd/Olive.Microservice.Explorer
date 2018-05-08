@@ -207,6 +207,7 @@ namespace MicroserviceExplorer
                 OnPropertyChanged(nameof(VsDTE));
                 OnPropertyChanged(nameof(VsCodeIcon));
                 OnPropertyChanged(nameof(VisibleDebug));
+                OnPropertyChanged(nameof(DebuggerIcon));
             }
         }
 
@@ -441,7 +442,7 @@ namespace MicroserviceExplorer
         {
             try
             {
-                return Helper.GetVsInstances().FirstOrDefault(dte2 => String.Equals(dte2.Solution.FullName,
+                return new Helper().GetVsInstances().FirstOrDefault(dte2 => String.Equals(dte2.Solution.FullName,
                     solutionFile.FullName, StringComparison.CurrentCultureIgnoreCase));
             }
             catch
