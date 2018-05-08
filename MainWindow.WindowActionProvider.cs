@@ -78,10 +78,7 @@ namespace MicroserviceExplorer
         {
             StopWatcher();
 
-            if(notifyIcon == null) return;
-
-            notifyIcon.Visible = false;
-            notifyIcon.Dispose();
+            notifyIcon?.Dispose();
         }
 
         void MainWindow_OnClosing(object sender, CancelEventArgs e)

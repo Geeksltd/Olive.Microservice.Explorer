@@ -82,7 +82,7 @@
                 </MenuItem>
                 <Separator></Separator>
                 <MenuItem Header="Window">
-                    <MenuItem Header="Always on top" IsCheckable="True" Name="mnuAlwaysOnTop" Checked="MnuAlwaysOnTop_OnChecked" Unchecked="MnuAlwaysOnTop_OnChecked" IsChecked="{Binding ElementName=titleBar,Path=AlwaysOnTop,Mode=TwoWay}">
+                    <MenuItem Header="Always on top" IsCheckable="True" Name="mnuAlwaysOnTop" Checked="MnuAlwaysOnTop_OnChecked" Unchecked="MnuAlwaysOnTop_OnChecked" >
                     </MenuItem>
                     <MenuItem Header="Opacity" Name="OpacityMenuItem">
                         <MenuItem Header="100%" IsCheckable="True" utils:MenuItemExtensions.GroupName="opacity" Click="WindowOpacityMenuItem_OnClick" IsChecked="True"></MenuItem>
