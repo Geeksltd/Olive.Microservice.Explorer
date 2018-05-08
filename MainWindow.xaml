@@ -66,7 +66,7 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Controls:WindowTitlebarControl x:Name="titleBar" Grid.Row="0" Title="{Binding ElementName=window,Path=Title,Mode=TwoWay}" RefreshClicked="WindowTitlebarControl_OnRefreshClicked" />
+        <Controls:WindowTitlebarControl Grid.Row="0" Title="{Binding ElementName=window,Path=Title,Mode=TwoWay}" RefreshClicked="WindowTitlebarControl_OnRefreshClicked" />
         <Menu Grid.Row="1">
             <MenuItem Header="_File">
                 <MenuItem Header="_Open Project" Command="Open" >

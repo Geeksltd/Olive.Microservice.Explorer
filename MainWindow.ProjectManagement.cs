@@ -103,7 +103,7 @@ namespace MicroserviceExplorer
             if (Watcher == null)
                 StartFileSystemWatcher(ServicesJsonFile);
 
-            await Refresh();
+            Refresh();
 
             return true;
         }
@@ -122,7 +122,6 @@ namespace MicroserviceExplorer
                 if (File.Exists(launchSettings))
                 {
                     srv.Port = GetPortNumberFromLaunchSettingsFile(launchSettings);
-                    srv.Status = MicroserviceItem.EnumStatus.Stop;
                 }
                 else
                 {
@@ -139,8 +138,8 @@ namespace MicroserviceExplorer
                     srv.Status = MicroserviceItem.EnumStatus.NoSourcerLocally;
             }
 
-            StartAutoRefresh();
-            StartAutoRefreshProcess();
+            RestartAutoRefresh();
+            RestartAutoRefreshProcess();
             return true;
         }
 
@@ -199,7 +198,7 @@ namespace MicroserviceExplorer
                 case WatcherChangeTypes.Deleted:
                     break;
                 case WatcherChangeTypes.Changed:
-                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(async () => await Refresh()));
+                    Refresh();
                     break;
                 case WatcherChangeTypes.Renamed:
                     break;

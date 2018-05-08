@@ -92,8 +92,10 @@ namespace MicroserviceExplorer
         }
 
 
-        void StartAutoRefreshProcess()
+        void RestartAutoRefreshProcess()
         {
+            AutoRefreshProcessTimer.Stop();
+            OnAutoRefreshProcessTimerOnTick(null, null);
             AutoRefreshProcessTimer.Start();
         }
 
@@ -101,71 +103,72 @@ namespace MicroserviceExplorer
         object timer_lock_object = new object();
         void OnAutoRefreshProcessTimerOnTick(object sender, EventArgs args)
         {
-            if(AutoRefreshProcessTimerInProgress)
+            if (AutoRefreshProcessTimerInProgress)
                 return;
-            lock (timer_lock_object)
+            //logWindow.LogMessage("[Auto Refresh Process Started ...]");
+
+            AutoRefreshProcessTimer.IsEnabled = false;
+            foreach (var service in MicroserviceGridItems)
             {
-                AutoRefreshProcessTimerInProgress = true;
-                foreach (var service in MicroserviceGridItems)
+                if (service.WebsiteFolder.IsEmpty() || service.Port.IsEmpty()) continue;
+                var backgroundWorker = new BackgroundWorker();
+
+                backgroundWorker.DoWork += async (sender1, e) =>
                 {
-                    if (service.WebsiteFolder.IsEmpty() || service.Port.IsEmpty()) continue;
-                    using (var backgroundWorker = new BackgroundWorker())
-                    {
-                        backgroundWorker.DoWork += async (sender1, e) =>
-                        {
-                            service.UpdateProcessStatus();
-                            service.VsDTE = await service.GetVSDTE();
-                        };
+                    service.UpdateProcessStatus();
+                    service.VsDTE = await service.GetVSDTE();
+                };
+                backgroundWorker.RunWorkerAsync();
 
-                        backgroundWorker.RunWorkerAsync();
-                    }
 
-                }
-                AutoRefreshProcessTimerInProgress = false;
             }
+            AutoRefreshProcessTimer.IsEnabled = true;
+
 
         }
 
-        void StartAutoRefresh()
-        {            
+        void RestartAutoRefresh()
+        {
+            AutoRefreshTimer.Stop();
+            OnAutoRefreshTimerOnTick(null, null);
             AutoRefreshTimer.Start();
         }
 
         bool AutoRefreshTimerInProgress;
         void OnAutoRefreshTimerOnTick(object sender, EventArgs args)
         {
-            if(AutoRefreshTimerInProgress)
+            if (AutoRefreshTimerInProgress)
                 return;
             AutoRefreshTimerInProgress = true;
             logWindow.LogMessage("[Auto Refresh Started ...]");
 
             foreach (var service in MicroserviceGridItems)
                 if (service.WebsiteFolder.HasValue())
-                    using (var worker = new BackgroundWorker())
+                {
+                    var worker = new BackgroundWorker();
+                    worker.DoWork += (o, eventArgs) =>
                     {
-                        worker.DoWork += (o, eventArgs) =>
+                        if (!service.GitUpdateIsInProgress)
                         {
-                            if (!service.GitUpdateIsInProgress)
-                            {
-                                service.GitUpdateIsInProgress = true;
-                                service.GitUpdates = CalculateGitUpdates(service).ToString();
-                            }
+                            service.GitUpdateIsInProgress = true;
+                            service.GitUpdates = CalculateGitUpdates(service).ToString();
+                        }
 
-                            if (service.NugetUpdateIsInProgress) return;
+                        if (service.NugetUpdateIsInProgress) return;
 
-                            service.NugetUpdateIsInProgress = true;
-                            foreach (MicroserviceItem.EnumProjects proj in Enum.GetValues(typeof(MicroserviceItem.EnumProjects)))
-                                FetchProjectNugetPackages(service, proj);
-                        };
+                        service.NugetUpdateIsInProgress = true;
+                        foreach (MicroserviceItem.EnumProjects proj in Enum.GetValues(typeof(MicroserviceItem.EnumProjects)))
+                            FetchProjectNugetPackages(service, proj);
+                    };
 
-                        worker.RunWorkerCompleted += (o, eventArgs) =>
-                        {
-                            service.GitUpdateIsInProgress = false;
-                            service.NugetUpdateIsInProgress = false;
-                        };
+                    worker.RunWorkerCompleted += (o, eventArgs) =>
+                    {
+                        service.GitUpdateIsInProgress = false;
+                        service.NugetUpdateIsInProgress = false;
+                    };
 
-                        worker.RunWorkerAsync();
-                    }
+                    worker.RunWorkerAsync();
+                }
 
             AutoRefreshTimerInProgress = false;
             logWindow.LogMessage("[Auto Refresh Finish]");
@@ -304,11 +307,13 @@ namespace MicroserviceExplorer
 
         async Task Refresh()
         {
-            if (ServicesJsonFile != null)
-                await RefreshFile(ServicesJsonFile.FullName);
+            AutoRefreshProcessTimer.Stop();
+            AutoRefreshTimer.Stop();
 
-            if (!ProjectLoaded)
-                AutoRefreshTimer.Stop();
+            if (ServicesJsonFile != null)
+                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(async () => await RefreshFile(ServicesJsonFile.FullName)));
+
+
         }
 
         void EditProject_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -397,7 +402,7 @@ namespace MicroserviceExplorer
 
         void WindowTitlebarControl_OnRefreshClicked(object sender, EventArgs e)
         {
-            var refresh = Refresh();
+            Refresh();
         }
 
         void MnuAlwaysOnTop_OnChecked(object sender, RoutedEventArgs e)
