@@ -111,10 +111,10 @@ namespace MicroserviceExplorer
                     if (service.WebsiteFolder.IsEmpty() || service.Port.IsEmpty()) continue;
                     using (var backgroundWorker = new BackgroundWorker())
                     {
-                        backgroundWorker.DoWork += (sender1, e) =>
+                        backgroundWorker.DoWork += async (sender1, e) =>
                         {
                             service.UpdateProcessStatus();
-                            service.VsDTE = service.GetVSDTE();
+                            service.VsDTE = await service.GetVSDTE();
                         };
 
                         backgroundWorker.RunWorkerAsync();

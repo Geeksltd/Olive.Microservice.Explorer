@@ -417,7 +417,7 @@ namespace MicroserviceExplorer
                 Process.Start(solutionFile.FullName);
         }
 
-        public Task<DTE2> GetVSDTE() => GetVSDTE(GetServiceSolutionFilePath());
+        public async Task<DTE2> GetVSDTE() => await GetVSDTE(GetServiceSolutionFilePath());
 
         static async Task<DTE2> GetVSDTE(FileSystemInfo solutionFile)
         {
