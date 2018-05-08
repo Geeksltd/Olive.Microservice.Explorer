@@ -98,19 +98,32 @@ namespace MicroserviceExplorer
         }
 
         bool AutoRefreshProcessTimerInProgress;
-        async void OnAutoRefreshProcessTimerOnTick(object sender, EventArgs args)
+        object timer_lock_object = new object();
+        void OnAutoRefreshProcessTimerOnTick(object sender, EventArgs args)
         {
             if(AutoRefreshProcessTimerInProgress)
                 return;
-
-            AutoRefreshProcessTimerInProgress = true;
-            foreach (var service in MicroserviceGridItems)
+            lock (timer_lock_object)
             {
-                if (service.WebsiteFolder.IsEmpty() || service.Port.IsEmpty()) continue;
-                service.UpdateProcessStatus();
-                service.VsDTE = service.GetVSDTE();
+                AutoRefreshProcessTimerInProgress = true;
+                foreach (var service in MicroserviceGridItems)
+                {
+                    if (service.WebsiteFolder.IsEmpty() || service.Port.IsEmpty()) continue;
+                    using (var backgroundWorker = new BackgroundWorker())
+                    {
+                        backgroundWorker.DoWork += (sender1, e) =>
+                        {
+                            service.UpdateProcessStatus();
+                            service.VsDTE = service.GetVSDTE();
+                        };
+
+                        backgroundWorker.RunWorkerAsync();
+                    }
+
+                }
+                AutoRefreshProcessTimerInProgress = false;
             }
-            AutoRefreshProcessTimerInProgress = false;
+
         }
 
         void StartAutoRefresh()
@@ -228,7 +241,7 @@ namespace MicroserviceExplorer
 
             proc.Start();
 
-            Console.Beep();
+            //Console.Beep();
 
             //var microserviceRunCheckingTimer = new DispatcherTimer { Tag = service };
             //microserviceRunCheckingTimer.Tick += microserviceRunCheckingTimer_Tick;

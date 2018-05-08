@@ -144,7 +144,6 @@ namespace MicroserviceExplorer
                     srv.Status = MicroserviceItem.EnumStatus.NoSourcerLocally;
             }
 
-            OnAutoRefreshProcessTimerOnTick(null, null);
             OnAutoRefreshTimerOnTick(null, null);
 
             StartAutoRefresh();
