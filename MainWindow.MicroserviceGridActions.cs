@@ -46,17 +46,18 @@ namespace MicroserviceExplorer
                 uatMenuItem.IsEnabled = false;
             cm.Items.Add(uatMenuItem);
 
-            var liveMenuItem = new MenuItem { Header = "Live" };
-            if (service.LiveUrl.HasValue())
-            {
-                liveMenuItem.Header += $"\t  {service.LiveUrl}";
-                liveMenuItem.Tag = service;
-                liveMenuItem.Click += BrowsItem_Click;
-            }
-            else
-                liveMenuItem.IsEnabled = false;
+            //var liveMenuItem = new MenuItem { Header = "Live" };
+            //if (service.LiveUrl.HasValue())
+            //{
+            //    liveMenuItem.Header += $"\t  {service.LiveUrl}";
+            //    liveMenuItem.Tag = service;
+            //    liveMenuItem.Click += BrowsItem_Click;
+            //}
+            //else
+            //    liveMenuItem.IsEnabled = false;
+            //
+            //cm.Items.Add(liveMenuItem);
 
-            cm.Items.Add(liveMenuItem);
             cm.PlacementTarget = (UIElement)sender;
             cm.IsOpen = true;
         }

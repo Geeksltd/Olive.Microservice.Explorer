@@ -432,7 +432,7 @@ namespace MicroserviceExplorer
 
             DTE2 result = null;
 
-            await Task.WhenAny(Task.Delay(2.Seconds()),
+            await Task.WhenAny(Task.Delay(1.Seconds()),
                 Task.Run(() => result = FindVSDTE(solutionFile)));
 
             return result;

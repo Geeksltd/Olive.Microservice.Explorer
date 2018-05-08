@@ -111,14 +111,19 @@ namespace MicroserviceExplorer
             foreach (var service in MicroserviceGridItems)
             {
                 if (service.WebsiteFolder.IsEmpty() || service.Port.IsEmpty()) continue;
-                var backgroundWorker = new BackgroundWorker();
-
-                backgroundWorker.DoWork += async (sender1, e) =>
+                using (var backgroundWorker = new BackgroundWorker())
                 {
-                    service.UpdateProcessStatus();
-                    service.VsDTE = await service.GetVSDTE();
-                };
-                backgroundWorker.RunWorkerAsync();
+                    backgroundWorker.DoWork += async (sender1, e) =>
+                    {
+                        service.UpdateProcessStatus();
+                        service.VsDTE = await service.GetVSDTE();
+                    };
+
+                    backgroundWorker.RunWorkerAsync();
+                }
+                
+
+
 
 
             }
