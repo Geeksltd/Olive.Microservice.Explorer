@@ -8,7 +8,7 @@
         xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         mc:Ignorable="d" x:Name="Window"
         WindowStyle="ToolWindow"
-        Title="Nuget Updates" Height="400" Width="500">
+        Title="Nuget Updates" Height="420" Width="560">
     <Window.Resources>
         <Style TargetType="Button" x:Key="gridButton">
             <Setter Property="Background" Value="Transparent" />
@@ -77,7 +77,7 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
 
-                <DataGridTemplateColumn Header="Package" >
+                <DataGridTemplateColumn Header="Package" Width="120" >
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
@@ -87,7 +87,7 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 
-                <DataGridTemplateColumn Header="Used in" >
+                <DataGridTemplateColumn Header="Used in" Width="120" >
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
@@ -97,7 +97,7 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                
-                <DataGridTemplateColumn Header="Installed" >
+                <DataGridTemplateColumn Header="Installed Version" Width="100" >
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
@@ -106,7 +106,8 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="New Version" >
+
+                <DataGridTemplateColumn Header="New Version" Width="100" >
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
