@@ -56,7 +56,7 @@ namespace MicroserviceExplorer
         private readonly LogWindow Logwindow;
         public MicroserviceItem()
         {
-            Logwindow = new LogWindow {Servic = this};
+            Logwindow = new LogWindow { Servic = this };
         }
         public enum EnumStatus
         {
@@ -82,7 +82,15 @@ namespace MicroserviceExplorer
             }
         }
 
-        public string Service { get; set; }
+        public string Service
+        {
+            get => _service;
+            set
+            {
+                _service = value;
+                Logwindow.Title = $"{Service} Microservice Log Window";
+            }
+        }
 
         public FontWeight ServiceFontWeight => Status == EnumStatus.Run ? FontWeights.Bold : FontWeights.Regular;
 
@@ -492,10 +500,12 @@ namespace MicroserviceExplorer
             return !Directory.Exists(WebsiteFolder) ? null : WebsiteFolder.AsDirectory().Parent?.GetFiles("*.sln").FirstOrDefault();
         }
 
-        StringBuilder logs = new StringBuilder(5,5);
+        private string _service;
+
         public void LogMessage(string message, string desc = null)
         {
-            Logwindow.LogMessage(message,desc);
+            Logwindow.LogMessage(message, desc);
+            OnPropertyChanged(nameof(LogWindowVisibility));
         }
 
 
@@ -503,6 +513,8 @@ namespace MicroserviceExplorer
         {
             Logwindow.Show();
         }
+
+        public Visibility LogWindowVisibility => Logwindow.TextLog.IsEmpty() ? Visibility.Collapsed : Visibility.Visible;
     }
 
     public class ProjectRef

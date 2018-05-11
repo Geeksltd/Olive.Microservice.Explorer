@@ -186,7 +186,7 @@ namespace MicroserviceExplorer
                 if (packageReferences == null) return;
                 try
                 {
-                    srv.LogMessage($"Check to nuget Packages updates  ... ({projEnum})");
+                    srv.LogMessage($"Check for nuget packages updates in [{projEnum}] project started.");
                     foreach (var pkgref in packageReferences)
                     {
                         var latestPkgVersion = nugetPackageRepo.FindPackages(pkgref.Include, null, allowPrereleaseVersions: false, allowUnlisted: false).FirstOrDefault(package => package.IsLatestVersion);

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MicroserviceExplorer"
         mc:Ignorable="d" x:Name="window" ShowInTaskbar="False"
-        Title="LogWindow" Height="300" Width="300" Closing="LogWindow_OnClosing" >
+        Title="LogWindow" Height="500" Width="600" Closing="LogWindow_OnClosing" >
     <Grid DataContext="{Binding ElementName=window, Path=.}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
