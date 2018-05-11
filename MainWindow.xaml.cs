@@ -10,7 +10,6 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using EnvDTE;
 using MicroserviceExplorer.Utils;
-using Button = System.Windows.Controls.Button;
 using MessageBox = System.Windows.Forms.MessageBox;
 using Process = System.Diagnostics.Process;
 
@@ -77,10 +76,6 @@ namespace MicroserviceExplorer
             InitNotifyIcon();
 
             InitializeComponent();
-
-            logWindow = new LogWindow();
-
-            this.Focus();
             DataContext = MicroserviceGridItems;
 
             AutoRefreshTimer.Tick += OnAutoRefreshTimerOnTick;
@@ -100,12 +95,10 @@ namespace MicroserviceExplorer
         }
 
         bool AutoRefreshProcessTimerInProgress;
-        object timer_lock_object = new object();
         void OnAutoRefreshProcessTimerOnTick(object sender, EventArgs args)
         {
             if (AutoRefreshProcessTimerInProgress)
                 return;
-            //logWindow.LogMessage("[Auto Refresh Process Started ...]");
 
             AutoRefreshProcessTimer.IsEnabled = false;
             foreach (var service in MicroserviceGridItems)
@@ -145,7 +138,6 @@ namespace MicroserviceExplorer
             if (AutoRefreshTimerInProgress)
                 return;
             AutoRefreshTimerInProgress = true;
-            logWindow.LogMessage("[Auto Refresh Started ...]");
 
             foreach (var service in MicroserviceGridItems)
                 if (service.WebsiteFolder.HasValue())
@@ -176,7 +168,6 @@ namespace MicroserviceExplorer
                 }
 
             AutoRefreshTimerInProgress = false;
-            logWindow.LogMessage("[Auto Refresh Finish]");
         }
 
 
@@ -416,8 +407,8 @@ namespace MicroserviceExplorer
 
         void MainWindow_OnLocationChanged(object sender, EventArgs e)
         {
-            if (logWindow.IsVisible)
-                logWindow.SetTheLogWindowBy(this);
+            //if (logWindow.IsVisible)
+            //    logWindow.SetTheLogWindowBy(this);
         }
 
         void ShowKestrelLog_OnClick(object sender, MouseButtonEventArgs e)
@@ -445,6 +436,13 @@ namespace MicroserviceExplorer
         {
             notifyIcon.Dispose();
             Watcher.Dispose();
+        }
+
+        private void ShowServiceLog_OnClick(object sender, MouseButtonEventArgs e)
+        {
+            e.Handled = true;
+            var service = GetServiceByTag(sender);
+            service.ShowLogWindow();
         }
     }
 }

@@ -13,7 +13,7 @@
         </Grid.RowDefinitions>
         <Menu Grid.Row="0">
             <MenuItem Header="Clear log" Click="ClearLogMenuItem_OnClick"></MenuItem>
-            <MenuItem Header="Save log to Log.txt" Click="SaveLogMenuItem_OnClick"></MenuItem>
+            <MenuItem Name="SaveLogMenuItem" Header="Save log to Log.txt" Click="SaveLogMenuItem_OnClick"></MenuItem>
         </Menu>
         <TextBox Grid.Row="1" Text="{Binding  Path=TextLog}" Name="txtLog" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" ></TextBox>
     </Grid>

@@ -146,9 +146,6 @@
                 <MenuItem Header="Update All"></MenuItem>
                 <MenuItem Header="Auto Update" IsCheckable="True"></MenuItem>
             </MenuItem>
-            <MenuItem Header="Logs">
-                <MenuItem Header="Open log window" Click="OpenLogWindowMenuItem_OnClick"></MenuItem>
-            </MenuItem>
         </Menu>
 
         <Grid Grid.Row="2" HorizontalAlignment="Stretch" >
@@ -289,6 +286,9 @@
                                 </Button>
                                 <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="VsDebuggerAttach_OnClick"  Tag="{Binding}" Visibility="{Binding VisibleDebug}" ToolTip="Attach Microservice Process to Current Visual Studio for Debugging">
                                     <Image Source="{Binding DebuggerIcon}" Style="{StaticResource gridImage}"  Width="25"/>
+                                </Button>
+                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="ShowServiceLog_OnClick"  Tag="{Binding}" ToolTip="Displays microservice action log window.">
+                                    <Image Source="Resources/servicelog.png" Style="{StaticResource gridImage}"  Width="25"/>
                                 </Button>
                             </StackPanel>
                         </DataTemplate>

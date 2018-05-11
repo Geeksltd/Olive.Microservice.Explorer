@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Windows;
 using System.Windows.Media;
 using EnvDTE;
@@ -52,6 +53,11 @@ namespace MicroserviceExplorer
 
         #endregion
 
+        private readonly LogWindow Logwindow;
+        public MicroserviceItem()
+        {
+            Logwindow = new LogWindow {Servic = this};
+        }
         public enum EnumStatus
         {
             NoSourcerLocally = 1,
@@ -484,6 +490,18 @@ namespace MicroserviceExplorer
         public FileInfo GetServiceSolutionFilePath()
         {
             return !Directory.Exists(WebsiteFolder) ? null : WebsiteFolder.AsDirectory().Parent?.GetFiles("*.sln").FirstOrDefault();
+        }
+
+        StringBuilder logs = new StringBuilder(5,5);
+        public void LogMessage(string message, string desc = null)
+        {
+            Logwindow.LogMessage(message,desc);
+        }
+
+
+        public void ShowLogWindow()
+        {
+            Logwindow.Show();
         }
     }
 

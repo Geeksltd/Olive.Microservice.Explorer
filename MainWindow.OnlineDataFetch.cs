@@ -33,13 +33,12 @@ namespace MicroserviceExplorer
             string run()
             {
                 StatusProgressStart();
-                ShowStatusMessage("Start git fetch ...", tooltip: null, logMessage: false);
                 try
                 {
                     var fetchoutput = "git.exe".AsFile(searchEnvironmentPath: true)
                         .Execute("fetch", waitForExit: true, configuration: x => x.StartInfo.WorkingDirectory = projFOlder.FullName);
 
-                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(() => ShowStatusMessage($"git fetch completed ... ({service.Service})", fetchoutput)));
+                    service.LogMessage($"git fetch completed ... ({service.Service})");
 
                     return "git.exe".AsFile(searchEnvironmentPath: true)
                         .Execute("status", waitForExit: true, configuration: x => x.StartInfo.WorkingDirectory = projFOlder.FullName);
@@ -47,8 +46,7 @@ namespace MicroserviceExplorer
                 catch (Exception e)
                 {
                     StatusProgressStop();
-                    ShowStatusMessage("Error on git fetch ...", tooltip: null, logMessage: false);
-                    logWindow.LogMessage("Error on git command ...", e.Message);
+                    service.LogMessage("Error on git command ...", e.Message);
                     service.GitUpdateIsInProgress = false;
                     return null;
                 }
@@ -63,9 +61,6 @@ namespace MicroserviceExplorer
             if (status != null)
             {
                 service.GitUpdates = status.GitRemoteCommits.ToString();
-                ShowStatusMessage(
-                    $"getting git commit count completed ... ({service.Service}) with {status?.GitRemoteCommits ?? 0} commit(s) in {status?.Branch ?? "it's branch"}",
-                    output);
             }
             else
                 service.GitUpdates = null;
@@ -123,15 +118,15 @@ namespace MicroserviceExplorer
                 }
                 catch (Exception e)
                 {
-                    ShowStatusMessage("error on git pull ...", e.Message);
-                    StatusProgressStop();
+                    service.LogMessage("error on git pull ...", e.Message);
+                    //StatusProgressStop();
                     return e.Message;
                 }
 
             }
             var output = await Task.Run((Func<string>)run);
             if (output.HasValue())
-                ShowStatusMessage("git pull completed ...", output);
+                service.LogMessage("git pull completed.", output);
 
             CalculateGitUpdates(service);
 
@@ -171,7 +166,6 @@ namespace MicroserviceExplorer
                 nugetInitworker.DoWork += OnNugetInitworkerOnDoWork;
                 nugetInitworker.RunWorkerCompleted += OnNugetInitworkerOnRunWorkerCompleted;
 
-                logWindow.LogMessage($"*** > Nuget update Check Async Started ({service.Service} - {projEnum})");
                 nugetInitworker.RunWorkerAsync(new { service, projEnum });
             }
 
@@ -192,16 +186,13 @@ namespace MicroserviceExplorer
                 if (packageReferences == null) return;
                 try
                 {
-                    logWindow.LogMessage($"### > Begin Nuget Packages update check ... ({srv.Service} - {projEnum})");
+                    srv.LogMessage($"Check to nuget Packages updates  ... ({projEnum})");
                     foreach (var pkgref in packageReferences)
                     {
                         var latestPkgVersion = nugetPackageRepo.FindPackages(pkgref.Include, null, allowPrereleaseVersions: false, allowUnlisted: false).FirstOrDefault(package => package.IsLatestVersion);
                         if (latestPkgVersion != null)
                             pkgref.NewVersion = latestPkgVersion.Version.ToOriginalString();
                     }
-
-
-                    logWindow.LogMessage($"=== > End Nuget Packages update checking. ({srv.Service} - {projEnum})");
                 }
                 catch (Exception e)
                 {
@@ -224,7 +215,7 @@ namespace MicroserviceExplorer
             if (srv.NugetUpdateErrorMessage.HasValue())
             {
                 srv.NugetStatusImage = "Warning";
-                logWindow.LogMessage($"!!! > Nuget update checking has been finished with no result ... ({srv.Service} - {projEnum}) ", srv.NugetUpdateErrorMessage);
+                srv.LogMessage($"Nuget update checking has been finished with no result for [{projEnum}] project. ", srv.NugetUpdateErrorMessage);
                 srv.NugetUpdateErrorMessage = null;
                 return;
             }
@@ -235,11 +226,11 @@ namespace MicroserviceExplorer
                         if (nugetRef.IsLatestVersion)
                         {
                             if (srv.AddNugetUpdatesList(projectRef.Key, nugetRef.Include, nugetRef.Version, nugetRef.NewVersion))
-                                logWindow.LogMessage($"\t > Package '{nugetRef.Include}' updated, from version [{nugetRef.Version}] to [{nugetRef.NewVersion}] in ({srv.Service} - {projEnum}) project.");
+                                srv.LogMessage($"\t > Package '{nugetRef.Include}' updated, from version [{nugetRef.Version}] to [{nugetRef.NewVersion}] in [{projEnum}] project.");
                         }
 
             srv.NugetStatusImage = null;
-            logWindow.LogMessage($"@@@ > Nuget update Completed ({srv.Service} - {projEnum})");
+            srv.LogMessage($"Nuget update Completed for the [{projEnum}] project.");
             var worker = (BackgroundWorker)sender;
             worker.Dispose();
         }
@@ -281,7 +272,7 @@ namespace MicroserviceExplorer
 
             lock (_lock)
             {
-                logWindow.LogMessage($"&&& > nuget update package started ... [{service.Service} -> {projEnum} -> {packageName}] {fromVersion} to {version}", $"Command : \n {projFolder}>dotnet.exe add package {packageName} -v {version}");
+                service.LogMessage($"&&& > nuget update package started ... [{service.Service} -> {projEnum} -> {packageName}] {fromVersion} to {version}", $"Command : \n {projFolder}>dotnet.exe add package {packageName} -v {version}");
 
                 string response;
                 try
@@ -293,12 +284,12 @@ namespace MicroserviceExplorer
                 }
                 catch (Exception e)
                 {
-                    logWindow.LogMessage($"!!!!!! > nuget update error on [{service.Service} -> {projEnum} -> {packageName} ({fromVersion} to {version})] :",
+                    service.LogMessage($"!!!!!! > nuget update error on [{service.Service} -> {projEnum} -> {packageName} ({fromVersion} to {version})] :",
                         e.Message);
                     return false;
                 }
 
-                logWindow.LogMessage(
+                service.LogMessage(
                     $"nuget package update completed, [{service.Service} -> {projEnum} -> {packageName}] with result :",
                     response);
             }

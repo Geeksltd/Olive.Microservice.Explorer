@@ -25,12 +25,13 @@ namespace MicroserviceExplorer
         public static readonly DependencyProperty TextLogProperty =
             DependencyProperty.Register("TextLog", typeof(string), typeof(Window) /*, new PropertyMetadata(false) */);
 
-        readonly int stringLineLength = 30;
+        private MicroserviceItem _servic;
 
         public LogWindow()
         {
             InitializeComponent();
-            TextLog = "Logger Started ...\n";
+            if(Servic != null)
+                SaveLogMenuItem.Header = $"Save to {Servic.Service}_Log.txt";
         }
 
         void LogWindow_OnClosing(object sender, CancelEventArgs e)
@@ -52,6 +53,17 @@ namespace MicroserviceExplorer
                 txtLog.ScrollToVerticalOffset(offset);
             }
         }
+
+        public MicroserviceItem Servic
+        {
+            get { return _servic; }
+            set
+            {
+                _servic = value;
+                SaveLogMenuItem.Header = $"Save to {Servic.Service}_Log.txt";
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         void OnPropertyChanged(string name)
@@ -63,11 +75,9 @@ namespace MicroserviceExplorer
         {
             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MainWindow.MyDelegate(() =>
             {
-                TextLog += $"{LocalTime.Now.ToLongTimeString()}  \t{message}{Environment.NewLine}";
+                TextLog += $"-{LocalTime.Now.ToLongTimeString()}: \t{message}{Environment.NewLine}";
                 if (description.HasValue())
                     TextLog += "decription : \t" + description?.Replace("\n", "\n\t\t") + Environment.NewLine;
-
-                TextLog += $"{new string('-', stringLineLength)}{Environment.NewLine}";
 
             }));
 
@@ -90,7 +100,8 @@ namespace MicroserviceExplorer
 
         void SaveLogMenuItem_OnClick(object sender, RoutedEventArgs e)
         {
-            File.WriteAllText("Log.txt",TextLog);
+            File.WriteAllText($"{Servic.Service}_Log_{LocalTime.Now.ToShortDateString().Replace('\\','-').Replace('/','-')}_{LocalTime.Now.ToShortTimeString().Replace(':','-')}.txt",TextLog);
+
         }
     }
 

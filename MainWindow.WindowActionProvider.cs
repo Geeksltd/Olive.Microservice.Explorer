@@ -13,7 +13,6 @@ namespace MicroserviceExplorer
         void ExitMenuItem_Click(object sender, EventArgs e)
         {
             exit = true;
-            logWindow.Close();
             Close();
             Application.Current.Shutdown(0);
         }
@@ -62,17 +61,17 @@ namespace MicroserviceExplorer
 
         }
 
-        void ShowStatusMessage(string message, string tooltip = null, bool logMessage = true)
-        {
-            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(() =>
-            {
-                txtStatusMessage.Text = message;
-                txtStatusMessage.ToolTip = tooltip;
-                if (logMessage)
-                    logWindow.LogMessage(message, tooltip);
-            }));
+        //void ShowStatusMessage(string message, string tooltip = null, MicroserviceItem service = null)
+        //{
+        //    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(() =>
+        //    {
+        //        txtStatusMessage.Text = message;
+        //        txtStatusMessage.ToolTip = tooltip;
 
-        }
+        //        service?.LogMessage(message, tooltip);
+        //    }));
+
+        //}
 
         void MainWindow_OnClosed(object sender, EventArgs e)
         {
@@ -84,7 +83,6 @@ namespace MicroserviceExplorer
         void MainWindow_OnClosing(object sender, CancelEventArgs e)
         {
             Visibility = Visibility.Hidden;
-            logWindow.Visibility = Visibility;
             e.Cancel = !exit;
         }
 

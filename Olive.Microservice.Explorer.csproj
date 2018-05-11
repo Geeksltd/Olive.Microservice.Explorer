@@ -125,9 +125,6 @@
     <Compile Include="MainWindow.MicroserviceGridActions.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MainWindow.LogWindow.cs">
-      <DependentUpon>MainWindow.xaml</DependentUpon>
-    </Compile>
     <Compile Include="MainWindow.WindowActionProvider.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
@@ -295,6 +292,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\git_progress.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\servicelog.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
