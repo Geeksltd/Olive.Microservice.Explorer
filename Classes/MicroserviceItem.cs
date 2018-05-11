@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -377,6 +378,33 @@ namespace MicroserviceExplorer
             Domain,
             Model,
             UI
+        }
+
+        public void Start()
+        {
+            //AutoRefreshTimer.Stop();
+            Status = EnumStatus.Pending;
+            var proc = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "dotnet",
+                    Arguments = "run --no-build --project " + WebsiteFolder,
+                    UseShellExecute = true,
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Minimized
+                    //RedirectStandardOutput = true
+                }
+            };
+
+            proc.Start();
+
+            //Console.Beep();
+
+            //var microserviceRunCheckingTimer = new DispatcherTimer { Tag = service };
+            //microserviceRunCheckingTimer.Tick += microserviceRunCheckingTimer_Tick;
+            //microserviceRunCheckingTimer.Interval = new TimeSpan(0, 0, 1);
+            //microserviceRunCheckingTimer.Start();
         }
 
         public void Stop()

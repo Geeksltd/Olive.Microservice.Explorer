@@ -5,8 +5,10 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms;
 using System.Windows.Input;
 using MicroserviceExplorer.Utils;
+using MessageBox = System.Windows.Forms.MessageBox;
 
 namespace MicroserviceExplorer
 {
@@ -22,79 +24,30 @@ namespace MicroserviceExplorer
             //var serviceName = element.Tag.ToString();
             return element.Tag as MicroserviceItem;//MicroserviceGridItems.Single(s => s.Service == serviceName);
         }
-
-        void MakeChromeContextMenu(object sender, MicroserviceItem service)
+        void BrowsMicroservice(MicroserviceItem service)
         {
-            var cm = new ContextMenu();
-            if (int.TryParse(service.Port, out var port))
+            if (service.Status != MicroserviceItem.EnumStatus.Run)
             {
-                var webAddr = $"http://localhost:{port}";
-                var localMenuItem = new MenuItem { Header = $"Local\t  {webAddr}" };
-                localMenuItem.Click += BrowsItem_Click;
-                localMenuItem.Tag = service;
-                cm.Items.Add(localMenuItem);
-            }
-
-            var uatMenuItem = new MenuItem { Header = "UAT" };
-            if (service.UatUrl.HasValue())
-            {
-                uatMenuItem.Header += $"\t  {service.UatUrl}";
-                uatMenuItem.Tag = service;
-                uatMenuItem.Click += BrowsItem_Click;
-            }
-            else
-                uatMenuItem.IsEnabled = false;
-            cm.Items.Add(uatMenuItem);
-
-            //var liveMenuItem = new MenuItem { Header = "Live" };
-            //if (service.LiveUrl.HasValue())
-            //{
-            //    liveMenuItem.Header += $"\t  {service.LiveUrl}";
-            //    liveMenuItem.Tag = service;
-            //    liveMenuItem.Click += BrowsItem_Click;
-            //}
-            //else
-            //    liveMenuItem.IsEnabled = false;
-            //
-            //cm.Items.Add(liveMenuItem);
-
-            cm.PlacementTarget = (UIElement)sender;
-            cm.IsOpen = true;
-        }
-        void BrowsItem_Click(object sender, RoutedEventArgs e)
-        {
-            var menuitem = (MenuItem)sender;
-            menuitem.Click -= BrowsItem_Click;
-
-            BrowsMicroservice(menuitem);
-        }
-
-        void BrowsMicroservice(MenuItem menuitem)
-        {
-            var service = (MicroserviceItem)menuitem.Tag;
-            var address = menuitem.Header.ToString().Substring(menuitem.Header.ToString().IndexOf(" ", StringComparison.Ordinal) + 1);
-            if (address.Contains("localhost:") && service.Status != MicroserviceItem.EnumStatus.Run)
-            {
-                void OnServiceOnPropertyChanged(object obj, PropertyChangedEventArgs args)
+                var ans =MessageBox.Show("Service not started yet, Do you want to start service first ? ", "Start Service" , MessageBoxButtons.YesNoCancel);
+                switch (ans)
                 {
-                    if (args.PropertyName != nameof(service.Status) || service.Status != MicroserviceItem.EnumStatus.Run) return;
-                    service.PropertyChanged -= OnServiceOnPropertyChanged;
-                    Helper.Launch(address);
+                    case System.Windows.Forms.DialogResult.Cancel:
+                        return;
+                    case System.Windows.Forms.DialogResult.Yes:
+                        service.Start();
+                        return;                        
+                    default:
+                        break;
                 }
-
-                service.PropertyChanged += OnServiceOnPropertyChanged;
-                Start(service);
             }
-            else
-                Helper.Launch(address);
+                Helper.Launch($"http://localhost:{service.Port}");
         }
 
         void Chrome_OnClick(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
             var service = GetServiceByTag(sender);
-
-            MakeChromeContextMenu(sender, service);
+            BrowsMicroservice(service);
         }
 
         void FilterListBy(string txtSearchText)
