@@ -270,8 +270,6 @@ namespace MicroserviceExplorer
             if (projFolder.IsEmpty()) return false;
 
 
-            lock (_lock)
-            {
                 service.LogMessage($"&&& > nuget update package started ... [{service.Service} -> {projEnum} -> {packageName}] {fromVersion} to {version}", $"Command : \n {projFolder}>dotnet.exe add package {packageName} -v {version}");
 
                 string response;
@@ -292,7 +290,7 @@ namespace MicroserviceExplorer
                 service.LogMessage(
                     $"nuget package update completed, [{service.Service} -> {projEnum} -> {packageName}] with result :",
                     response);
-            }
+            
 
             return true;
         }

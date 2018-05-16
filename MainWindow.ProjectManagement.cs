@@ -25,7 +25,7 @@ namespace MicroserviceExplorer
 
         FileSystemWatcher Watcher;
 
-        async Task<bool> LoadFile(string filePath)
+        bool LoadFile(string filePath)
         {
             ServicesJsonFile = filePath.AsFile();
 
@@ -108,11 +108,11 @@ namespace MicroserviceExplorer
             return true;
         }
 
-        async Task<bool> RefreshFile(string filePath)
+        bool RefreshFile(string filePath)
         {
             var srvFile = filePath.AsFile();
             if (srvFile.LastWriteTime != ServicesJsonFileLastWriteTime)
-                return await LoadFile(filePath);
+                return LoadFile(filePath);
 
             foreach (var srv in ServiceData.ToArray())
             {

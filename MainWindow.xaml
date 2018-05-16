@@ -272,6 +272,9 @@
                                 <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="OpenExplorer_OnClick" Tag="{Binding}" Visibility="{Binding VisibleCode}" ToolTip="Brows Folder in Windows Explorer">
                                     <Image Source="Resources/folder2.png" Style="{StaticResource gridImage}"  Width="25"/>
                                 </Button>
+                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="BuildButton_OnPreviewMouseLeftButtonDown" Tag="{Binding}" Visibility="{Binding VisibleCode}" ToolTip="Build Microservice Project">
+                                    <Image Source="Resources/build.png" Style="{StaticResource gridImage}"  Width="25"/>
+                                </Button>
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

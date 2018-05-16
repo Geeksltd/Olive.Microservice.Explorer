@@ -17,7 +17,7 @@ using Process = System.Diagnostics.Process;
 namespace MicroserviceExplorer
 {
 
-    public partial class MainWindow : IDisposable
+    public sealed partial class MainWindow : IDisposable
     {
 
         #region Commands
@@ -114,7 +114,7 @@ namespace MicroserviceExplorer
 
                     backgroundWorker.RunWorkerAsync();
                 }
-                
+
 
 
 
@@ -171,7 +171,7 @@ namespace MicroserviceExplorer
         }
 
 
-        async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
+        void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
         {
             if (!File.Exists(RecentsXml))
             {
@@ -186,7 +186,7 @@ namespace MicroserviceExplorer
             //logWindow.Hide();
             while (_recentFiles.Any())
             {
-                if (await LoadFile(_recentFiles[_recentFiles.Count - 1]))
+                if (LoadFile(_recentFiles[_recentFiles.Count - 1]))
                     break;
             }
 
@@ -235,15 +235,15 @@ namespace MicroserviceExplorer
         //}
 
 
-        void OpenCode_OnClick(object sender, MouseButtonEventArgs e)
+        async void OpenCode_OnClick(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
             var service = GetServiceByTag(sender);
             var solutionFile = service.GetServiceSolutionFilePath();
-            service.OpenVs(solutionFile);
+            await service.OpenVs(solutionFile);
         }
 
-        async void OpenProject_Executed(object sender, ExecutedRoutedEventArgs e)
+        void OpenProject_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             using (var openFileDialog = new System.Windows.Forms.OpenFileDialog
             {
@@ -270,19 +270,19 @@ namespace MicroserviceExplorer
                     SaveRecentFilesXml();
                 }
 
-                await LoadFile(openFileDialog.FileName);
+                LoadFile(openFileDialog.FileName);
             }
         }
 
-        async Task Refresh()
+        void Refresh()
         {
             AutoRefreshProcessTimer.Stop();
             AutoRefreshTimer.Stop();
 
             if (ServicesJsonFile != null)
-                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(async () => await RefreshFile(ServicesJsonFile.FullName)));
-
-
+                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(() =>
+                RefreshFile(ServicesJsonFile.FullName))
+                );
         }
 
         void EditProject_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -298,7 +298,7 @@ namespace MicroserviceExplorer
 
         void RefreshMenuItem_OnClick(object sender, ExecutedRoutedEventArgs e)
         {
-            var refresh = Refresh();
+            Refresh();
         }
 
         void OpenExplorer_OnClick(object sender, MouseButtonEventArgs e)
@@ -438,11 +438,24 @@ namespace MicroserviceExplorer
             Watcher.Dispose();
         }
 
+        public void Dispose(bool finalize)
+        {
+            //Dispose();
+            GC.SuppressFinalize(this);
+        }
+
         private void ShowServiceLog_OnClick(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
             var service = GetServiceByTag(sender);
             service.ShowLogWindow();
+        }
+
+        void BuildButton_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            e.Handled = true;
+            var buildBtn = (Button) sender;
+            buildBtn.IsEnabled = false;
         }
     }
 }
