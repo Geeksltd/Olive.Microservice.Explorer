@@ -103,7 +103,7 @@ namespace MicroserviceExplorer
             if (Watcher == null)
                 StartFileSystemWatcher(ServicesJsonFile);
 
-            Refresh();
+            await Refresh();
 
             return true;
         }
@@ -184,7 +184,7 @@ namespace MicroserviceExplorer
         }
         public delegate void MyDelegate();
 
-        void Watcher_Changed(object sender, FileSystemEventArgs e)
+        async void Watcher_Changed(object sender, FileSystemEventArgs e)
         {
             if (!string.Equals(e.FullPath, ServicesJsonFile.FullName,
                 StringComparison.CurrentCultureIgnoreCase)) return;
@@ -198,7 +198,7 @@ namespace MicroserviceExplorer
                 case WatcherChangeTypes.Deleted:
                     break;
                 case WatcherChangeTypes.Changed:
-                    Refresh();
+                   await Refresh();
                     break;
                 case WatcherChangeTypes.Renamed:
                     break;
@@ -218,7 +218,7 @@ namespace MicroserviceExplorer
                 Owner = this,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 NugetList = service.NugetUpdatesList,
-                Title = service.Service + " Microservice Nuget Updates"
+                Title = service.Service + " Microservice Nuget Updates"                
             };
 
             var showDialog = nugetUpdatesWindow.ShowDialog();

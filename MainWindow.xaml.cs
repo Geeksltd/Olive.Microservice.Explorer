@@ -114,7 +114,7 @@ namespace MicroserviceExplorer
 
                     backgroundWorker.RunWorkerAsync();
                 }
-                
+
 
 
 
@@ -145,17 +145,21 @@ namespace MicroserviceExplorer
                     var worker = new BackgroundWorker();
                     worker.DoWork += (o, eventArgs) =>
                     {
-                        if (!service.GitUpdateIsInProgress)
-                        {
-                            service.GitUpdateIsInProgress = true;
-                            service.GitUpdates = CalculateGitUpdates(service).ToString();
-                        }
+
 
                         if (service.NugetUpdateIsInProgress) return;
 
                         service.NugetUpdateIsInProgress = true;
-                        foreach (MicroserviceItem.EnumProjects proj in Enum.GetValues(typeof(MicroserviceItem.EnumProjects)))
+                        foreach (MicroserviceItem.EnumProjects proj in Enum.GetValues(
+                            typeof(MicroserviceItem.EnumProjects)))
+                        {
                             FetchProjectNugetPackages(service, proj);
+                            if (!service.GitUpdateIsInProgress)
+                            {
+                                service.GitUpdateIsInProgress = true;
+                                CalculateGitUpdates(service);
+                            }
+                        }
                     };
 
                     worker.RunWorkerCompleted += (o, eventArgs) =>
@@ -280,7 +284,19 @@ namespace MicroserviceExplorer
             AutoRefreshTimer.Stop();
 
             if (ServicesJsonFile != null)
-                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(async () => await RefreshFile(ServicesJsonFile.FullName)));
+                await Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(async () =>
+                {
+                    try
+                    {
+                        await RefreshFile(ServicesJsonFile.FullName);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        throw;
+                    }
+                })
+                );
 
 
         }

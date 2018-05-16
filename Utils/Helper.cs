@@ -14,11 +14,9 @@ namespace MicroserviceExplorer.Utils
 {
     public class Helper
     {
-        readonly object LockObj = new  object();
         public IEnumerable<DTE2> GetVsInstances()
         {
-            lock (LockObj)
-            {
+
                 var vsList = new List<DTE2>();
 
                 var retVal = NativeMethods.GetRunningObjectTable(0, out var rot);
@@ -43,7 +41,6 @@ namespace MicroserviceExplorer.Utils
                 }
 
                 return vsList;
-            }
         }
 
         public static void Launch(string url)

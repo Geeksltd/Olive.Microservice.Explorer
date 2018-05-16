@@ -21,18 +21,21 @@ namespace MicroserviceExplorer
             public int LocalCommits { get; set; }
         }
 
-        int CalculateGitUpdates(MicroserviceItem service)
+        void CalculateGitUpdates(MicroserviceItem service)
         {
-            if (service.WebsiteFolder.IsEmpty()) return 0;
+            if (service.WebsiteFolder.IsEmpty()) return;
 
+            var gitFetch = new BackgroundWorker();
 
-            var projFOlder = service.WebsiteFolder.AsDirectory().Parent;
-            if (projFOlder == null || !Directory.Exists(Path.Combine(projFOlder.FullName, ".git")))
-                return 0;
-
-            string run()
+            gitFetch.DoWork += (sender, doWorkEventArgs) =>
             {
-                StatusProgressStart();
+                var projFOlder = service.WebsiteFolder.AsDirectory().Parent;
+                if (projFOlder == null || !Directory.Exists(Path.Combine(projFOlder.FullName, ".git")))
+                {
+                    doWorkEventArgs.Result = 0;
+                    return;
+                }
+                service.GitUpdates = "0";
                 try
                 {
                     var fetchoutput = "git.exe".AsFile(searchEnvironmentPath: true)
@@ -40,36 +43,26 @@ namespace MicroserviceExplorer
 
                     service.LogMessage($"git fetch completed ... ({service.Service})");
 
-                    return "git.exe".AsFile(searchEnvironmentPath: true)
+                    var output = "git.exe".AsFile(searchEnvironmentPath: true)
                         .Execute("status", waitForExit: true, configuration: x => x.StartInfo.WorkingDirectory = projFOlder.FullName);
+
+                    var status = ReadGitInfo(output);
+                    if (status != null && status.GitRemoteCommits > 0)
+                        service.LogMessage($"There are {status.GitRemoteCommits} git commit(s) available to update .");
+
+                    service.GitUpdates = status?.GitRemoteCommits.ToString();
+                    
                 }
                 catch (Exception e)
                 {
-                    StatusProgressStop();
                     service.LogMessage("Error on git command ...", e.Message);
-                    service.GitUpdateIsInProgress = false;
-                    return null;
                 }
-            }
+                service.GitUpdateIsInProgress = false;
+            };
 
-            service.GitUpdateIsInProgress = true;
-            var output = Task.Run((Func<string>)run).Result;
-            service.GitUpdateIsInProgress = false;
-
-            var status = ReadGitInfo(output);
-
-            if (status != null)
-            {
-                service.GitUpdates = status.GitRemoteCommits.ToString();
-            }
-            else
-                service.GitUpdates = null;
-
-
-            StatusProgressStop();
-
-            return status?.GitRemoteCommits ?? 0;
+            gitFetch.RunWorkerAsync(service);
         }
+
 
         GitStatus ReadGitInfo(string input)
         {
@@ -161,13 +154,13 @@ namespace MicroserviceExplorer
                         }).ToList();
                 }
 
-            using (var nugetInitworker = new BackgroundWorker())
-            {
-                nugetInitworker.DoWork += OnNugetInitworkerOnDoWork;
-                nugetInitworker.RunWorkerCompleted += OnNugetInitworkerOnRunWorkerCompleted;
+            var nugetInitworker = new BackgroundWorker();
 
-                nugetInitworker.RunWorkerAsync(new { service, projEnum });
-            }
+            nugetInitworker.DoWork += OnNugetInitworkerOnDoWork;
+            nugetInitworker.RunWorkerCompleted += OnNugetInitworkerOnRunWorkerCompleted;
+
+            nugetInitworker.RunWorkerAsync(new { service, projEnum });
+
 
         }
 
@@ -180,26 +173,24 @@ namespace MicroserviceExplorer
             var projEnum = (MicroserviceItem.EnumProjects)arg.projEnum;
             srv.NugetFetchTasks++;
             //srv.NugetStatusImage = "Pending";
-            lock (_lock)
+
+            var packageReferences = srv.Projects[projEnum]?.PackageReferences;
+            if (packageReferences == null) return;
+            try
             {
-                var packageReferences = srv.Projects[projEnum]?.PackageReferences;
-                if (packageReferences == null) return;
-                try
+                srv.LogMessage($"Check for nuget packages updates in [{projEnum}] project started.");
+                foreach (var pkgref in packageReferences)
                 {
-                    srv.LogMessage($"Check for nuget packages updates in [{projEnum}] project started.");
-                    foreach (var pkgref in packageReferences)
-                    {
-                        var latestPkgVersion = nugetPackageRepo.FindPackages(pkgref.Include, null, allowPrereleaseVersions: false, allowUnlisted: false).FirstOrDefault(package => package.IsLatestVersion);
-                        if (latestPkgVersion != null)
-                            pkgref.NewVersion = latestPkgVersion.Version.ToOriginalString();
-                    }
+                    var latestPkgVersion = nugetPackageRepo.FindPackages(pkgref.Include, null, allowPrereleaseVersions: false, allowUnlisted: false).FirstOrDefault(package => package.IsLatestVersion);
+                    if (latestPkgVersion != null)
+                        pkgref.NewVersion = latestPkgVersion.Version.ToOriginalString();
                 }
-                catch (Exception e)
-                {
-                    srv.NugetUpdateErrorMessage = e.Message;
-                    args.Result = new { service = srv, projEnum };
-                    return;
-                }
+            }
+            catch (Exception e)
+            {
+                srv.NugetUpdateErrorMessage = e.Message;
+                args.Result = new { service = srv, projEnum };
+                return;
             }
             args.Result = new { service = srv, projEnum };
         }
@@ -263,36 +254,32 @@ namespace MicroserviceExplorer
             }
         }
 
-        readonly object _lock = new object();
         bool UpdateNugetPackages(MicroserviceItem service, MicroserviceItem.EnumProjects projEnum, string packageName, string version, string fromVersion)
         {
             var projFolder = service.GetAbsoluteProjFolder(projEnum);
             if (projFolder.IsEmpty()) return false;
 
+            service.LogMessage($"&&& > nuget update package started ... [{service.Service} -> {projEnum} -> {packageName}] {fromVersion} to {version}", $"Command : \n {projFolder}>dotnet.exe add package {packageName} -v {version}");
 
-            lock (_lock)
+            string response;
+            try
             {
-                service.LogMessage($"&&& > nuget update package started ... [{service.Service} -> {projEnum} -> {packageName}] {fromVersion} to {version}", $"Command : \n {projFolder}>dotnet.exe add package {packageName} -v {version}");
+                response = "dotnet.exe".AsFile(searchEnvironmentPath: true)
+                    .Execute($"add package {packageName} -v {version}", waitForExit: true,
+                        configuration: x => x.StartInfo.WorkingDirectory = projFolder);
 
-                string response;
-                try
-                {
-                    response = "dotnet.exe".AsFile(searchEnvironmentPath: true)
-                        .Execute($"add package {packageName} -v {version}", waitForExit: true,
-                            configuration: x => x.StartInfo.WorkingDirectory = projFolder);
-
-                }
-                catch (Exception e)
-                {
-                    service.LogMessage($"!!!!!! > nuget update error on [{service.Service} -> {projEnum} -> {packageName} ({fromVersion} to {version})] :",
-                        e.Message);
-                    return false;
-                }
-
-                service.LogMessage(
-                    $"nuget package update completed, [{service.Service} -> {projEnum} -> {packageName}] with result :",
-                    response);
             }
+            catch (Exception e)
+            {
+                service.LogMessage($"!!!!!! > nuget update error on [{service.Service} -> {projEnum} -> {packageName} ({fromVersion} to {version})] :",
+                    e.Message);
+                return false;
+            }
+
+            service.LogMessage(
+                $"nuget package update completed, [{service.Service} -> {projEnum} -> {packageName}] with result :",
+                response);
+
 
             return true;
         }
