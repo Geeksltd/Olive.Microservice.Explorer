@@ -65,13 +65,30 @@ namespace MicroserviceExplorer
             Run = 3,
             Pending = 4
         }
+
+        private bool FirstStatus = true;
         EnumStatus _status;
         public EnumStatus Status
         {
             get => _status;
             set
             {
+                if (value != _status)
+                    switch (value)
+                    {
+                        case EnumStatus.Run:
+                            Logwindow.LogMessage("Service Started.");
+                            break;
+                        case EnumStatus.Stop:
+                            if (FirstStatus)
+                                FirstStatus = false;
+                            else
+                                Logwindow.LogMessage("Service Stoped.");
+                            break;
+                    }
+
                 _status = value;
+
                 OnPropertyChanged(nameof(Status));
                 OnPropertyChanged(nameof(RunImage));
                 OnPropertyChanged(nameof(RunImageOpacity));
@@ -297,21 +314,20 @@ namespace MicroserviceExplorer
 
         public bool AddNugetUpdatesList(EnumProjects project, string packageName, string oldVersion, string newVersion)
         {
-            lock (NugetUpdatesList)
-            {
-                var res = false;
-                var nugetRef = NugetUpdatesList.SingleOrDefault(nu => nu.Include == packageName);
-                if (nugetRef != null)
-                    NugetUpdatesList.Remove(nugetRef);
-                else
-                    res = true;
 
-                nugetRef = new MyNugetRef { Project = project, Include = packageName, Version = oldVersion, NewVersion = newVersion, IsLatestVersion = false };
-                NugetUpdatesList.Add(nugetRef);
+            var res = false;
+            var nugetRef = NugetUpdatesList.SingleOrDefault(nu => nu.Include == packageName);
+            if (nugetRef != null)
+                NugetUpdatesList.Remove(nugetRef);
+            else
+                res = true;
 
-                OnPropertyChanged(nameof(NugetUpdates));
-                return res;
-            }
+            nugetRef = new MyNugetRef { Project = project, Include = packageName, Version = oldVersion, NewVersion = newVersion, IsLatestVersion = false };
+            NugetUpdatesList.Add(nugetRef);
+
+            OnPropertyChanged(nameof(NugetUpdates));
+            return res;
+
         }
 
         public void DelNugetPAckageFromUpdatesList(EnumProjects project, string packageName)
@@ -423,6 +439,7 @@ namespace MicroserviceExplorer
 
         public void Stop()
         {
+
             Status = EnumStatus.Pending;
             try
             {

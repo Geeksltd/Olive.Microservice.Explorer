@@ -17,7 +17,7 @@ using Process = System.Diagnostics.Process;
 namespace MicroserviceExplorer
 {
 
-    public sealed partial class MainWindow : IDisposable
+    public partial class MainWindow : IDisposable
     {
 
         #region Commands
@@ -145,17 +145,21 @@ namespace MicroserviceExplorer
                     var worker = new BackgroundWorker();
                     worker.DoWork += (o, eventArgs) =>
                     {
-                        if (!service.GitUpdateIsInProgress)
-                        {
-                            service.GitUpdateIsInProgress = true;
-                            service.GitUpdates = CalculateGitUpdates(service).ToString();
-                        }
+
 
                         if (service.NugetUpdateIsInProgress) return;
 
                         service.NugetUpdateIsInProgress = true;
-                        foreach (MicroserviceItem.EnumProjects proj in Enum.GetValues(typeof(MicroserviceItem.EnumProjects)))
+                        foreach (MicroserviceItem.EnumProjects proj in Enum.GetValues(
+                            typeof(MicroserviceItem.EnumProjects)))
+                        {
                             FetchProjectNugetPackages(service, proj);
+                            if (!service.GitUpdateIsInProgress)
+                            {
+                                service.GitUpdateIsInProgress = true;
+                                CalculateGitUpdates(service);
+                            }
+                        }
                     };
 
                     worker.RunWorkerCompleted += (o, eventArgs) =>
@@ -171,7 +175,7 @@ namespace MicroserviceExplorer
         }
 
 
-        void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
+        async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
         {
             if (!File.Exists(RecentsXml))
             {
@@ -186,7 +190,7 @@ namespace MicroserviceExplorer
             //logWindow.Hide();
             while (_recentFiles.Any())
             {
-                if (LoadFile(_recentFiles[_recentFiles.Count - 1]))
+                if (await LoadFile(_recentFiles[_recentFiles.Count - 1]))
                     break;
             }
 
@@ -235,15 +239,15 @@ namespace MicroserviceExplorer
         //}
 
 
-        async void OpenCode_OnClick(object sender, MouseButtonEventArgs e)
+        void OpenCode_OnClick(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
             var service = GetServiceByTag(sender);
             var solutionFile = service.GetServiceSolutionFilePath();
-            await service.OpenVs(solutionFile);
+            service.OpenVs(solutionFile);
         }
 
-        void OpenProject_Executed(object sender, ExecutedRoutedEventArgs e)
+        async void OpenProject_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             using (var openFileDialog = new System.Windows.Forms.OpenFileDialog
             {
@@ -270,19 +274,31 @@ namespace MicroserviceExplorer
                     SaveRecentFilesXml();
                 }
 
-                LoadFile(openFileDialog.FileName);
+                await LoadFile(openFileDialog.FileName);
             }
         }
 
-        void Refresh()
+        async Task Refresh()
         {
             AutoRefreshProcessTimer.Stop();
             AutoRefreshTimer.Stop();
 
             if (ServicesJsonFile != null)
-                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(() =>
-                RefreshFile(ServicesJsonFile.FullName))
+                await Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(async () =>
+                {
+                    try
+                    {
+                        await RefreshFile(ServicesJsonFile.FullName);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        throw;
+                    }
+                })
                 );
+
+
         }
 
         void EditProject_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -298,7 +314,7 @@ namespace MicroserviceExplorer
 
         void RefreshMenuItem_OnClick(object sender, ExecutedRoutedEventArgs e)
         {
-            Refresh();
+            var refresh = Refresh();
         }
 
         void OpenExplorer_OnClick(object sender, MouseButtonEventArgs e)
@@ -438,24 +454,11 @@ namespace MicroserviceExplorer
             Watcher.Dispose();
         }
 
-        public void Dispose(bool finalize)
-        {
-            //Dispose();
-            GC.SuppressFinalize(this);
-        }
-
         private void ShowServiceLog_OnClick(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
             var service = GetServiceByTag(sender);
             service.ShowLogWindow();
-        }
-
-        void BuildButton_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            e.Handled = true;
-            var buildBtn = (Button) sender;
-            buildBtn.IsEnabled = false;
         }
     }
 }

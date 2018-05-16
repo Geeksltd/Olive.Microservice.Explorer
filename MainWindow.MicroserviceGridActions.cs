@@ -28,16 +28,22 @@ namespace MicroserviceExplorer
         {
             if (service.Status != MicroserviceItem.EnumStatus.Run)
             {
-                var ans =MessageBox.Show("Service not started yet, Do you want to start service first ? ", "Start Service" , MessageBoxButtons.YesNoCancel);
+                var ans =MessageBox.Show("Microservice not started, Do you want to start service first ?", "Start Service" , MessageBoxButtons.YesNoCancel);
                 switch (ans)
                 {
                     case System.Windows.Forms.DialogResult.Cancel:
                         return;
                     case System.Windows.Forms.DialogResult.Yes:
                         service.Start();
-                        return;                        
-                    default:
+                        return;
+                    case System.Windows.Forms.DialogResult.None:
+                    case System.Windows.Forms.DialogResult.OK:
+                    case System.Windows.Forms.DialogResult.Abort:
+                    case System.Windows.Forms.DialogResult.Retry:
+                    case System.Windows.Forms.DialogResult.Ignore:
+                    case System.Windows.Forms.DialogResult.No:
                         break;
+
                 }
             }
                 Helper.Launch($"http://localhost:{service.Port}");
