@@ -103,7 +103,7 @@ namespace MicroserviceExplorer
             if (Watcher == null)
                 StartFileSystemWatcher(ServicesJsonFile);
 
-            await Refresh();
+            Refresh();
 
             return true;
         }
@@ -184,7 +184,7 @@ namespace MicroserviceExplorer
         }
         public delegate void MyDelegate();
 
-        async void Watcher_Changed(object sender, FileSystemEventArgs e)
+        void Watcher_Changed(object sender, FileSystemEventArgs e)
         {
             if (!string.Equals(e.FullPath, ServicesJsonFile.FullName,
                 StringComparison.CurrentCultureIgnoreCase)) return;
@@ -198,7 +198,7 @@ namespace MicroserviceExplorer
                 case WatcherChangeTypes.Deleted:
                     break;
                 case WatcherChangeTypes.Changed:
-                   await Refresh();
+                   Refresh();
                     break;
                 case WatcherChangeTypes.Renamed:
                     break;
@@ -236,5 +236,10 @@ namespace MicroserviceExplorer
         }
 
 
+        void BuildButton_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            e.Handled = true;
+
+        }
     }
 }

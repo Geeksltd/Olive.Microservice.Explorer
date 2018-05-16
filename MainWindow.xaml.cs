@@ -175,7 +175,7 @@ namespace MicroserviceExplorer
         }
 
 
-        async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
+        void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
         {
             if (!File.Exists(RecentsXml))
             {
@@ -190,7 +190,7 @@ namespace MicroserviceExplorer
             //logWindow.Hide();
             while (_recentFiles.Any())
             {
-                if (await LoadFile(_recentFiles[_recentFiles.Count - 1]))
+                if (LoadFile(_recentFiles[_recentFiles.Count - 1]))
                     break;
             }
 
@@ -247,7 +247,7 @@ namespace MicroserviceExplorer
             service.OpenVs(solutionFile);
         }
 
-        async void OpenProject_Executed(object sender, ExecutedRoutedEventArgs e)
+        void OpenProject_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             using (var openFileDialog = new System.Windows.Forms.OpenFileDialog
             {
@@ -274,21 +274,21 @@ namespace MicroserviceExplorer
                     SaveRecentFilesXml();
                 }
 
-                await LoadFile(openFileDialog.FileName);
+                LoadFile(openFileDialog.FileName);
             }
         }
 
-        async Task Refresh()
+        void Refresh()
         {
             AutoRefreshProcessTimer.Stop();
             AutoRefreshTimer.Stop();
 
             if (ServicesJsonFile != null)
-                await Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(async () =>
+                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(() =>
                 {
                     try
                     {
-                        await RefreshFile(ServicesJsonFile.FullName);
+                        RefreshFile(ServicesJsonFile.FullName);
                     }
                     catch (Exception e)
                     {
@@ -314,7 +314,7 @@ namespace MicroserviceExplorer
 
         void RefreshMenuItem_OnClick(object sender, ExecutedRoutedEventArgs e)
         {
-            var refresh = Refresh();
+            Refresh();
         }
 
         void OpenExplorer_OnClick(object sender, MouseButtonEventArgs e)
