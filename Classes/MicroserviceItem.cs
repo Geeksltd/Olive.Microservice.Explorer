@@ -96,6 +96,7 @@ namespace MicroserviceExplorer
                 OnPropertyChanged(nameof(ServiceFontWeight));
                 OnPropertyChanged(nameof(ServiceTooltip));
                 OnPropertyChanged(nameof(VisibleDebug));
+                OnPropertyChanged(nameof(VsCodeIcon));
             }
         }
 
@@ -249,39 +250,29 @@ namespace MicroserviceExplorer
         {
             get
             {
+                string icon = null;
                 if (VsDTE != null)
-                    return VsDTE.Mode == vsIDEMode.vsIDEModeDebug
-                        ? "Resources/debug_stop.png"
-                        : "Resources/debug.png";
+                    try
+                    {
+                        icon = VsDTE.Mode == vsIDEMode.vsIDEModeDebug
+                            ? "Resources/debug_stop.png"
+                            : "Resources/debug.png";
+                    }
+                    catch (Exception e)
+                    {
+                        icon =  "Resources/debug.png";
+                    }
 
                 OnPropertyChanged(nameof(VisibleDebug));
-                return null;
+                return icon;
             }
         }
 
-        public string GitUpdates
-        {
-            get => _gitUpdates;
-            set
-            {
-                _gitUpdates = value;
-                if (_gitUpdates == "0")
-                    _gitUpdates = null;
 
-                OnPropertyChanged(nameof(GitUpdates));
-                OnPropertyChanged(nameof(GitUpdateImage));
-            }
-        }
-
-        public object GitUpdateImage => GitUpdates.HasValue() ? "Resources/git.png" : null;
-
-        public object GitStatusImage => GitUpdateIsInProgress ? "Resources/git_progress.gif" : null;
 
 
 
         public Visibility VisibleKestrel => ProcId <= 0 ? Visibility.Collapsed : Visibility.Visible;
-
-
 
         public int NugetUpdates => NugetUpdatesList.Count;
 
@@ -312,6 +303,7 @@ namespace MicroserviceExplorer
             return projFolder;
         }
 
+        // NUGET ----------------------------------------
         public bool AddNugetUpdatesList(EnumProjects project, string packageName, string oldVersion, string newVersion)
         {
 
@@ -355,6 +347,17 @@ namespace MicroserviceExplorer
             set => _nugetStatusImage = value;
         }
 
+        bool _nugetUpdateIsInProgress;
+        public bool NugetUpdateIsInProgress
+        {
+            get => _nugetUpdateIsInProgress;
+            set
+            {
+                _nugetUpdateIsInProgress = value;
+                OnPropertyChanged(nameof(NugetUpdateIsInProgress));
+                OnPropertyChanged(nameof(NugetFetchTasks));
+            }
+        }
 
         public int NugetFetchTasks
         {
@@ -366,41 +369,90 @@ namespace MicroserviceExplorer
                     NugetStatusImage = null;
                     value = 0;
                     NugetStatusImage = "Stop";
+                    BuildStatus = null;
                 }
                 else
+                {
                     NugetStatusImage = "Pending";
+                    BuildStatus = "off";
+                }
 
                 _nugetFetchTasks = value;
                 OnPropertyChanged(nameof(NugetFetchTasks));
                 OnPropertyChanged(nameof(NugetStatusImage));
                 OnPropertyChanged(nameof(NugetUpdateIsInProgress));
+
+                OnPropertyChanged(nameof(BuildStatus));
+                OnPropertyChanged(nameof(BuildIcon));
+            }
+        }
+        // NUGET ----------------------------------------
+
+        // BUILD ----------------------------------------
+        string _buildStatus;
+
+        public string BuildStatus
+        {
+            get { return _buildStatus; }
+            set
+            {
+                _buildStatus = value;
+                OnPropertyChanged(nameof(BuildIcon));
             }
         }
 
-        bool _gitUpdateIsInProgress;
+        public string BuildIcon
+        {
+            get
+            {
+                switch (BuildStatus?.ToLower())
+                {
+                    case "off":
+                        return "Resources/build_off.png";
+                    case "pending":
+                        return "Resources/build_pending.gif";
+                    default:
+                        return "Resources/build.png";
+                }
+            }
+        }
+        // BUILD ----------------------------------------
 
+        // GIT --------------------------------------------------------
+
+        public string GitUpdates
+        {
+            get => _gitUpdates;
+            set
+            {
+                _gitUpdates = value;
+                if (_gitUpdates == "0")
+                    _gitUpdates = null;
+
+                OnPropertyChanged(nameof(GitUpdates));
+                OnPropertyChanged(nameof(GitUpdateImage));
+            }
+        }
+
+        public object GitUpdateImage => GitUpdates.HasValue() ? "Resources/git.png" : null;
+
+        public object GitStatusImage => GitUpdateIsInProgress ? "Resources/git_progress.gif" : null;
+
+        bool _gitUpdateIsInProgress;
         public bool GitUpdateIsInProgress
         {
             get => _gitUpdateIsInProgress;
             set
             {
                 _gitUpdateIsInProgress = value;
+                if (_gitUpdateIsInProgress)
+                    BuildStatus = "off";
                 OnPropertyChanged(nameof(GitStatusImage));
             }
         }
 
-        bool _nugetUpdateIsInProgress;
+        // GIT --------------------------------------------------------
 
-        public bool NugetUpdateIsInProgress
-        {
-            get => _nugetUpdateIsInProgress;
-            set
-            {
-                _nugetUpdateIsInProgress = value;
-                OnPropertyChanged(nameof(NugetUpdateIsInProgress));
-                OnPropertyChanged(nameof(NugetFetchTasks));
-            }
-        }
 
         public enum EnumProjects
         {

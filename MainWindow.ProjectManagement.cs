@@ -239,7 +239,46 @@ namespace MicroserviceExplorer
         void BuildButton_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
+            var service = GetServiceByTag(sender);
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.DoWork += (sender1, e1) =>
+            {
+                service.BuildStatus = "Pending";
+                service.LogMessage($"{service.Service} Microservice build started ...");
+                foreach (MicroserviceItem.EnumProjects projEnum in Enum.GetValues(typeof(MicroserviceItem.EnumProjects)))
+                {
+                    var projFolder = service.GetAbsoluteProjFolder(projEnum);
+                    if (projFolder.IsEmpty()) return;
 
+
+                    try
+                    {
+                        var response = "dotnet.exe".AsFile(searchEnvironmentPath: true)
+                            .Execute($"build", waitForExit: true,
+                                configuration: x => x.StartInfo.WorkingDirectory = projFolder);
+
+                    }
+                    catch (Exception ex)
+                    {
+
+                        service.LogMessage($"Build error on [{projEnum} :", ex.Message);
+                        e1.Result = false;
+                        return;
+                    }
+                    e1.Result = true;
+                }
+            };
+            worker.RunWorkerCompleted += (o, args) =>
+            {
+                service.BuildStatus = null;
+                var result = (bool) args.Result;
+                if(result)
+                    service.LogMessage($"{service.Service} Microservice build finished successfully.");
+            };
+
+            worker.RunWorkerAsync();
+
+            
         }
     }
 }

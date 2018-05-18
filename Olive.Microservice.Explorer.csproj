@@ -299,5 +299,11 @@
   <ItemGroup>
     <Resource Include="Resources\build.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\build_pending.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\build_off.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

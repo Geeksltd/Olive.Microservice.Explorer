@@ -259,7 +259,7 @@ namespace MicroserviceExplorer
             var projFolder = service.GetAbsoluteProjFolder(projEnum);
             if (projFolder.IsEmpty()) return false;
 
-            service.LogMessage($"&&& > nuget update package started ... [{service.Service} -> {projEnum} -> {packageName}] {fromVersion} to {version}", $"Command : \n {projFolder}>dotnet.exe add package {packageName} -v {version}");
+            service.LogMessage($"nuget update package started ... [{projEnum} -> {packageName}] {fromVersion} to {version}", $"Command : \n {projFolder}>dotnet.exe add package {packageName} -v {version}");
 
             string response;
             try
@@ -271,13 +271,13 @@ namespace MicroserviceExplorer
             }
             catch (Exception e)
             {
-                service.LogMessage($"!!!!!! > nuget update error on [{service.Service} -> {projEnum} -> {packageName} ({fromVersion} to {version})] :",
+                service.LogMessage($"nuget update error on [{projEnum} -> {packageName} ({fromVersion} to {version})] :",
                     e.Message);
                 return false;
             }
 
             service.LogMessage(
-                $"nuget package update completed, [{service.Service} -> {projEnum} -> {packageName}] with result :",
+                $"nuget package update completed, [{projEnum} -> {packageName}] with result :",
                 response);
 
 

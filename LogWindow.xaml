@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MicroserviceExplorer"
-        mc:Ignorable="d" x:Name="window" ShowInTaskbar="False"
+        mc:Ignorable="d" x:Name="window" ShowInTaskbar="True"
         Title="LogWindow" Height="500" Width="600" Closing="LogWindow_OnClosing" >
     <Grid DataContext="{Binding ElementName=window, Path=.}">
         <Grid.RowDefinitions>
