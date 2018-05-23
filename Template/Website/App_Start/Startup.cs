@@ -39,8 +39,8 @@
 
         public override void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            base.Configure(app, env);
             if (env.IsDevelopment()) app.UseWebTest(config => config.AddTasks().AddClearApiCache());
+            base.Configure(app, env);
 
             app.ConfigureSwagger();
 
