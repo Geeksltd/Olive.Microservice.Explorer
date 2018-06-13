@@ -8,17 +8,14 @@
 
     public class Program
     {
-        public static void Main(string[] args) => BuildWebHost(args).Run();
+        public static void Main(string[] args) => CreateWebHostBuilder(args).Build().Run();
 
-        public static IWebHost BuildWebHost(string[] args)
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args)
         {
-            var builder = WebHost.CreateDefaultBuilder(args)
+            return WebHost.CreateDefaultBuilder(args)
                 .ConfigureLogging(ConfigureLogging)
+                .UseSetting("detailedErrors", "true").CaptureStartupErrors(true)
                 .UseStartup<Startup>();
-
-            builder.UseSetting("detailedErrors", "true").CaptureStartupErrors(true);
-
-            return builder.Build();
         }
 
         static void ConfigureLogging(WebHostBuilderContext context, ILoggingBuilder logging)

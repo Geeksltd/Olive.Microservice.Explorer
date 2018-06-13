@@ -1,15 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <RootNamespace>UI</RootNamespace>
     <OutputPath>..\lib\</OutputPath>
     <NoWarn>1701;1702;1705;NU1701</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MSharp" Version="4.1.221" />
-    <PackageReference Include="Olive" Version="1.0.87" />
+    <PackageReference Include="MSharp" Version="4.1.239" />
+    <PackageReference Include="Olive" Version="1.0.92" />
     <ProjectReference Include="..\..\Domain\Domain.csproj" />
   </ItemGroup>
 
