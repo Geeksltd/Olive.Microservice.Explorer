@@ -16,6 +16,9 @@
 
     public class Startup : Olive.Mvc.Startup
     {
+        IHostingEnvironment Environment;
+        public Startup(IHostingEnvironment env) => Environment = env;
+
         protected override CultureInfo GetRequestCulture() => new CultureInfo("en-GB");
 
         protected override void ConfigureApplicationCookie(CookieAuthenticationOptions options)
@@ -26,6 +29,8 @@
 
         public override void ConfigureServices(IServiceCollection services)
         {
+            if (Environment.IsProduction()) services.AddAwsIdentity();
+
             base.ConfigureServices(services);
             services.AddScheduledTasks();
             services.AddSwagger();
@@ -35,6 +40,14 @@
         {
             app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowCredentials().AllowAnyMethod());
             base.ConfigureSecurity(app, env);
+        }
+
+        protected override void ConfigureApplicationCookie(CookieAuthenticationOptions options)
+        {
+            base.ConfigureApplicationCookie(options);
+
+            if (Environment.IsProduction())
+                options.DataProtectionProvider = new Olive.Security.Aws.KmsDataProtectionProvider();
         }
 
         public override void Configure(IApplicationBuilder app, IHostingEnvironment env)
