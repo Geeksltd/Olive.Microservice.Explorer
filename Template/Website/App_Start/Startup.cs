@@ -21,10 +21,13 @@
 
         protected override CultureInfo GetRequestCulture() => new CultureInfo("en-GB");
 
-        protected override void ConfigureApplicationCookie(CookieAuthenticationOptions options)
+        protected override void ConfigureAuthCookie(CookieAuthenticationOptions options)
         {
-            base.ConfigureApplicationCookie(options);
-            options.DataProtectionProvider = new SymmetricKeyDataProtector("Auth");
+            base.ConfigureAuthCookie(options);
+
+            if (Environment.IsProduction())
+                options.DataProtectionProvider = new Olive.Security.Aws.KmsDataProtectionProvider();
+            else options.DataProtectionProvider = new SymmetricKeyDataProtector("Auth");
         }
 
         public override void ConfigureServices(IServiceCollection services)
@@ -40,14 +43,6 @@
         {
             app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowCredentials().AllowAnyMethod());
             base.ConfigureSecurity(app, env);
-        }
-
-        protected override void ConfigureApplicationCookie(CookieAuthenticationOptions options)
-        {
-            base.ConfigureApplicationCookie(options);
-
-            if (Environment.IsProduction())
-                options.DataProtectionProvider = new Olive.Security.Aws.KmsDataProtectionProvider();
         }
 
         public override void Configure(IApplicationBuilder app, IHostingEnvironment env)
