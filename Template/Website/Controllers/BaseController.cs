@@ -5,6 +5,8 @@ namespace Controllers
 {
     public class BaseController : Olive.Mvc.Controller
     {
+		ApiClient.FallBack.Handle(arg => Notify(arg.FriendlyMessage, false));
+		
         // Here you can add helper methods to all your controllers.
     }
 }
