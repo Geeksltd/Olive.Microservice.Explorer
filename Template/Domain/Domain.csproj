@@ -23,7 +23,7 @@
     <PackageReference Include="Olive.Integration" Version="1.0.7" />
     <PackageReference Include="Olive.Microservices" Version="1.0.33" />
     <PackageReference Include="Olive.Mvc.Security" Version="2.1.46" />
-    <PackageReference Include="Olive.Web" Version="2.1.42" />
+    <PackageReference Include="Olive.Web" Version="2.1.43" />
     <PackageReference Include="System.Data.SqlClient" Version="4.5.1" />
   </ItemGroup>
 </Project>

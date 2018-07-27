@@ -41,7 +41,7 @@
     <PackageReference Include="Olive.PDF" Version="1.0.16" />
     <PackageReference Include="Olive.Security.Aws" Version="2.1.36" />
     <PackageReference Include="Olive.Testing" Version="1.0.63" />
-    <PackageReference Include="Olive.Web" Version="2.1.42" />
+    <PackageReference Include="Olive.Web" Version="2.1.43" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="3.0.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.5.1" />
   </ItemGroup>
