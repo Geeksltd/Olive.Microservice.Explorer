@@ -17,6 +17,7 @@
     <None Remove="App_Data\**" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="GCop.UAT" Version="1.2.7" />
     <PackageReference Include="Hangfire" Version="1.6.20" />
     <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.2" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
