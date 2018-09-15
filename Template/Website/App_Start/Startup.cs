@@ -1,23 +1,23 @@
 ﻿namespace Website
 {
-    using System.Globalization;
     using Domain;
     using Microsoft.AspNetCore.Authentication.Cookies;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Olive;
-    using Olive.Security;
+    using Olive.Entities.Data;
     using Olive.Hangfire;
     using Olive.Mvc.Testing;
+    using Olive.Security;
     using System;
+    using System.Globalization;
     using System.Threading.Tasks;
-    using Olive.Entities.Data;
 
     public class Startup : Olive.Mvc.Startup
     {
-        IHostingEnvironment Environment;
-        public Startup(IHostingEnvironment env) => Environment = env;
+        public Startup(IHostingEnvironment env, IConfiguration config) : base(env, config) { }
 
         protected override CultureInfo GetRequestCulture() => new CultureInfo("en-GB");
 
@@ -39,16 +39,16 @@
             services.AddSwagger();
         }
 
-        protected override void ConfigureSecurity(IApplicationBuilder app, IHostingEnvironment env)
+        protected override void ConfigureSecurity(IApplicationBuilder app)
         {
             app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowCredentials().AllowAnyMethod());
-            base.ConfigureSecurity(app, env);
+            base.ConfigureSecurity(app);
         }
 
-        public override void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public override void Configure(IApplicationBuilder app)
         {
-            if (env.IsDevelopment()) app.UseWebTest(config => config.AddTasks().AddClearApiCache());
-            base.Configure(app, env);
+            if (Environment.IsDevelopment()) app.UseWebTest(config => config.AddTasks().AddClearApiCache());
+            base.Configure(app);
 
             app.ConfigureSwagger();
 
@@ -58,9 +58,9 @@
                 app.UseScheduledTasks(TaskManager.Run);
         }
 
-        public override async Task OnStartUpAsync(IApplicationBuilder app, IHostingEnvironment env)
+        public override async Task OnStartUpAsync(IApplicationBuilder app)
         {
-            if (env.IsDevelopment())
+            if (Environment.IsDevelopment())
                 await app.InitializeTempDatabase<SqlServerManager>(() => ReferenceData.Create());
 
             // Add any other initialization logic that needs the database to be ready here.
