@@ -33,7 +33,7 @@
     <PackageReference Include="Olive.Hangfire" Version="1.0.33" />
     <PackageReference Include="Olive.Integration" Version="1.0.7" />
     <PackageReference Include="Olive.Microservices" Version="1.0.33" />
-    <PackageReference Include="Olive.Mvc" Version="1.0.141" />
+    <PackageReference Include="Olive.Mvc" Version="1.0.142" />
     <PackageReference Include="Olive.Mvc.Security" Version="2.1.46" />
     <PackageReference Include="Olive.PDF" Version="1.0.16" />
     <PackageReference Include="Olive.Security.Aws" Version="2.1.36" />

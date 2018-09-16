@@ -1,19 +1,19 @@
 ﻿namespace Website
 {
-    using System.Globalization;
     using Domain;
     using Microsoft.AspNetCore.Authentication.Cookies;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Olive;
-    using Olive.Security;
+    using Olive.Entities.Data;
     using Olive.Hangfire;
     using Olive.Mvc.Testing;
+    using Olive.Security;
     using System;
+    using System.Globalization;
     using System.Threading.Tasks;
-    using Olive.Entities.Data;
-    using Microsoft.Extensions.Configuration;
 
     public class Startup : Olive.Mvc.Startup
     {
