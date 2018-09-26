@@ -1,20 +1,21 @@
 ﻿using Olive;
 using Olive.Entities;
 using Olive.Entities.Data;
-using System;
 using System.Threading.Tasks;
 
 namespace Domain
 {
-    public class ReferenceData
+    public class ReferenceData : IReferenceData
     {
-        static async Task<T> Create<T>(T item) where T : IEntity
+        IDatabase Database;
+        public ReferenceData(IDatabase database) => Database = database;
+        async Task<T> Create<T>(T item) where T : IEntity
         {
             await Context.Current.Database().Save(item, SaveBehaviour.BypassAll);
             return item;
         }
 
-        public static async Task Create()
+        public async Task Create()
         {
             // ...
         }
