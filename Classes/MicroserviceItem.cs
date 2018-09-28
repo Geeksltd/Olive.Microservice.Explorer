@@ -37,6 +37,7 @@ namespace MicroserviceExplorer
 
         public void RefreshPackages()
         {
+            References = new List<NugetReference>();
             foreach (var project in StandardProjects)
             {
                 var settings = project.GetProjectFile(SolutionFolder);
@@ -246,7 +247,6 @@ namespace MicroserviceExplorer
 
         DTE2 _vsDTE;
         string _gitUpdates;
-
 
         public DTE2 VsDTE
         {
