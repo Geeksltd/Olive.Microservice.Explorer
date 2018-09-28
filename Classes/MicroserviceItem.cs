@@ -1,4 +1,12 @@
-﻿using System;
+﻿using EnvDTE;
+using EnvDTE80;
+using MicroserviceExplorer.Annotations;
+using MicroserviceExplorer.Classes.Web;
+using MicroserviceExplorer.TCPIP;
+using MicroserviceExplorer.Utils;
+using NuGet;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -7,30 +15,39 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
-using EnvDTE;
-using EnvDTE80;
-using MicroserviceExplorer.Annotations;
-using MicroserviceExplorer.Classes.Web;
-using MicroserviceExplorer.TCPIP;
-using MicroserviceExplorer.Utils;
-using NuGet;
+using System.Xml.Serialization;
 using Process = System.Diagnostics.Process;
 using Thread = System.Threading.Thread;
-using System.Threading.Tasks;
 
 namespace MicroserviceExplorer
 {
+    public enum SolutionProject { Website, Domain, Model, UI }
+
     public sealed class MicroserviceItem : INotifyPropertyChanged
     {
-        public readonly Dictionary<EnumProjects, ProjectRef> Projects = new Dictionary<EnumProjects, ProjectRef>
+        public List<NugetReference> References = new List<NugetReference>();
+
+        public List<NugetReference> OldReferences => References.Except(x => x.IsUpToDate).ToList();
+
+        static IEnumerable<SolutionProject> StandardProjects
+           => Enum.GetValues(typeof(SolutionProject)).OfType<SolutionProject>();
+
+        public void RefreshPackages()
         {
-            { EnumProjects.Website , new ProjectRef()},
-            { EnumProjects.Domain , new ProjectRef()},
-            { EnumProjects.Model , new ProjectRef()},
-            { EnumProjects.UI , new ProjectRef()},
-        };
+            foreach (var project in StandardProjects)
+            {
+                var settings = project.GetProjectFile(SolutionFolder);
+                var refs = settings.ItemGroup.SelectMany(x => x.PackageReference.OrEmpty()).ToArray();
+                var nugetRefs = refs.Select(x => new NugetReference(x, this, project)).ToList();
+
+                References.AddRange(nugetRefs);
+            }
+
+            OnPropertyChanged(nameof(NugetUpdates));
+        }
 
         int _nugetFetchTasks;
         readonly double runImageOpacity = .2;
@@ -260,7 +277,7 @@ namespace MicroserviceExplorer
                     }
                     catch (Exception e)
                     {
-                        icon =  "Resources/debug.png";
+                        icon = "Resources/debug.png";
                     }
 
                 OnPropertyChanged(nameof(VisibleDebug));
@@ -268,32 +285,34 @@ namespace MicroserviceExplorer
             }
         }
 
-
-
-
+        internal async Task UpdateSelectedPackages()
+        {
+            var toUpdate = References.Where(x => x.ShouldUpdate);
+            await Task.WhenAll(toUpdate.Select(x => Task.Run(() => x.Update())));
+            OnPropertyChanged(nameof(NugetUpdates));
+        }
 
         public Visibility VisibleKestrel => ProcId <= 0 ? Visibility.Collapsed : Visibility.Visible;
 
-        public int NugetUpdates => NugetUpdatesList.Count;
+        public int NugetUpdates => OldReferences.Count();
 
         public string NugetUpdateErrorMessage { get; set; }
-        public ObservableCollection<MyNugetRef> NugetUpdatesList { get; } = new ObservableCollection<MyNugetRef>();
 
-        public string GetAbsoluteProjFolder(EnumProjects projEnum)
+        public string GetAbsoluteProjFolder(SolutionProject projEnum)
         {
             string projFolder;
             switch (projEnum)
             {
-                case EnumProjects.Website:
+                case SolutionProject.Website:
                     projFolder = WebsiteFolder;
                     break;
-                case EnumProjects.Domain:
+                case SolutionProject.Domain:
                     projFolder = Path.Combine(SolutionFolder, "Domain");
                     break;
-                case EnumProjects.Model:
+                case SolutionProject.Model:
                     projFolder = Path.Combine(SolutionFolder, "M#", "Model");
                     break;
-                case EnumProjects.UI:
+                case SolutionProject.UI:
                     projFolder = Path.Combine(SolutionFolder, "M#", "UI");
                     break;
                 default:
@@ -301,31 +320,6 @@ namespace MicroserviceExplorer
                     break;
             }
             return projFolder;
-        }
-
-        // NUGET ----------------------------------------
-        public bool AddNugetUpdatesList(EnumProjects project, string packageName, string oldVersion, string newVersion)
-        {
-
-            var res = false;
-            var nugetRef = NugetUpdatesList.SingleOrDefault(nu => nu.Include == packageName);
-            if (nugetRef != null)
-                NugetUpdatesList.Remove(nugetRef);
-            else
-                res = true;
-
-            nugetRef = new MyNugetRef { Project = project, Include = packageName, Version = oldVersion, NewVersion = newVersion, IsLatestVersion = false };
-            NugetUpdatesList.Add(nugetRef);
-
-            OnPropertyChanged(nameof(NugetUpdates));
-            return res;
-
-        }
-
-        public void DelNugetPAckageFromUpdatesList(EnumProjects project, string packageName)
-        {
-            NugetUpdatesList.RemoveAll(x => x.Project == project && x.Include == packageName);
-            OnPropertyChanged(nameof(NugetUpdates));
         }
 
         string _nugetStatusImage;
@@ -454,13 +448,7 @@ namespace MicroserviceExplorer
         // GIT --------------------------------------------------------
 
 
-        public enum EnumProjects
-        {
-            Website,
-            Domain,
-            Model,
-            UI
-        }
+
 
         public void Start()
         {
@@ -553,7 +541,7 @@ namespace MicroserviceExplorer
         {
             try
             {
-                return new Helper().GetVsInstances().FirstOrDefault(dte2 => String.Equals(dte2.Solution.FullName,
+                return new Helper().GetVsInstances().FirstOrDefault(dte2 => string.Equals(dte2.Solution.FullName,
                     solutionFile.FullName, StringComparison.CurrentCultureIgnoreCase));
             }
             catch
@@ -584,41 +572,5 @@ namespace MicroserviceExplorer
         }
 
         public Visibility LogWindowVisibility => Logwindow.TextLog.IsEmpty() ? Visibility.Collapsed : Visibility.Visible;
-    }
-
-    public class ProjectRef
-    {
-        //public List<NugetRef> NugetRefs => new List<NugetRef>();
-        public List<NugetRef> PackageReferences { get; set; }
-    }
-
-    public class NugetRef : ProjectItemGroupPackageReference
-    {
-        string _newVersion;
-
-        public string NewVersion
-        {
-            get => _newVersion;
-            set
-            {
-                if (value.IsEmpty() || !int.TryParse(value.Remove("."), out _))
-                    return;
-
-                _newVersion = value;
-                if (_newVersion.HasValue() && Version.HasValue() &&
-                    new Version(_newVersion).CompareTo(new Version(Version)) > 0)
-                {
-                    IsLatestVersion = true;
-                }
-            }
-        }
-
-        public bool IsLatestVersion { get; set; }
-    }
-
-    public class MyNugetRef : NugetRef
-    {
-        public MicroserviceItem.EnumProjects Project { get; set; }
-        public bool Checked { get; set; }
     }
 }

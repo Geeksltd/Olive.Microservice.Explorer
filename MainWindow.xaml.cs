@@ -1,4 +1,7 @@
-﻿using System;
+﻿using EnvDTE;
+using MicroserviceExplorer.Utils;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -8,18 +11,14 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
-using EnvDTE;
-using MicroserviceExplorer.Utils;
 using MessageBox = System.Windows.Forms.MessageBox;
 using Process = System.Diagnostics.Process;
 
 
 namespace MicroserviceExplorer
 {
-
     public partial class MainWindow : IDisposable
     {
-
         #region Commands
 
         public static readonly RoutedCommand EditCommand = new RoutedUICommand("Edit", "EditCommand", typeof(MainWindow), new InputGestureCollection(new InputGesture[]
@@ -83,9 +82,7 @@ namespace MicroserviceExplorer
 
             AutoRefreshProcessTimer.Tick += OnAutoRefreshProcessTimerOnTick;
             AutoRefreshProcessTimer.Interval = new TimeSpan(0, 0, 2);
-
         }
-
 
         void RestartAutoRefreshProcess()
         {
@@ -133,47 +130,28 @@ namespace MicroserviceExplorer
         }
 
         bool AutoRefreshTimerInProgress;
-        void OnAutoRefreshTimerOnTick(object sender, EventArgs args)
+        async void OnAutoRefreshTimerOnTick(object sender, EventArgs args)
         {
-            if (AutoRefreshTimerInProgress)
-                return;
-            AutoRefreshTimerInProgress = true;
+            if (AutoRefreshTimerInProgress) return;
+            else AutoRefreshTimerInProgress = true;
 
-            foreach (var service in MicroserviceGridItems)
-                if (service.WebsiteFolder.HasValue())
-                {
-                    var worker = new BackgroundWorker();
-                    worker.DoWork += (o, eventArgs) =>
-                    {
+            var projects = MicroserviceGridItems.Where(x => x.WebsiteFolder.HasValue()).ToArray();
 
-
-                        if (service.NugetUpdateIsInProgress) return;
-
-                        service.NugetUpdateIsInProgress = true;
-                        foreach (MicroserviceItem.EnumProjects proj in Enum.GetValues(
-                            typeof(MicroserviceItem.EnumProjects)))
-                        {
-                            FetchProjectNugetPackages(service, proj);
-                            if (!service.GitUpdateIsInProgress)
-                            {
-                                service.GitUpdateIsInProgress = true;
-                                CalculateGitUpdates(service);
-                            }
-                        }
-                    };
-
-                    worker.RunWorkerCompleted += (o, eventArgs) =>
-                    {
-                        service.GitUpdateIsInProgress = false;
-                        service.NugetUpdateIsInProgress = false;
-                    };
-
-                    worker.RunWorkerAsync();
-                }
+            foreach (var p in projects)
+                await Task.Run(() => FetchUpdates(p));
 
             AutoRefreshTimerInProgress = false;
         }
 
+        static IEnumerable<SolutionProject> SolutionProjects
+            => Enum.GetValues(typeof(SolutionProject)).OfType<SolutionProject>();
+
+        async Task FetchUpdates(MicroserviceItem service)
+        {
+            var nugetTasks = Task.Run(() => service.RefreshPackages());
+            await CalculateGitUpdates(service);
+            await Task.WhenAll(nugetTasks);
+        }
 
         void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
         {
