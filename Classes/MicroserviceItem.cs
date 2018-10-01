@@ -287,7 +287,7 @@ namespace MicroserviceExplorer
 
         internal async Task UpdateSelectedPackages()
         {
-            var toUpdate = References.Where(x => x.ShouldUpdate);
+            var toUpdate = References.Where(x => x.ShouldUpdate && !x.IsUpToDate);
             await Task.WhenAll(toUpdate.Select(x => Task.Run(() => x.Update())));
             OnPropertyChanged(nameof(NugetUpdates));
         }

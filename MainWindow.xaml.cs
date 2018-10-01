@@ -432,11 +432,17 @@ namespace MicroserviceExplorer
             Watcher.Dispose();
         }
 
-        private void ShowServiceLog_OnClick(object sender, MouseButtonEventArgs e)
+        void ShowServiceLog_OnClick(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
             var service = GetServiceByTag(sender);
             service.ShowLogWindow();
+        }
+
+        async void UpdateAllNuget_Click(object sender, RoutedEventArgs e)
+        {
+            ServiceData.SelectMany(x => x.References).Do(x => x.ShouldUpdate = true);
+            await Task.WhenAll(ServiceData.Select(x => x.UpdateSelectedPackages()));
         }
     }
 }
