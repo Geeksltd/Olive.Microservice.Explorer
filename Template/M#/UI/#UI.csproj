@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <Target Name="Generate code" AfterTargets="AfterBuild">
-    <Exec Command="powershell start-process -FilePath &quot;dotnet&quot; -ArgumentList &quot;$(TargetDir)msharp.dsl.dll&quot;, &quot;/build,  &quot;/ui&quot;" />
+    <Exec Condition="'$(MSHARP_BUILD)' != 'FULL'"
+	      Command="powershell start-process -FilePath &quot;dotnet&quot; -ArgumentList &quot;$(TargetDir)msharp.dsl.dll&quot;, &quot;/build,  &quot;/ui&quot;" />
   </Target>
 </Project>
