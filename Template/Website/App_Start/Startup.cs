@@ -30,8 +30,6 @@
 
             if (Environment.IsProduction())
                 options.DataProtectionProvider = new Olive.Security.Aws.KmsDataProtectionProvider();
-            else options.DataProtectionProvider = new SymmetricKeyDataProtector("Auth");
-
         }
 
         public override void ConfigureServices(IServiceCollection services)
