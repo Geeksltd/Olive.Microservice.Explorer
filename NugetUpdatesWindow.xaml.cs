@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
@@ -16,9 +18,9 @@ namespace MicroserviceExplorer
     /// </summary>
     public partial class NugetUpdatesWindow : Window
     {
-        ObservableCollection<MyNugetRef> _nugetList;
+        List<NugetReference> _nugetList;
         readonly object _nugetCollectionLock = new object();
-        public ObservableCollection<MyNugetRef> NugetList
+        public List<NugetReference> NugetList
         {
             get => _nugetList;
             set
@@ -35,14 +37,14 @@ namespace MicroserviceExplorer
         }
 
 
-        
+
         void ToggleButton_OnChecked(object sender, RoutedEventArgs e)
         {
             var chk = (CheckBox)sender;
             var list = _nugetList.Distinct(dist => dist.Project).Select(itm => itm.Project.ToString()).ToList();
 
             var chkTitle = chk.DataContext.ToString();
-            var value = chk.IsChecked == null || !(bool) chk.IsChecked;
+            var value = chk.IsChecked == null || !(bool)chk.IsChecked;
             switch (chkTitle)
             {
                 case "All":
@@ -60,10 +62,10 @@ namespace MicroserviceExplorer
                     SetCheckBoxValue("All", value);
                     break;
                 default:
-                    _nugetList.Where(ng=>ng.Project.ToString() == chkTitle).Do(itm=>
-                    {
-                        itm.Checked = !(chk.IsChecked == null || !(bool) chk.IsChecked);
-                    });
+                    _nugetList.Where(ng => ng.Project.ToString() == chkTitle).Do(itm =>
+                      {
+                          itm.ShouldUpdate = !(chk.IsChecked == null || !(bool)chk.IsChecked);
+                      });
                     CollectionViewSource.GetDefaultView(_nugetList).Refresh();
                     break;
             }
@@ -111,7 +113,7 @@ namespace MicroserviceExplorer
 
         void BtnUpdate_OnClick(object sender, RoutedEventArgs e)
         {
-            if (_nugetList.None(itm => itm.Checked))
+            if (_nugetList.None(itm => itm.ShouldUpdate))
                 MessageBox.Show(@"There is not selected package to update ...", @"Please select an item atleast ");
             else
                 DialogResult = true;
@@ -119,38 +121,37 @@ namespace MicroserviceExplorer
 
         void OnPackageChecked_OnChecked(object sender, RoutedEventArgs e)
         {
-            var chk = (CheckBox) sender;
-            var nugetRef = (MyNugetRef)chk.Tag;
-            if (chk.IsChecked.HasValue )
-                nugetRef.Checked = chk.IsChecked.Value;
+            var chk = (CheckBox)sender;
+            var nugetRef = (NugetReference)chk.Tag;
+            if (chk.IsChecked.HasValue)
+                nugetRef.ShouldUpdate = chk.IsChecked.Value;
         }
 
         void UpdateAll_OnClick(object sender, RoutedEventArgs e)
         {
-            _nugetList.Do(itm=>itm.Checked = true);
+            _nugetList.Do(itm => itm.ShouldUpdate = true);
             DialogResult = true;
         }
     }
-
     public class ProjectTypeBackgroundColorConverter : IValueConverter
     {
         #region Implementation of IValueConverter
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var myNugetRef = (MyNugetRef)value;
+            var myNugetRef = (NugetReference)value;
             if (myNugetRef == null || typeof(Brush) != targetType)
                 return value;
 
             switch (myNugetRef.Project)
             {
-                case MicroserviceItem.EnumProjects.Website:
+                case SolutionProject.Website:
                     return new SolidColorBrush(Colors.Aquamarine);
-                case MicroserviceItem.EnumProjects.Domain:
+                case SolutionProject.Domain:
                     return new SolidColorBrush(Colors.Cornsilk);
-                case MicroserviceItem.EnumProjects.Model:
+                case SolutionProject.Model:
                     return new SolidColorBrush(Colors.GhostWhite);
-                case MicroserviceItem.EnumProjects.UI:
+                case SolutionProject.UI:
                     return new SolidColorBrush(Colors.PaleTurquoise);
                 default:
                     return new SolidColorBrush(Colors.White);
@@ -172,7 +173,7 @@ namespace MicroserviceExplorer
             if (!(value is IEnumerable values))
                 return null;
 
-            var myNugetRefs = values.Cast<MyNugetRef>().Distinct(dist => dist.Project).Select(itm => itm.Project.ToString()).ToList();
+            var myNugetRefs = values.Cast<NugetReference>().Distinct(dist => dist.Project).Select(itm => itm.Project.ToString()).ToList();
             myNugetRefs.Insert(0, "All");
             myNugetRefs.Add("None");
             return myNugetRefs;

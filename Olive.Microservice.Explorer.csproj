@@ -70,6 +70,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Classes\CsProjectSchema.cs" />
+    <Compile Include="Classes\Extensions.cs" />
+    <Compile Include="Classes\NugetReference.cs" />
     <Compile Include="Classes\WebprojecSchema.cs" />
     <Compile Include="Controls\WindowTitlebarControl.xaml.cs">
       <DependentUpon>WindowTitlebarControl.xaml</DependentUpon>

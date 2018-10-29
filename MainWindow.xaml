@@ -142,8 +142,8 @@
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
-            <MenuItem Header="Nuget">
-                <MenuItem Header="Update All"></MenuItem>
+            <MenuItem Header="Nuget" >
+                <MenuItem Header="Update All" Click="UpdateAllNuget_Click"></MenuItem>
                 <MenuItem Header="Auto Update" IsCheckable="True"></MenuItem>
             </MenuItem>
         </Menu>

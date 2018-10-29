@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NuGet;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -9,7 +10,6 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using System.Xml.Serialization;
-using NuGet;
 using MessageBox = System.Windows.Forms.MessageBox;
 
 namespace MicroserviceExplorer
@@ -198,7 +198,7 @@ namespace MicroserviceExplorer
                 case WatcherChangeTypes.Deleted:
                     break;
                 case WatcherChangeTypes.Changed:
-                   Refresh();
+                    Refresh();
                     break;
                 case WatcherChangeTypes.Renamed:
                     break;
@@ -209,7 +209,7 @@ namespace MicroserviceExplorer
             }
         }
 
-        void UIElement_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        async void UIElement_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             var service = GetServiceByTag(sender);
 
@@ -217,18 +217,15 @@ namespace MicroserviceExplorer
             {
                 Owner = this,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                NugetList = service.NugetUpdatesList,
-                Title = service.Service + " Microservice Nuget Updates"                
+                NugetList = service.OldReferences,
+                Title = service.Service + " Microservice Nuget Updates"
             };
 
             var showDialog = nugetUpdatesWindow.ShowDialog();
             switch (showDialog)
             {
                 case true:
-                    UpdateNugetPackages(service, nugetUpdatesWindow);
-
-                    break;
-                case null:
+                    await service.UpdateSelectedPackages();
                     break;
                 default:
                     break;
@@ -245,7 +242,7 @@ namespace MicroserviceExplorer
             {
                 service.BuildStatus = "Pending";
                 service.LogMessage($"{service.Service} Microservice build started ...");
-                foreach (MicroserviceItem.EnumProjects projEnum in Enum.GetValues(typeof(MicroserviceItem.EnumProjects)))
+                foreach (SolutionProject projEnum in Enum.GetValues(typeof(SolutionProject)))
                 {
                     var projFolder = service.GetAbsoluteProjFolder(projEnum);
                     if (projFolder.IsEmpty()) return;
@@ -271,14 +268,14 @@ namespace MicroserviceExplorer
             worker.RunWorkerCompleted += (o, args) =>
             {
                 service.BuildStatus = null;
-                var result = (bool) args.Result;
-                if(result)
+                var result = (bool)args.Result;
+                if (result)
                     service.LogMessage($"{service.Service} Microservice build finished successfully.");
             };
 
             worker.RunWorkerAsync();
 
-            
+
         }
     }
 }
