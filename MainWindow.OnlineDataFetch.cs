@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NuGet;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -7,8 +8,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Threading;
+using System.Xml.Linq;
 using System.Xml.Serialization;
-using NuGet;
 
 namespace MicroserviceExplorer
 {
@@ -51,7 +52,7 @@ namespace MicroserviceExplorer
                         service.LogMessage($"There are {status.GitRemoteCommits} git commit(s) available to update .");
 
                     service.GitUpdates = status?.GitRemoteCommits.ToString();
-                    
+
                 }
                 catch (Exception e)
                 {
@@ -136,10 +137,22 @@ namespace MicroserviceExplorer
             var projCsFile = ".csproj".GetFisrtFile(projFolder);
             if (projCsFile.IsEmpty()) return;
 
+            var xml = projCsFile.AsFile().ReadAllText()
+                .To<XDocument>().Root.RemoveNamespaces().ToString();
+
             var serializer = new XmlSerializer(typeof(Classes.Web.Project));
+
             Classes.Web.Project proj;
-            using (var fileStream = File.OpenRead(projCsFile))
-                proj = (Classes.Web.Project)serializer.Deserialize(fileStream);
+
+            try
+            {
+                proj = (Classes.Web.Project)serializer.Deserialize(new StringReader(xml));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(projCsFile + " was not deserialized" + ex.Message);
+                return;
+            }
 
             var nugetPackageSet = new Dictionary<string, string>();
 
