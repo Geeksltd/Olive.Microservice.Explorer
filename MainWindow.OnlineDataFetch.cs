@@ -1,14 +1,8 @@
 ﻿using NuGet;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Windows.Threading;
-using System.Xml.Serialization;
 
 namespace MicroserviceExplorer
 {
@@ -26,10 +20,7 @@ namespace MicroserviceExplorer
             if (service.WebsiteFolder.IsEmpty()) return;
 
             var projFOlder = service.WebsiteFolder.AsDirectory().Parent;
-            if (projFOlder == null || !Directory.Exists(Path.Combine(projFOlder.FullName, ".git")))
-            {
-                return;
-            }
+            if (projFOlder == null || !Directory.Exists(Path.Combine(projFOlder.FullName, ".git"))) return;
 
             service.GitUpdates = "0";
             try
@@ -47,7 +38,6 @@ namespace MicroserviceExplorer
                     service.LogMessage($"There are {status.GitRemoteCommits} git commit(s) available to update .");
 
                 service.GitUpdates = status?.GitRemoteCommits.ToString();
-
             }
             catch (Exception e)
             {
@@ -57,22 +47,20 @@ namespace MicroserviceExplorer
             service.GitUpdateIsInProgress = false;
         }
 
-
         GitStatus ReadGitInfo(string input)
         {
-            if (input.IsEmpty())
-                return null;
+            if (input.IsEmpty()) return null;
             var pattern = @"Your branch is behind '(?<branch>[a-zA-Z/]*)' by (?<remoteCommits>\d*) commit";
-            const RegexOptions options = RegexOptions.Multiline | RegexOptions.IgnoreCase;
+            const RegexOptions OPTIONS = RegexOptions.Multiline | RegexOptions.IgnoreCase;
 
-            var match = Regex.Match(input, pattern, options);
+            var match = Regex.Match(input, pattern, OPTIONS);
             var branch = match.Groups["branch"];
             var remoteCommits = match.Groups["remoteCommits"];
             if (match.Success)
                 return new GitStatus { Branch = branch.Value, GitRemoteCommits = remoteCommits.Value.To<int>() };
 
             pattern = @"Your branch and '(?<branch>[a-zA-Z/]*)' have diverged,\nand have (?<localCommits>\d*) and (?<remoteCommits>\d*) different commit";
-            match = Regex.Match(input, pattern, options);
+            match = Regex.Match(input, pattern, OPTIONS);
             branch = match.Groups["branch"];
             remoteCommits = match.Groups["remoteCommits"];
             var localCommits = match.Groups["localCommits"];
@@ -90,7 +78,6 @@ namespace MicroserviceExplorer
 
         async Task GitUpdate(MicroserviceItem service)
         {
-
             AutoRefreshTimer.Stop();
             var projFOlder = service.WebsiteFolder.AsDirectory().Parent;
             string run()
@@ -106,11 +93,11 @@ namespace MicroserviceExplorer
                 catch (Exception e)
                 {
                     service.LogMessage("error on git pull ...", e.Message);
-                    //StatusProgressStop();
+                    // StatusProgressStop();
                     return e.Message;
                 }
-
             }
+
             var output = await Task.Run((Func<string>)run);
             if (output.HasValue())
                 service.LogMessage("git pull completed.", output);
@@ -120,10 +107,5 @@ namespace MicroserviceExplorer
             StatusProgressStop();
             AutoRefreshTimer.Start();
         }
-
-
-     
-
-      
     }
 }
