@@ -1,0 +1,12 @@
+{
+  "name": "project",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "olive.mvc": "Geeksltd/Olive.MvcJs#0.9.152"
+  },
+  "engines": {
+    "yarn": ">= 1.0.0"
+  }
+}
