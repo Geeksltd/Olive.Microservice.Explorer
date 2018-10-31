@@ -5,6 +5,7 @@
     <MvcRazorCompileOnPublish>false</MvcRazorCompileOnPublish>
     <TypeScriptToolsVersion>2.6</TypeScriptToolsVersion>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <TieredCompilation>true</TieredCompilation>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <NoWarn>1701;1702;1705;1998;NU1701</NoWarn>
