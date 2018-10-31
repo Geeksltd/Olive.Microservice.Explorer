@@ -1,4 +1,2 @@
-﻿.MY.MICROSERVICE.NAME-Service {
-  /* any app specific custom styles */ }
-  .MY.MICROSERVICE.NAME-Service form .group-control {
-    flex: auto; }
+﻿/* Isolate the css code specific to each module in its own file, and include here */
+/* Common styles for the service, if any, goes here */

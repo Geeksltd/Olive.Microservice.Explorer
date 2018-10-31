@@ -1,8 +1,8 @@
-﻿
-.MY.MICROSERVICE.NAME-Service {
-    form {
-        .group-control { flex: auto; }
-    }
+﻿/* Isolate the css code specific to each module in its own file, and include here */
+@import "components/first-module";
+@import "components/second-module";
 
-    /* any app specific custom styles */
+/* Common styles for the service, if any, goes here */
+.MY.MICROSERVICE.NAME-Service {
+    
 }
