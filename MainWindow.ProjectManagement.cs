@@ -250,6 +250,7 @@ namespace MicroserviceExplorer
 
                     try
                     {
+                        service.BuildStatus = "Running";
                         var response = "dotnet.exe".AsFile(searchEnvironmentPath: true)
                             .Execute($"build", waitForExit: true,
                                 configuration: x => x.StartInfo.WorkingDirectory = projFolder);
@@ -257,7 +258,7 @@ namespace MicroserviceExplorer
                     }
                     catch (Exception ex)
                     {
-
+                        service.BuildStatus = "Failed";
                         service.LogMessage($"Build error on [{projEnum} :", ex.Message);
                         e1.Result = false;
                         return;
@@ -267,10 +268,12 @@ namespace MicroserviceExplorer
             };
             worker.RunWorkerCompleted += (o, args) =>
             {
-                service.BuildStatus = null;
+                service.BuildStatus = "Running";
                 var result = (bool)args.Result;
                 if (result)
                     service.LogMessage($"{service.Service} Microservice build finished successfully.");
+                else
+                    service.BuildStatus = "Failed";
             };
 
             worker.RunWorkerAsync();

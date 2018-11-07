@@ -307,5 +307,10 @@
   <ItemGroup>
     <Resource Include="Resources\build_off.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\build-stop.gif" />
+    <Resource Include="Resources\build.gif" />
+    <Resource Include="Resources\building.gif" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

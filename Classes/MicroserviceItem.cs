@@ -166,6 +166,24 @@ namespace MicroserviceExplorer
             }
         }
 
+        public string BuildTooltip
+        {
+            get
+            {
+                switch (BuildStatus)
+                {
+                    case "off":
+                        return "Building Microservice project has been stopped.";
+                    case "Running":
+                        return "Building Microservice project...";
+                    case "Failed":
+                        return "Building Microservice project has been failed.";
+                    default:
+                        return "Build Microservice Project";
+                }
+            }
+        }
+
         public string Port { get; set; }
 
         public string LiveUrl { get; set; }
@@ -182,6 +200,26 @@ namespace MicroserviceExplorer
                     case EnumStatus.Run:
                         return "Resources/pause.png";
                     case EnumStatus.Pending:
+                        return "Resources/gears.gif";
+                    default:
+                        return null;
+                }
+
+            }
+        }
+
+
+        public object BuildImage
+        {
+            get
+            {
+                switch (BuildStatus)
+                {
+                    case "off":
+                        return "Resources/run2.png";
+                    case "failed":
+                        return "Resources/pause.png";
+                    case "running":
                         return "Resources/gears.gif";
                     default:
                         return null;
@@ -392,6 +430,8 @@ namespace MicroserviceExplorer
             {
                 _buildStatus = value;
                 OnPropertyChanged(nameof(BuildIcon));
+                OnPropertyChanged(nameof(BuildTooltip));
+                OnPropertyChanged(nameof(BuildImage));
             }
         }
 
@@ -402,11 +442,15 @@ namespace MicroserviceExplorer
                 switch (BuildStatus?.ToLower())
                 {
                     case "off":
-                        return "Resources/build_off.png";
+                        return "Resources/build.gif";
                     case "pending":
-                        return "Resources/build_pending.gif";
+                        return "Resources/building.gif";
+                    case "running":
+                        return "Resources/building.gif";
+                    case "failed":
+                        return "Resources/build-stop.gif";
                     default:
-                        return "Resources/build.png";
+                        return "Resources/build.gif";
                 }
             }
         }
