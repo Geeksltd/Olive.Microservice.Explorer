@@ -42,7 +42,8 @@ namespace MicroserviceExplorer
             {
                 var settings = project.GetProjectFile(SolutionFolder);
                 var refs = settings.ItemGroup.SelectMany(x => x.PackageReference.OrEmpty()).ToArray();
-                var nugetRefs = refs.Select(x => new NugetReference(x, this, project)).ToList();
+                var nugetRefs = refs.Select(x => new NugetReference(x, this, project))
+                            .Except(x => x.Name.StartsWith("Microsoft.AspNetCore.")).ToList();
 
                 References.AddRange(nugetRefs);
             }
