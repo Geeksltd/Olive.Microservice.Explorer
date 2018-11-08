@@ -146,11 +146,23 @@ namespace MicroserviceExplorer
         static IEnumerable<SolutionProject> SolutionProjects
             => Enum.GetValues(typeof(SolutionProject)).OfType<SolutionProject>();
 
+        bool firstRun = true;
         async Task FetchUpdates(MicroserviceItem service)
         {
-            var nugetTasks = Task.Run(() => service.RefreshPackages());
-            await CalculateGitUpdates(service);
-            await Task.WhenAll(nugetTasks);
+            int waitTime = 0;
+            if (firstRun)
+            {
+                waitTime = 15;
+                firstRun = false;
+            }
+
+            await Task.Factory.StartNew(() => System.Threading.Thread.Sleep(waitTime * 1000))
+            .ContinueWith(async (t) =>
+            {
+                var nugetTasks = Task.Run(() => service.RefreshPackages());
+                await CalculateGitUpdates(service);
+                await Task.WhenAll(nugetTasks);
+            });
         }
 
         void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
