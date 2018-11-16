@@ -47,6 +47,7 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Web" />
@@ -80,11 +81,20 @@
     <Compile Include="LogWindow.xaml.cs">
       <DependentUpon>LogWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="MicroserviceGenerator\DBType.cs" />
+    <Compile Include="MicroserviceGenerator\Schema\CsprojSchema.cs" />
+    <Compile Include="NewMicroservice\NewMicroservice.xaml.cs">
+      <DependentUpon>NewMicroservice.xaml</DependentUpon>
+    </Compile>
     <Compile Include="NugetUpdatesWindow.xaml.cs">
       <DependentUpon>NugetUpdatesWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="TCPIP\ManagedIpHandlerApi.cs" />
     <Compile Include="TCPIP\PInvokeIPHelperAPI.cs" />
+    <Compile Include="UI\Loading.xaml.cs">
+      <DependentUpon>Loading.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Utils\FileStructure\ServiceJsonStruct.cs" />
     <Compile Include="Utils\MenuItemExtensions.cs" />
     <Compile Include="Utils\extentions.cs" />
     <Compile Include="Utils\ForegroundColorConverter.cs" />
@@ -94,6 +104,7 @@
     <Compile Include="Utils\NativeMethods.cs" />
     <Compile Include="Utils\NullVisibilityConverter.cs" />
     <Compile Include="Utils\ParentProcessUtilities.cs" />
+    <Compile Include="Utils\TinyJson\JSONParser.cs" />
     <Compile Include="Utils\WatermarkAdorner.cs" />
     <Compile Include="Utils\WatermarkService.cs" />
     <Compile Include="Utils\WindowApi.cs" />
@@ -133,7 +144,15 @@
     <Compile Include="MainWindow.RecentProvider.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
+    <Page Include="NewMicroservice\NewMicroservice.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="NugetUpdatesWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Loading.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -206,28 +225,28 @@
       <Version>8.0.2</Version>
     </PackageReference>
     <PackageReference Include="EnvDTE100">
-      <Version>10.0.2</Version>
+      <Version>10.0.3</Version>
     </PackageReference>
     <PackageReference Include="EnvDTE80">
-      <Version>8.0.2</Version>
+      <Version>8.0.3</Version>
     </PackageReference>
     <PackageReference Include="EnvDTE90">
-      <Version>9.0.2</Version>
+      <Version>9.0.3</Version>
     </PackageReference>
     <PackageReference Include="GCop.All.Geeks">
-      <Version>1.0.4</Version>
+      <Version>2.4.4</Version>
     </PackageReference>
     <PackageReference Include="ILMerge">
-      <Version>2.14.1208</Version>
+      <Version>3.0.18</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis">
-      <Version>2.7.0</Version>
+      <Version>2.9.0</Version>
     </PackageReference>
     <PackageReference Include="MSharp.Framework">
-      <Version>3.0.144</Version>
+      <Version>3.0.193</Version>
     </PackageReference>
     <PackageReference Include="NETStandard.Library">
-      <Version>2.0.2</Version>
+      <Version>2.0.3</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>11.0.2</Version>
@@ -239,7 +258,7 @@
       <Version>1.1.2</Version>
     </PackageReference>
     <PackageReference Include="WpfAnimatedGif">
-      <Version>1.4.15</Version>
+      <Version>1.4.17</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
@@ -311,6 +330,9 @@
     <Resource Include="Resources\build-stop.gif" />
     <Resource Include="Resources\build.gif" />
     <Resource Include="Resources\building.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Menu\Microservice.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

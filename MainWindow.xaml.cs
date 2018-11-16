@@ -6,14 +6,24 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using MicroserviceExplorer.Utils.TinyJson;
 using MessageBox = System.Windows.Forms.MessageBox;
 using Process = System.Diagnostics.Process;
-
+using System.IO.Compression;
+using System.Net.Http;
+using System.Threading;
+using System.Windows.Forms;
+using System.Xml;
+using System.Xml.Serialization;
+using MicroserviceExplorer.MicroserviceGenerator;
+using MicroserviceExplorer.UI;
+using MenuItem = System.Windows.Controls.MenuItem;
 
 namespace MicroserviceExplorer
 {
@@ -40,7 +50,10 @@ namespace MicroserviceExplorer
         {
             new KeyGesture(Key.Q, ModifierKeys.Control | ModifierKeys.Shift)
         }));
-
+        public static readonly RoutedCommand NewMicroserviceCommand = new RoutedUICommand("NewMicroservice", "NewMicroserviceCommand", typeof(MainWindow), new InputGestureCollection(new InputGesture[]
+        {
+            new KeyGesture(Key.M, ModifierKeys.Control | ModifierKeys.Shift)
+        }));
         public static readonly RoutedCommand RunAllCommand = new RoutedUICommand("RunAll", "RunAllCommand", typeof(MainWindow), new InputGestureCollection(new InputGesture[]
         {
             new KeyGesture(Key.L, ModifierKeys.Control )
@@ -170,7 +183,7 @@ namespace MicroserviceExplorer
             if (!File.Exists(RecentsXml))
             {
                 OpenProject_Executed(sender, null);
-                if (!ProjectLoaded)
+                if (!projectLoaded)
                     ExitMenuItem_Click(sender, e);
                 return;
             }
@@ -184,7 +197,7 @@ namespace MicroserviceExplorer
                     break;
             }
 
-            if (ProjectLoaded) return;
+            if (projectLoaded) return;
 
             File.Delete(RecentsXml);
             MainWindow_OnLoaded(sender, e);
@@ -243,11 +256,11 @@ namespace MicroserviceExplorer
             {
                 CheckFileExists = true,
                 CheckPathExists = true,
-                Filter = $@"Services JSON File |{Services_file_name}",
+                Filter = $@"Services JSON File |{SERVICES_FILE_NAME}",
                 RestoreDirectory = true,
                 Multiselect = false,
                 SupportMultiDottedExtensions = true,
-                Title = $@"Select {Services_file_name} file"
+                Title = $@"Select {SERVICES_FILE_NAME} file"
             })
             {
                 if (openFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
@@ -441,7 +454,7 @@ namespace MicroserviceExplorer
         public void Dispose()
         {
             notifyIcon.Dispose();
-            Watcher.Dispose();
+            watcher.Dispose();
         }
 
         void ShowServiceLog_OnClick(object sender, MouseButtonEventArgs e)
@@ -456,6 +469,364 @@ namespace MicroserviceExplorer
             ServiceData.SelectMany(x => x.References).Do(x => x.ShouldUpdate = true);
             await Task.WhenAll(ServiceData.Select(x => x.UpdateSelectedPackages()));
         }
+
+        private async void NewMicroservice_Click(object sender, ExecutedRoutedEventArgs e)
+        {
+            var msw = new NewMicroservice.NewMicroservice
+            {
+                WindowStartupLocation = WindowStartupLocation.CenterScreen
+            };
+
+            var dialog = msw.ShowDialog();
+            if (dialog != true) return;
+
+            if (!ServicesJsonFile.Exists || ServicesJsonFile.Directory == null) return;
+
+            var servicesAllText = File.ReadAllText(ServicesJsonFile.FullName);
+            var servicesJObject = Newtonsoft.Json.Linq.JObject.Parse(servicesAllText);
+
+            var serviceName = msw.ServiceName;
+            var solutionName = servicesJObject["Solution"]["ShortName"].ToString();
+            var domain = servicesJObject["Solution"]["Production"]["Domain"].ToString();
+            var portNumber = 1;
+            var dbType = new DBType();
+            var connectionString = "";
+
+            var serviceDirectoryPath = Path.Combine(ServicesJsonFile.Directory.FullName, serviceName);
+            var serviceDirectory = new DirectoryInfo(serviceDirectoryPath);
+
+            if (!serviceDirectory.Exists)
+                serviceDirectory.Create();
+
+
+
+            await CreateTemplateAsync(serviceDirectoryPath, serviceName, solutionName, domain, portNumber.ToString(),
+                dbType, connectionString);
+
+            try
+            {
+
+                Execute(serviceDirectoryPath, "git", "init");
+                Execute(serviceDirectoryPath, "git", $"remote add origin {msw.GitRepoUrl}");
+                Execute(serviceDirectoryPath, "git", "add .");
+                Execute(serviceDirectoryPath, "git", "commit -m \"Initial commit\"");
+                Execute(serviceDirectoryPath, "git", "push");
+            }
+            catch (Exception ex)
+            {
+
+
+            }
+        }
+
+        public string TemplateWebAddress => @"https://github.com/Geeksltd/Olive.Mvc.Microservice.Template/archive/master.zip";
+        const string ZIP_FILE_NAME = "master.zip";
+        const string TEMPLATE_FOLDER_NAME = "Template";
+
+
+        async System.Threading.Tasks.Task CreateTemplateAsync(string solutionFolder, string serviceName, string solutionName, string domain, string port, DBType selectedDbType, string connestionString)
+        {
+            // DownloadedFilesExtractPath = Path.Combine(solutionFolder, "tempExtract");
+            var downloadedFilesExtractPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(downloadedFilesExtractPath);
+            try
+            {
+                if (!await DownloadAsync(TemplateWebAddress, downloadedFilesExtractPath, ZIP_FILE_NAME)) return;
+
+                var zipFilePath = Path.Combine(downloadedFilesExtractPath, ZIP_FILE_NAME);
+                ZipFile.ExtractToDirectory(zipFilePath, downloadedFilesExtractPath);
+                File.Delete(zipFilePath);
+                Rename(downloadedFilesExtractPath, serviceName, solutionName, domain, port, selectedDbType, connestionString);
+
+                CopyFiles(solutionFolder, downloadedFilesExtractPath);
+
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message, @"Error in download or create new Microservice", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw;
+            }
+        }
+        void CopyFiles(string solutionFolder, string extractPathPath)
+        {
+            try
+            {
+                var template = Directory.GetDirectories(extractPathPath).FirstOrDefault();
+                if (template.IsEmpty()) return;
+                var templateDirectory = Directory.GetDirectories(template).FirstOrDefault();
+                var tempDIrObj = new DirectoryInfo(templateDirectory);
+                if (tempDIrObj.Name != TEMPLATE_FOLDER_NAME) return;
+                CopyFolderContents(templateDirectory, solutionFolder);
+                DeleteDirectory(extractPathPath);
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+        public static void DeleteDirectory(string path)
+        {
+            if (!Directory.Exists(path)) return;
+
+            // Delete all files from the Directory
+            foreach (var file in Directory.GetFiles(path))
+                File.Delete(file);
+
+            // Delete all child Directories
+            foreach (var directory in Directory.GetDirectories(path))
+                DeleteDirectory(directory);
+
+            // Delete a Directory
+            Directory.Delete(path);
+        }
+        public static bool CopyFolderContents(string sourcePath, string destinationPath)
+        {
+            sourcePath = sourcePath.EndsWith(@"\") ? sourcePath : sourcePath + @"\";
+            destinationPath = destinationPath.EndsWith(@"\") ? destinationPath : destinationPath + @"\";
+
+            try
+            {
+                if (Directory.Exists(sourcePath))
+                {
+                    if (Directory.Exists(destinationPath) == false)
+                        Directory.CreateDirectory(destinationPath);
+
+                    foreach (var files in Directory.GetFiles(sourcePath))
+                    {
+                        var fileInfo = files.AsFile();
+                        fileInfo.CopyTo($@"{destinationPath}\{fileInfo.Name}", overwrite: true);
+                    }
+
+                    foreach (var drs in Directory.GetDirectories(sourcePath))
+                    {
+                        var directoryInfo = new DirectoryInfo(drs);
+                        if (CopyFolderContents(drs, destinationPath + directoryInfo.Name) == false)
+                            return false;
+                    }
+                }
+
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+        protected void Rename(string downloadedFilesExtractPath, string serviceName, string solutionName, string domain, string port, DBType selectedDbType, string connestionString)
+        {
+            domain = domain.TrimStart('*').TrimStart('.');
+            var replacements = new Dictionary<string, string>
+            {
+                {"MY.MICROSERVICE.NAME", serviceName},
+                {"MY.SOLUTION",solutionName  },
+                {"my-solution-domain",domain },
+                {"9012", port }
+            };
+
+            foreach (var item in replacements)
+                RenameHelper(downloadedFilesExtractPath, item.Key, item.Value);
+
+            ApplyDbType(downloadedFilesExtractPath, selectedDbType, connestionString);
+            //SetRandomPortNumber(downloadedFilesExtractPath);
+        }
+
+        protected static void ApplyDbType(string destPath, DBType selectedDbType, string constr)
+        {
+            ChangeConnectionString(destPath, constr);
+
+            if (selectedDbType == DBType.SqlServer) return;
+
+            FixDomainCsProjectReference(destPath, selectedDbType);
+            FixSqlDialect(destPath, selectedDbType);
+            FixStartUp(destPath, selectedDbType);
+        }
+        static void FixSqlDialect(string destPath, DBType selectedDbType)
+        {
+            var file = Directory.GetFiles(destPath, "Project.cs", SearchOption.AllDirectories).FirstOrDefault(x => x.Contains("M#\\Model\\"));
+            if (file.IsEmpty()) throw new Exception("M#\\Model\\Project.cs was not found!");
+
+            //var file = Path.Combine(destPath, "Model", "Project.cs");
+
+            var text = File.ReadAllText(file);
+            var index = text.IndexOf("\n", text.IndexOf("Name(\"", StringComparison.Ordinal), StringComparison.Ordinal) + 1;
+            text = text.Insert(index, $"SqlDialect(MSharp.SqlDialect.{selectedDbType.Dialect});");
+
+            File.WriteAllText(file, text);
+        }
+
+        static void FixStartUp(string destPath, DBType selectedDbType)
+        {
+            var file = Directory.GetFiles(destPath, "StartUp.cs", SearchOption.AllDirectories).SingleOrDefault();
+            if (file.IsEmpty()) throw new Exception("StartUp.cs was not found!");
+
+            var text = File.ReadAllText(file).ReplaceWholeWord("SqlServerManager", selectedDbType.Manager);
+            File.WriteAllText(file, text);
+        }
+
+        static void FixDomainCsProjectReference(string destPath, DBType selectedDbType)
+        {
+            var domainFile = Directory.GetFiles(destPath, "Domain.csproj", SearchOption.AllDirectories).FirstOrDefault();
+            if (domainFile.IsEmpty()) return;
+
+            var serializer = new XmlSerializer(typeof(MicroserviceGenerator.Schema.Project));
+
+            MicroserviceGenerator.Schema.Project proj;
+            using (var fileStream = File.OpenRead(domainFile))
+                proj = (MicroserviceGenerator.Schema.Project)serializer.Deserialize(fileStream);
+
+            var sqlServerReference = proj.ItemGroup.Single(x => x.Include == "Olive.Entities.Data.SqlServer");
+            sqlServerReference.Include = "Olive.Entities.Data." + selectedDbType.Provider;
+            sqlServerReference.Version = selectedDbType.OliveVersion;
+
+            var newProjStruct = SerializeToString(proj);
+            File.WriteAllText(domainFile, newProjStruct);
+        }
+        public static string SerializeToString<T>(T value)
+        {
+            var emptyNamepsaces = new XmlSerializerNamespaces(new[] { XmlQualifiedName.Empty });
+            var serializer = new XmlSerializer(value.GetType());
+            var settings = new XmlWriterSettings
+            {
+                Indent = true,
+                OmitXmlDeclaration = true
+            };
+
+            using (var stream = new StringWriter())
+            using (var writer = XmlWriter.Create(stream, settings))
+            {
+                serializer.Serialize(writer, value, emptyNamepsaces);
+                return stream.ToString();
+            }
+        }
+
+        static void ChangeConnectionString(string destPath, string constr)
+        {
+            var jsonkey = @"""AppDatabase""";
+            var appsettings = Directory.GetFiles(destPath, "appsettings.json", SearchOption.AllDirectories).Single(f => f.AsFile().DirectoryName?.ToLower().EndsWith("\\website") == true);
+            var allLines = File.ReadAllLines(appsettings);
+            for (var index = 0; index < allLines.Length; index++)
+            {
+                var line = allLines[index];
+                if (line.Lacks(jsonkey)) continue;
+                var hasComma = line.Trim().EndsWith(",");
+
+                allLines[index] = $"\t{jsonkey}: \"{constr}\" {(hasComma ? "," : "")}";
+                break;
+            }
+
+            File.WriteAllLines(appsettings, allLines);
+        }
+        protected static void RenameHelper(string destPath, string templateKey, string templateValue)
+        {
+            foreach (var file in Directory.GetFiles(destPath, "*.*", SearchOption.AllDirectories))
+            {
+                var fileContent = File.ReadAllText(file);
+                if (fileContent.Contains(templateKey, caseSensitive: false))
+                {
+                    fileContent = fileContent.Replace(templateKey, templateValue);
+                    fileContent = fileContent.Replace(templateKey.ToLower(), templateValue.ToLowerOrEmpty());
+
+                    File.WriteAllText(file, fileContent);
+                }
+
+                var fileName = Path.GetFileName(file);
+                if (fileName.Contains(templateKey))
+                    File.Move(file, file.Replace(templateKey, templateValue));
+            }
+        }
+        public static async System.Threading.Tasks.Task<bool> DownloadAsync(string sourceWebAddress, string destPath, string fileName)
+        {
+            var destFullPath = Path.Combine(destPath, fileName);
+            try
+            {
+                Loading loadingWindow;
+                HttpResponseMessage response;
+                using (var cancellationTokenSource = new CancellationTokenSource())
+                {
+                    cancellationTokenSource.CancelAfter(new TimeSpan(0, 0, 2, 30));
+                    loadingWindow = new Loading(cancellationTokenSource);
+
+                    loadingWindow.Show();
+                    var httpClient = new HttpClient();
+                    response = await httpClient.GetAsync(sourceWebAddress, HttpCompletionOption.ResponseContentRead, cancellationTokenSource.Token);
+                }
+
+                response.EnsureSuccessStatusCode();
+
+                using (var fileStream = new FileStream(destFullPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                    await response.Content.CopyToAsync(fileStream);
+
+                loadingWindow.Close();
+                return true;
+            }
+            catch (HttpRequestException ex)
+            {
+                MessageBox.Show($"Error in downloading template file \n {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (OperationCanceledException ex)
+            {
+                MessageBox.Show("Project template download canceled.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error in downloading template file \n {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            return false;
+        }
+
+
+        public static void Execute(string workingDirectory, string command, string args, bool createNoWindow = true)
+        {
+            var output = new StringBuilder();
+            var proc = new Process
+            {
+                EnableRaisingEvents = true,
+                StartInfo = new ProcessStartInfo
+                {
+
+                    FileName = command,
+                    Arguments = args ?? "",
+                    WorkingDirectory = workingDirectory ?? "",
+                    CreateNoWindow = createNoWindow,
+                    UseShellExecute = true,
+                    //RedirectStandardOutput = true,
+                    //RedirectStandardError = true,
+                    //Verb = "runas",
+                    //StandardOutputEncoding = Encoding.UTF8,
+                    //StandardErrorEncoding = Encoding.UTF8
+                }
+            };
+
+            // proc.ErrorDataReceived += (sender, e) =>
+            // {
+            //    if (e.Data.IsEmpty()) return;
+            //    output.AppendLine(e.Data);
+            // };
+
+            // proc.OutputDataReceived += (DataReceivedEventHandler)((sender, e) =>
+            // {
+            //    if (e.Data == null) return;
+            //    output.AppendLine(e.Data);
+            // });
+
+            // proc.Exited += (object sender, EventArgs e) =>
+            // {
+            //    //Console.Beep();
+            // };
+            proc.Start();
+
+            // proc.BeginOutputReadLine();
+            // proc.BeginErrorReadLine();
+
+            proc.WaitForExit();
+
+            if ((uint)proc.ExitCode > 0U)
+                throw new Exception($"External command failed: \"{command}\" {args}\r\n\r\n{(object)output}");
+
+            // return output.ToString();
+        }
+
     }
 }
 

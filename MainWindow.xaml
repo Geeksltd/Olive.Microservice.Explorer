@@ -47,6 +47,7 @@
         <CommandBinding Command="{x:Static local:MainWindow.RefreshCommand}" Executed="RefreshMenuItem_OnClick"></CommandBinding>
         <CommandBinding Command="{x:Static local:MainWindow.CloseCommand}" Executed="CloseMenuItem_OnClick"></CommandBinding>
         <CommandBinding Command="{x:Static local:MainWindow.ExitCommand}" Executed="ExitMenuItem_Click"></CommandBinding>
+        <CommandBinding Command="{x:Static local:MainWindow.NewMicroserviceCommand}" Executed="NewMicroservice_Click"></CommandBinding>
 
         <CommandBinding Command="{x:Static local:MainWindow.RunAllCommand}" Executed="RunAllMenuItem_Click"></CommandBinding>
         <CommandBinding Command="{x:Static local:MainWindow.StopAllCommand}" Executed="StopAllMenuItem_Click"></CommandBinding>
@@ -79,6 +80,12 @@
                         <Image Source="Resources/Menu/Recent.png" Style="{StaticResource menuImage}"></Image>
                     </MenuItem.Icon>
                     <MenuItem Header="[Empty]"></MenuItem>
+                </MenuItem>
+                <Separator></Separator>
+                <MenuItem Header="New M_icroservice" Name="mnuCreateNewMicroservice" Command="{x:Static local:MainWindow.NewMicroserviceCommand}">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Menu/Microservice.png" Style="{StaticResource menuImage}"></Image>
+                    </MenuItem.Icon>
                 </MenuItem>
                 <Separator></Separator>
                 <MenuItem Header="Window">
