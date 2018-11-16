@@ -31,12 +31,17 @@ namespace MicroserviceExplorer
             }
         }
 
-        public NugetUpdatesWindow()
+
+        public NugetUpdatesWindow(bool isUpdating)
         {
             InitializeComponent();
+
+            if (isUpdating)
+            {
+                btnUpdate.Content = btnUpdateAll.Content = "Updating...";
+                btnUpdate.IsEnabled = btnUpdateAll.IsEnabled = false;
+            }
         }
-
-
 
         void ToggleButton_OnChecked(object sender, RoutedEventArgs e)
         {
@@ -110,11 +115,10 @@ namespace MicroserviceExplorer
             return foundChild;
         }
 
-
         void BtnUpdate_OnClick(object sender, RoutedEventArgs e)
         {
             if (_nugetList.None(itm => itm.ShouldUpdate))
-                MessageBox.Show(@"There is not selected package to update ...", @"Please select an item atleast ");
+                MessageBox.Show(@"There is not selected package to update ...", @"Please select an item at least ");
             else
                 DialogResult = true;
         }
@@ -129,8 +133,14 @@ namespace MicroserviceExplorer
 
         void UpdateAll_OnClick(object sender, RoutedEventArgs e)
         {
-            _nugetList.Do(itm => itm.ShouldUpdate = true);
-            DialogResult = true;
+            if (!_nugetList.None())
+            {
+                _nugetList.Do(itm => itm.ShouldUpdate = true);
+                DialogResult = true;
+            }
+            else
+                MessageBox.Show(@"Please wait, packages are loading... ", @"Loading");
+
         }
     }
     public class ProjectTypeBackgroundColorConverter : IValueConverter

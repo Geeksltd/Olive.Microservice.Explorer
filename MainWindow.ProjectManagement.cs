@@ -214,12 +214,12 @@ namespace MicroserviceExplorer
         {
             var service = GetServiceByTag(sender);
 
-            var nugetUpdatesWindow = new NugetUpdatesWindow
+            var nugetUpdatesWindow = new NugetUpdatesWindow(service.NugetIsUpdating)
             {
                 Owner = this,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 NugetList = service.OldReferences,
-                Title = service.Service + " Microservice Nuget Updates"
+                Title = service.Service + " Microservice Nuget Updates",
             };
 
             var showDialog = nugetUpdatesWindow.ShowDialog();
