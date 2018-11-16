@@ -17,36 +17,22 @@ namespace MicroserviceExplorer
 {
     partial class MainWindow
     {
-        FileInfo ServicesJsonFile;
+        public FileInfo ServicesJsonFile { get; set; }
         public Visibility FileOpened { get; set; }
 
-        const string Services_file_name = "services.json";
-        bool ProjectLoaded;
-        DateTime ServicesJsonFileLastWriteTime;
+        const string SERVICES_FILE_NAME = "services.json";
+        bool projectLoaded;
+        DateTime servicesJsonFileLastWriteTime;
 
-        FileSystemWatcher Watcher;
+        FileSystemWatcher watcher;
 
         bool LoadFile(string filePath)
         {
             ServicesJsonFile = filePath.AsFile();
 
-            if (!ServicesJsonFile.Exists())
-            {
+            if (!CheckIfServiceJsonExist()) return false;
 
-                var result = MessageBox.Show($"file : {ServicesJsonFile.FullName} \ndoes not exist anymore. \nDo you want to removed it from recent files list?", "File Not Found", System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question);
-                _recentFiles.Remove(ServicesJsonFile.FullName);
-                if (result != System.Windows.Forms.DialogResult.Yes) return false;
-
-                SaveRecentFilesXml();
-                ReloadRecentFiles();
-
-                ServicesJsonFile = null;
-                ProjectLoaded = false;
-                return false;
-            }
-
-            ServicesJsonFileLastWriteTime = ServicesJsonFile.LastWriteTime;
-
+            servicesJsonFileLastWriteTime = ServicesJsonFile.LastWriteTime;
 
             var servicesAllText = File.ReadAllText(ServicesJsonFile.FullName);
             var servicesJObject = Newtonsoft.Json.Linq.JObject.Parse(servicesAllText);
@@ -99,9 +85,9 @@ namespace MicroserviceExplorer
 
             FilterListBy(txtSearch.Text);
 
-            ProjectLoaded = true;
+            projectLoaded = true;
 
-            if (Watcher == null)
+            if (watcher == null)
                 StartFileSystemWatcher(ServicesJsonFile);
 
             Refresh();
@@ -109,10 +95,32 @@ namespace MicroserviceExplorer
             return true;
         }
 
+        private bool CheckIfServiceJsonExist()
+        {
+            if (!ServicesJsonFile.Exists())
+            {
+                var result = MessageBox.Show(
+                    $@"file : {
+                            ServicesJsonFile.FullName
+                        } \ndoes not exist anymore. \nDo you want to removed it from recent files list?", @"File Not Found",
+                    System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question);
+                _recentFiles.Remove(ServicesJsonFile.FullName);
+                if (result != System.Windows.Forms.DialogResult.Yes) return false;
+
+                SaveRecentFilesXml();
+                ReloadRecentFiles();
+
+                ServicesJsonFile = null;
+                projectLoaded = false;
+                return false;
+            }
+            return true;
+        }
+
         bool RefreshFile(string filePath)
         {
             var srvFile = filePath.AsFile();
-            if (srvFile.LastWriteTime != ServicesJsonFileLastWriteTime)
+            if (srvFile.LastWriteTime != servicesJsonFileLastWriteTime)
                 return LoadFile(filePath);
 
             foreach (var srv in ServiceData.ToArray())
@@ -165,23 +173,23 @@ namespace MicroserviceExplorer
 
         void StartFileSystemWatcher(FileInfo fileInfo)
         {
-            if (Watcher != null)
+            if (watcher != null)
                 StopWatcher();
 
-            Watcher = new FileSystemWatcher(fileInfo.Directory?.FullName ?? throw new InvalidOperationException($"File '{fileInfo.FullName}' does not exists anymore ..."), Services_file_name);
+            watcher = new FileSystemWatcher(fileInfo.Directory?.FullName ?? throw new InvalidOperationException($"File '{fileInfo.FullName}' does not exists anymore ..."), SERVICES_FILE_NAME);
 
-            Watcher.Changed += Watcher_Changed;
-            Watcher.EnableRaisingEvents = true;
+            watcher.Changed += Watcher_Changed;
+            watcher.EnableRaisingEvents = true;
         }
 
         void StopWatcher()
         {
-            if (Watcher == null) return;
+            if (watcher == null) return;
 
-            Watcher.EnableRaisingEvents = false;
-            Watcher.Changed -= Watcher_Changed;
-            Watcher.Dispose();
-            Watcher = null;
+            watcher.EnableRaisingEvents = false;
+            watcher.Changed -= Watcher_Changed;
+            watcher.Dispose();
+            watcher = null;
         }
         public delegate void MyDelegate();
 
@@ -194,17 +202,15 @@ namespace MicroserviceExplorer
 
             switch (e.ChangeType)
             {
+                case WatcherChangeTypes.Renamed:
+                case WatcherChangeTypes.All:
                 case WatcherChangeTypes.Created:
-                    break;
                 case WatcherChangeTypes.Deleted:
                     break;
                 case WatcherChangeTypes.Changed:
                     Refresh();
                     break;
-                case WatcherChangeTypes.Renamed:
-                    break;
-                case WatcherChangeTypes.All:
-                    break;
+
                 default:
                     throw new ArgumentOutOfRangeException("");
             }
@@ -238,15 +244,16 @@ namespace MicroserviceExplorer
         {
             e.Handled = true;
             var service = GetServiceByTag(sender);
-            BackgroundWorker worker = new BackgroundWorker();
-            worker.DoWork += (sender1, e1) =>
+            using (var worker = new BackgroundWorker())
             {
-                service.BuildStatus = "Pending";
-                service.LogMessage($"{service.Service} Microservice build started ...");
-                foreach (SolutionProject projEnum in Enum.GetValues(typeof(SolutionProject)))
+                worker.DoWork += (sender1, e1) =>
                 {
-                    var projFolder = service.GetAbsoluteProjFolder(projEnum);
-                    if (projFolder.IsEmpty()) return;
+                    service.BuildStatus = "Pending";
+                    service.LogMessage($"{service.Service} Microservice build started ...");
+                    foreach (var projEnum in Enum.GetValues(typeof(SolutionProject)))
+                    {
+                        var projFolder = service.GetAbsoluteProjFolder((SolutionProject)projEnum);
+                        if (projFolder.IsEmpty()) return;
 
                     try
                     {
@@ -278,9 +285,8 @@ namespace MicroserviceExplorer
                     service.BuildStatus = "Failed";
             };
 
-            worker.RunWorkerAsync();
-
-
+                worker.RunWorkerAsync();
+            }
         }
     }
 }
