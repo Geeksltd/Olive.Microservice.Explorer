@@ -9,13 +9,7 @@ namespace MicroserviceExplorer.MicroserviceGenerator
 
         public string OliveProvider => "Olive.Entities.Data." + Provider;
 
-        public string OliveVersion
-        {
-            get
-            {
-                return GetPackageLatestVersion();
-            }
-        }
+        public string OliveVersion => GetPackageLatestVersion();
 
         public override string ToString() => Name;
 

@@ -23,6 +23,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using MicroserviceExplorer.MicroserviceGenerator;
 using MicroserviceExplorer.UI;
+using Newtonsoft.Json.Linq;
 using MenuItem = System.Windows.Controls.MenuItem;
 
 namespace MicroserviceExplorer
@@ -489,7 +490,7 @@ namespace MicroserviceExplorer
             var solutionName = servicesJObject["Solution"]["ShortName"].ToString();
             var domain = servicesJObject["Solution"]["Production"]["Domain"].ToString();
             var portNumber = 1;
-            var dbType = new DBType();
+            var dbType = DBType.SqlServer;
             var connectionString = "";
 
             var serviceDirectoryPath = Path.Combine(ServicesJsonFile.Directory.FullName, serviceName);
@@ -500,8 +501,21 @@ namespace MicroserviceExplorer
 
 
 
-            await CreateTemplateAsync(serviceDirectoryPath, serviceName, solutionName, domain, portNumber.ToString(),
+            var tmpFolder = await CreateTemplateAsync(serviceDirectoryPath, serviceName, solutionName, domain, portNumber.ToString(),
                 dbType, connectionString);
+
+            if(tmpFolder.IsEmpty())
+                return;
+            //servicesJObject["Services"][serviceName] = Newtonsoft.Json.JsonConvert.SerializeObject(new { LiveUrl= msw.GitRepoUrl, UatUrl ="" });
+            servicesJObject["Services"][serviceName] = new JObject();
+
+            servicesJObject["Services"][serviceName]["LiveUrl"] = msw.GitRepoUrl;
+            servicesJObject["Services"][serviceName]["UatUrl"] = "";
+
+            string output = Newtonsoft.Json.JsonConvert.SerializeObject(servicesJObject, Newtonsoft.Json.Formatting.Indented);
+            File.WriteAllText(ServicesJsonFile.FullName, output);
+
+            Execute(serviceDirectoryPath, "build.bat", null);
 
             try
             {
@@ -511,11 +525,11 @@ namespace MicroserviceExplorer
                 Execute(serviceDirectoryPath, "git", "add .");
                 Execute(serviceDirectoryPath, "git", "commit -m \"Initial commit\"");
                 Execute(serviceDirectoryPath, "git", "push");
+
             }
             catch (Exception ex)
             {
-
-
+                MessageBox.Show($@"Error :{ex.Message}", @"Template initialization failed",MessageBoxButtons.OK,MessageBoxIcon.Warning);
             }
         }
 
@@ -524,14 +538,14 @@ namespace MicroserviceExplorer
         const string TEMPLATE_FOLDER_NAME = "Template";
 
 
-        async System.Threading.Tasks.Task CreateTemplateAsync(string solutionFolder, string serviceName, string solutionName, string domain, string port, DBType selectedDbType, string connestionString)
+        async Task<string> CreateTemplateAsync(string solutionFolder, string serviceName, string solutionName, string domain, string port, DBType selectedDbType, string connestionString)
         {
             // DownloadedFilesExtractPath = Path.Combine(solutionFolder, "tempExtract");
             var downloadedFilesExtractPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(downloadedFilesExtractPath);
             try
             {
-                if (!await DownloadAsync(TemplateWebAddress, downloadedFilesExtractPath, ZIP_FILE_NAME)) return;
+                if (!await DownloadAsync(TemplateWebAddress, downloadedFilesExtractPath, ZIP_FILE_NAME)) return null;
 
                 var zipFilePath = Path.Combine(downloadedFilesExtractPath, ZIP_FILE_NAME);
                 ZipFile.ExtractToDirectory(zipFilePath, downloadedFilesExtractPath);
@@ -544,8 +558,9 @@ namespace MicroserviceExplorer
             catch (Exception e)
             {
                 MessageBox.Show(e.Message, @"Error in download or create new Microservice", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                throw;
+                return null;
             }
+            return downloadedFilesExtractPath;
         }
         void CopyFiles(string solutionFolder, string extractPathPath)
         {
