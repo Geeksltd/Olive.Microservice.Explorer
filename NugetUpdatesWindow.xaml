@@ -123,7 +123,7 @@
             <Button Margin="5" Width="120" Name="btnUpdate" IsDefault="True" Click="BtnUpdate_OnClick" Padding="8">
                 <TextBlock Text="Update Selected" ></TextBlock>
             </Button>
-            <Button Margin="5" Width="120" Click="UpdateAll_OnClick">
+            <Button Margin="5" Width="120" Click="UpdateAll_OnClick" Name="btnUpdateAll">
                 <TextBlock Text="Update All" ></TextBlock>
             </Button>
         </StackPanel>

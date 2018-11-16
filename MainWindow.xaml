@@ -9,7 +9,7 @@
         mc:Ignorable="d" 
         Name="window"
         Title="Olive Microservice Explorer"         
-        Height="521" Width="600" Icon="Olive.ico" 
+        Height="571" Width="650" Icon="Olive.ico" 
         AllowsTransparency="True" WindowStyle="None"
         WindowState="Normal" 
         ResizeMode="CanResize"
@@ -255,10 +255,10 @@
                 <DataGridTemplateColumn Header="Nuget">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"  Orientation="Horizontal" >
-                                <Border  Tag="{Binding}" Background="#C9902D" CornerRadius="10" Padding="4" Width="30" Height="20" PreviewMouseLeftButtonDown="UIElement_OnPreviewMouseLeftButtonDown"  Visibility="{Binding NugetUpdates,Converter={StaticResource intVisibilityConverter}}">
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"  Orientation="Vertical" >
+                                <Border  Tag="{Binding}" Background="#004880" CornerRadius="2" Padding="4"     PreviewMouseLeftButtonDown="UIElement_OnPreviewMouseLeftButtonDown"  Visibility="{Binding NugetUpdates,Converter={StaticResource intVisibilityConverter}}">
                                     <Border.ToolTip>
-                                        <ToolTip  Content="{Binding NugetUpdates}"
+                                        <ToolTip  Content="{Binding  NugetUpdatesTooltip }"
                                                   ContentStringFormat="There is {0} nuget project update(s) availabble.&#x0a; so click here for update all nuget references."/>
                                     </Border.ToolTip>
                                     <TextBlock Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding NugetUpdates}"></TextBlock>

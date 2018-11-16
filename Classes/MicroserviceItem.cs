@@ -49,6 +49,7 @@ namespace MicroserviceExplorer
             }
 
             OnPropertyChanged(nameof(NugetUpdates));
+            OnPropertyChanged(nameof(NugetUpdatesTooltip));
         }
 
         int _nugetFetchTasks;
@@ -326,14 +327,51 @@ namespace MicroserviceExplorer
 
         internal async Task UpdateSelectedPackages()
         {
-            var toUpdate = References.Where(x => x.ShouldUpdate && !x.IsUpToDate);
-            await Task.WhenAll(toUpdate.Select(x => Task.Run(() => x.Update())));
+            NugetIsUpdating = true;
+
             OnPropertyChanged(nameof(NugetUpdates));
+
+            var toUpdate = References.Where(x => x.ShouldUpdate && !x.IsUpToDate);
+            await Task.WhenAll(toUpdate.Select(x => Task.Run(() => { x.Update(); NugetIsUpdating = false; })));
+
+            OnPropertyChanged(nameof(NugetUpdates));
+            OnPropertyChanged(nameof(NugetUpdatesTooltip));
         }
 
         public Visibility VisibleKestrel => ProcId <= 0 ? Visibility.Collapsed : Visibility.Visible;
 
-        public int NugetUpdates => OldReferences.Count();
+
+        string _nugetUpdates;
+
+        public bool NugetIsUpdating { get; set; }
+
+        public string NugetUpdates
+        {
+            get
+            {
+                if (!NugetIsUpdating)
+                {
+                    if (OldReferences.None())
+                    {
+                        NugetUpdatesTooltip = "some";
+                        return "...";
+                    }
+                    else
+                    {
+                        NugetUpdatesTooltip = OldReferences.Count().ToString();
+                        return OldReferences.Count().ToString();
+                    }
+                }
+                else
+                {
+                    return "Updating";
+                }
+
+            }
+            set { _nugetUpdates = value; }
+        }
+
+        public string NugetUpdatesTooltip { get; set; }
 
         public string NugetUpdateErrorMessage { get; set; }
 
