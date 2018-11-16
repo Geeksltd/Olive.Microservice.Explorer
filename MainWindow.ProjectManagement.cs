@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -247,14 +248,13 @@ namespace MicroserviceExplorer
                     var projFolder = service.GetAbsoluteProjFolder(projEnum);
                     if (projFolder.IsEmpty()) return;
 
-
                     try
                     {
-                        service.BuildStatus = "Running";
-                        var response = "dotnet.exe".AsFile(searchEnvironmentPath: true)
-                            .Execute($"build", waitForExit: true,
-                                configuration: x => x.StartInfo.WorkingDirectory = projFolder);
-
+                        var processInfo = new ProcessStartInfo();
+                        processInfo.FileName = "CMD.EXE";
+                        processInfo.Arguments = "/K " + Path.Combine(service.SolutionFolder, "Build.bat");
+                        var process = Process.Start(processInfo);
+                        process.WaitForExit();
                     }
                     catch (Exception ex)
                     {
@@ -268,10 +268,12 @@ namespace MicroserviceExplorer
             };
             worker.RunWorkerCompleted += (o, args) =>
             {
-                service.BuildStatus = "Running";
                 var result = (bool)args.Result;
                 if (result)
+                {
                     service.LogMessage($"{service.Service} Microservice build finished successfully.");
+                    service.BuildStatus = "off";
+                }
                 else
                     service.BuildStatus = "Failed";
             };
