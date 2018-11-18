@@ -20,6 +20,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 using MicroserviceExplorer.MicroserviceGenerator;
 using MicroserviceExplorer.UI;
@@ -489,9 +490,11 @@ namespace MicroserviceExplorer
             var serviceName = msw.ServiceName;
             var solutionName = servicesJObject["Solution"]["ShortName"].ToString();
             var domain = servicesJObject["Solution"]["Production"]["Domain"].ToString();
-            var portNumber = 1;
+            var portNumber = GetNextPortNumberFromHubServices(ServicesJsonFile.Directory, out var serviesXmlPath);
             var dbType = DBType.SqlServer;
-            var connectionString = "";
+            var connectionString = dbType.ConnectionString;
+
+            //AddMicroserviceToHubServices(serviesXmlPath, serviceName, domain, portNumber);
 
             var serviceDirectoryPath = Path.Combine(ServicesJsonFile.Directory.FullName, serviceName);
             var serviceDirectory = new DirectoryInfo(serviceDirectoryPath);
@@ -504,17 +507,14 @@ namespace MicroserviceExplorer
             var tmpFolder = await CreateTemplateAsync(serviceDirectoryPath, serviceName, solutionName, domain, portNumber.ToString(),
                 dbType, connectionString);
 
-            if(tmpFolder.IsEmpty())
+            if (tmpFolder.IsEmpty())
                 return;
             //servicesJObject["Services"][serviceName] = Newtonsoft.Json.JsonConvert.SerializeObject(new { LiveUrl= msw.GitRepoUrl, UatUrl ="" });
-            servicesJObject["Services"][serviceName] = new JObject();
-
-            servicesJObject["Services"][serviceName]["LiveUrl"] = msw.GitRepoUrl;
-            servicesJObject["Services"][serviceName]["UatUrl"] = "";
-
+            servicesJObject["Services"][serviceName] = new JObject(new { LiveUrl = msw.GitRepoUrl, UatUrl = "" });
             string output = Newtonsoft.Json.JsonConvert.SerializeObject(servicesJObject, Newtonsoft.Json.Formatting.Indented);
             File.WriteAllText(ServicesJsonFile.FullName, output);
 
+            AddMicroserviceToHubServices(serviesXmlPath, serviceName, domain, portNumber);
             Execute(serviceDirectoryPath, "build.bat", null);
 
             try
@@ -529,8 +529,46 @@ namespace MicroserviceExplorer
             }
             catch (Exception ex)
             {
-                MessageBox.Show($@"Error :{ex.Message}", @"Template initialization failed",MessageBoxButtons.OK,MessageBoxIcon.Warning);
+                MessageBox.Show($@"Error :{ex.Message}", @"Template initialization failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+        }
+
+        private void AddMicroserviceToHubServices(string serviesXmlPath, string serviceName, string domain, int portNumber)
+        {
+            var services = XDocument.Load(serviesXmlPath);
+            var url = $"{domain}:{portNumber}";
+            var x = new XElement(serviceName,new XAttribute("url",url));
+            
+            services.Root?.AddFirst(x);
+            services.Save(serviesXmlPath);
+        }
+
+        private int GetNextPortNumberFromHubServices(DirectoryInfo serviceJsonDir, out string serviesXmlPath)
+        {
+            serviesXmlPath = null;
+            var hubDir = serviceJsonDir;
+            while (hubDir?.Parent != null && !Directory.Exists(Path.Combine(hubDir.FullName, "hub")))
+                hubDir = hubDir.Parent;
+
+
+            if (hubDir == null)
+                return 0;
+
+            var servicePath = Path.Combine(hubDir.FullName, "hub", "website", "services.xml");
+            if (!File.Exists(servicePath))
+                return 0;
+
+            serviesXmlPath = servicePath;
+
+            var services = XElement.Load(servicePath);
+            var nextPortNumber = (from srv in services.FirstNode.ElementsAfterSelf()
+                                  where srv.Attribute("url") != null && srv.Attribute("url").Value.Replace("://", "").Contains(":")
+                                  let y = srv.Attribute("url")?.Value.Replace("://", "").TrimBefore(":", caseSensitive: true, trimPhrase: true)
+                                  where int.TryParse(y, out _)
+                                  select Convert.ToInt32(y)).Max() + 1;
+
+
+            return nextPortNumber;
         }
 
         public string TemplateWebAddress => @"https://github.com/Geeksltd/Olive.Mvc.Microservice.Template/archive/master.zip";
