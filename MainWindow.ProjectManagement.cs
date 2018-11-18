@@ -216,9 +216,13 @@ namespace MicroserviceExplorer
             }
         }
 
+        MicroserviceItem highPriority;
         async void UIElement_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             var service = GetServiceByTag(sender);
+
+            highPriority = service;
+            OnAutoRefreshTimerOnTick(null, null);
 
             var nugetUpdatesWindow = new NugetUpdatesWindow(service.NugetIsUpdating)
             {
@@ -255,35 +259,35 @@ namespace MicroserviceExplorer
                         var projFolder = service.GetAbsoluteProjFolder((SolutionProject)projEnum);
                         if (projFolder.IsEmpty()) return;
 
-                    try
-                    {
-                        var processInfo = new ProcessStartInfo();
-                        processInfo.FileName = "CMD.EXE";
-                        processInfo.Arguments = "/K " + Path.Combine(service.SolutionFolder, "Build.bat");
-                        var process = Process.Start(processInfo);
-                        process.WaitForExit();
+                        try
+                        {
+                            var processInfo = new ProcessStartInfo();
+                            processInfo.FileName = "CMD.EXE";
+                            processInfo.Arguments = "/K " + Path.Combine(service.SolutionFolder, "Build.bat");
+                            var process = Process.Start(processInfo);
+                            process.WaitForExit();
+                        }
+                        catch (Exception ex)
+                        {
+                            service.BuildStatus = "Failed";
+                            service.LogMessage($"Build error on [{projEnum} :", ex.Message);
+                            e1.Result = false;
+                            return;
+                        }
+                        e1.Result = true;
                     }
-                    catch (Exception ex)
-                    {
-                        service.BuildStatus = "Failed";
-                        service.LogMessage($"Build error on [{projEnum} :", ex.Message);
-                        e1.Result = false;
-                        return;
-                    }
-                    e1.Result = true;
-                }
-            };
-            worker.RunWorkerCompleted += (o, args) =>
-            {
-                var result = (bool)args.Result;
-                if (result)
+                };
+                worker.RunWorkerCompleted += (o, args) =>
                 {
-                    service.LogMessage($"{service.Service} Microservice build finished successfully.");
-                    service.BuildStatus = "off";
-                }
-                else
-                    service.BuildStatus = "Failed";
-            };
+                    var result = (bool)args.Result;
+                    if (result)
+                    {
+                        service.LogMessage($"{service.Service} Microservice build finished successfully.");
+                        service.BuildStatus = "off";
+                    }
+                    else
+                        service.BuildStatus = "Failed";
+                };
 
                 worker.RunWorkerAsync();
             }

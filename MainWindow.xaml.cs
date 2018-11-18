@@ -100,6 +100,7 @@ namespace MicroserviceExplorer
 
         void RestartAutoRefreshProcess()
         {
+            highPriority = null;
             AutoRefreshProcessTimer.Stop();
             OnAutoRefreshProcessTimerOnTick(null, null);
             AutoRefreshProcessTimer.Start();
@@ -125,15 +126,8 @@ namespace MicroserviceExplorer
 
                     backgroundWorker.RunWorkerAsync();
                 }
-
-
-
-
-
             }
             AutoRefreshProcessTimer.IsEnabled = true;
-
-
         }
 
         void RestartAutoRefresh()
@@ -144,15 +138,41 @@ namespace MicroserviceExplorer
         }
 
         bool AutoRefreshTimerInProgress;
+        bool firstRun = true;
         async void OnAutoRefreshTimerOnTick(object sender, EventArgs args)
         {
-            if (AutoRefreshTimerInProgress) return;
-            else AutoRefreshTimerInProgress = true;
-
             var projects = MicroserviceGridItems.Where(x => x.WebsiteFolder.HasValue()).ToArray();
+            if (highPriority != null)
+            {
+                await Task.Run(() => FetchUpdates(highPriority)).ContinueWith(async (t) =>
+                {
+                    foreach (var p in projects.Except(highPriority))
+                        await Task.Run(() => FetchUpdates(p));
+                });
+            }
+            else
+            {
+                if (AutoRefreshTimerInProgress) return;
+                else AutoRefreshTimerInProgress = true;
 
-            foreach (var p in projects)
-                await Task.Run(() => FetchUpdates(p));
+                int waitTime = 0;
+                if (firstRun)
+                {
+                    waitTime = 15;
+                    firstRun = false;
+                }
+
+                await Task.Factory.StartNew(() => System.Threading.Thread.Sleep(waitTime * 1000))
+                       .ContinueWith(async (t) =>
+                       {
+                           foreach (var p in projects)
+                               await Task.Run(async () =>
+                               {
+                                   if (highPriority == null)
+                                       await FetchUpdates(p);
+                               });
+                       });
+            }
 
             AutoRefreshTimerInProgress = false;
         }
@@ -160,18 +180,9 @@ namespace MicroserviceExplorer
         static IEnumerable<SolutionProject> SolutionProjects
             => Enum.GetValues(typeof(SolutionProject)).OfType<SolutionProject>();
 
-        bool firstRun = true;
         async Task FetchUpdates(MicroserviceItem service)
         {
-            int waitTime = 0;
-            if (firstRun)
-            {
-                waitTime = 15;
-                firstRun = false;
-            }
-
-            await Task.Factory.StartNew(() => System.Threading.Thread.Sleep(waitTime * 1000))
-            .ContinueWith(async (t) =>
+            await Task.Factory.StartNew(async () =>
             {
                 var nugetTasks = Task.Run(() => service.RefreshPackages());
                 await CalculateGitUpdates(service);
@@ -504,7 +515,7 @@ namespace MicroserviceExplorer
             var tmpFolder = await CreateTemplateAsync(serviceDirectoryPath, serviceName, solutionName, domain, portNumber.ToString(),
                 dbType, connectionString);
 
-            if(tmpFolder.IsEmpty())
+            if (tmpFolder.IsEmpty())
                 return;
             //servicesJObject["Services"][serviceName] = Newtonsoft.Json.JsonConvert.SerializeObject(new { LiveUrl= msw.GitRepoUrl, UatUrl ="" });
             servicesJObject["Services"][serviceName] = new JObject();
@@ -529,7 +540,7 @@ namespace MicroserviceExplorer
             }
             catch (Exception ex)
             {
-                MessageBox.Show($@"Error :{ex.Message}", @"Template initialization failed",MessageBoxButtons.OK,MessageBoxIcon.Warning);
+                MessageBox.Show($@"Error :{ex.Message}", @"Template initialization failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
