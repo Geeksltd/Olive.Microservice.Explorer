@@ -8,4 +8,4 @@ This utility will solve that problem, by providing a high level management tool.
 You can think of it as a complementory tool to Visual Studio.
 
 
-![screenshot](./Resources/Screenshot.jpg)
+![screenshot](Resources/Screenshot.JPG)
