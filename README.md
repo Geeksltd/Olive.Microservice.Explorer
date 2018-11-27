@@ -42,3 +42,36 @@ Under `File` menu you have the `New Microservice` item. It will open a dialog as
 - *Git Repository Url*: This is the repository for the new service. You should have created a blank repo beforehand.
 
 When you click `Create` it will generate a full Visual Studio solution in the root folder of your project, ready for your development!
+
+# TEMP FIX:
+- In the root folder, create a subfolder named `BigPicture`
+- Inside it, add a file named `Services.json`
+```json
+{
+    "Solution": {
+        "ShortName": "geeksms",
+        "FullName": "Geeks Operating System",		
+        "Nuget": {
+            "Url": "http://nuget.geeksms.uat.co/nuget",
+            "ApiKey": "..."			
+        },
+		"CIServer": {
+		    "Type": "Jenkins",
+		    "Url": "http://jenkins.app.geeks.ltd/"
+		},
+		"Production": {
+		    "Domain": "geeks.ltd"
+		}
+    },
+    "Services": {
+        "Hub": {
+            "LiveUrl": "https://hub.app.geeks.ltd",
+            "UatUrl": ""
+        },
+        "People": {
+            "LiveUrl": "https://people.app.geeks.ltd",
+            "UatUrl": ""
+        }, 
+        ...
+}
+```
