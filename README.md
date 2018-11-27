@@ -20,6 +20,11 @@ It will then go through all sub-folders to determine if it's an Olive microservi
 - The *Nuget* column shows how many of the nuget packages in that service are outdated. You can click to update them from here automatically.
 - The Visual Studio icon will load that service in a new Visual Studio. But if it's already open, it will just bring the VS window to the top.
 - The *folder* icon will open a new explorer window to the source of that service.
+- The *gear* icon will do a full build (compilation) on that service. 
+- The *debug* column will show you a log of events and errors for that service.
 
-
+## Automatic Nuget update
+In the main menu, you have the `Nuget` item with two options:
+- *Update all*: It will update nuget packages for all services in the list.
+- *Auto update*: It will periodically check for nuget updates and automatically update the packages.
 
