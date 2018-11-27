@@ -7,4 +7,5 @@ Unlike traditional model where a large solution can still be a single Visual Stu
 This utility will solve that problem, by providing a high level management tool.
 You can think of it as a complementory tool to Visual Studio.
 
-To solve this problem, 
+
+![screenshot](Resources/Screenshot.jpg)
