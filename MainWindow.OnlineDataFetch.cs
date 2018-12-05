@@ -1,6 +1,8 @@
 ﻿using NuGet;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -45,6 +47,32 @@ namespace MicroserviceExplorer
             }
 
             service.GitUpdateIsInProgress = false;
+        }
+        void LocalGitChanges(MicroserviceItem service)
+        {
+            if (service.WebsiteFolder.IsEmpty()) return;
+
+            var projFOlder = service.WebsiteFolder.AsDirectory().Parent;
+            if (projFOlder == null || !Directory.Exists(Path.Combine(projFOlder.FullName, ".git"))) return;
+
+            service.LocalGitChanges = "...";
+            try
+            {
+                var fetchoutput = "git.exe".AsFile(searchEnvironmentPath: true)
+                     .Execute("status --short", waitForExit: true, configuration: x => x.StartInfo.WorkingDirectory = projFOlder.FullName);
+
+                var changes = new List<string>(
+                           fetchoutput.Split(new string[] { "\r\n" },
+                           StringSplitOptions.RemoveEmptyEntries)).Count();
+
+                if (changes > 0)
+                    service.LocalGitChanges = changes.ToString();
+                service.LocalGitTooltip = changes.ToString() + " uncommited changes.";
+            }
+            catch (Exception e)
+            {
+                service.LogMessage("Error on git command ...", e.Message);
+            }
         }
 
         GitStatus ReadGitInfo(string input)

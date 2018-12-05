@@ -243,11 +243,27 @@ namespace MicroserviceExplorer
             }
         }
 
+        void LocalGitActions_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var service = GetServiceByTag(sender);
+
+            var projFOlder = service.WebsiteFolder.AsDirectory().Parent;
+
+            var localGitWindow = new LocalGitWindow(projFOlder.FullName)
+            {
+                Owner = this,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Title = service.Service + " Microservice Local Git",
+            };
+
+            var showDialog = localGitWindow.ShowDialog();
+        }
 
         void BuildButton_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
             var service = GetServiceByTag(sender);
+
             using (var worker = new BackgroundWorker())
             {
                 worker.DoWork += (sender1, e1) =>

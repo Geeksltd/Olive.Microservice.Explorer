@@ -185,6 +185,7 @@ namespace MicroserviceExplorer
         {
             await Task.Factory.StartNew(async () =>
             {
+                LocalGitChanges(service);
                 var nugetTasks = Task.Run(() => service.RefreshPackages());
                 await CalculateGitUpdates(service);
                 await Task.WhenAll(nugetTasks);
@@ -548,8 +549,8 @@ namespace MicroserviceExplorer
         {
             var services = XDocument.Load(serviesXmlPath);
             var url = $"{domain}:{portNumber}";
-            var x = new XElement(serviceName,new XAttribute("url",url));
-            
+            var x = new XElement(serviceName, new XAttribute("url", url));
+
             services.Root?.AddFirst(x);
             services.Save(serviesXmlPath);
         }

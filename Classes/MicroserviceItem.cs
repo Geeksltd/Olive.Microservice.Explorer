@@ -511,6 +511,21 @@ namespace MicroserviceExplorer
             }
         }
 
+        string _localGitUpdates = "...";
+        public string LocalGitTooltip { get; set; }
+
+        public string LocalGitChanges
+        {
+            get => _localGitUpdates;
+            set
+            {
+                _localGitUpdates = value;
+
+                OnPropertyChanged(nameof(LocalGitChanges));
+                OnPropertyChanged(nameof(LocalGitTooltip));
+            }
+        }
+
         public object GitUpdateImage => GitUpdates.HasValue() ? "Resources/git.png" : null;
 
         public object GitStatusImage => GitUpdateIsInProgress ? "Resources/git_progress.gif" : null;
