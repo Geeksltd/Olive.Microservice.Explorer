@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <PreserveCompilationContext>true</PreserveCompilationContext>
-    <MvcRazorCompileOnPublish>false</MvcRazorCompileOnPublish>
+    <MvcRazorCompileOnPublish>true</MvcRazorCompileOnPublish>
     <TypeScriptToolsVersion>3.0</TypeScriptToolsVersion>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <TieredCompilation>true</TieredCompilation>
@@ -21,27 +21,27 @@
     <PackageReference Include="Hangfire" Version="1.6.21" />
     <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.5" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-    <PackageReference Include="Olive" Version="1.0.136" />
+    <PackageReference Include="Olive" Version="1.0.143" />
     <PackageReference Include="Olive.ApiClient" Version="2.1.80" />
     <PackageReference Include="Olive.ApiProxyGenerator" Version="2.0.99" />
     <PackageReference Include="Olive.Audit" Version="1.0.36" />
-    <PackageReference Include="Olive.Aws" Version="2.1.20" />
+    <PackageReference Include="Olive.Aws" Version="2.1.27" />
     <PackageReference Include="Olive.CSV" Version="1.0.24" />
     <PackageReference Include="Olive.Encryption" Version="2.1.47" />
-    <PackageReference Include="Olive.Entities" Version="1.0.76" />
-    <PackageReference Include="Olive.Entities.Data" Version="1.0.80" />
-    <PackageReference Include="Olive.Entities.Data.SqlServer" Version="1.0.35" />
-    <PackageReference Include="Olive.Hangfire" Version="1.0.43" />
+    <PackageReference Include="Olive.Entities" Version="1.0.83" />
+    <PackageReference Include="Olive.Entities.Data" Version="1.0.85" />
+    <PackageReference Include="Olive.Entities.Data.SqlServer" Version="1.0.36" />
+    <PackageReference Include="Olive.Hangfire" Version="1.0.45" />
     <PackageReference Include="Olive.Integration" Version="1.0.7" />
     <PackageReference Include="Olive.Microservices" Version="1.0.38" />
-    <PackageReference Include="Olive.Mvc" Version="1.0.171" />
-    <PackageReference Include="Olive.Mvc.Security" Version="2.1.51" />
+    <PackageReference Include="Olive.Mvc" Version="1.0.179" />
+    <PackageReference Include="Olive.Mvc.Security" Version="2.1.52" />
     <PackageReference Include="Olive.PDF" Version="1.0.18" />
-    <PackageReference Include="Olive.Security.Aws" Version="2.1.38" />
-    <PackageReference Include="Olive.Testing" Version="1.0.82" />
-    <PackageReference Include="Olive.Web" Version="2.1.50" />
+    <PackageReference Include="Olive.Security.Aws" Version="2.1.39" />
+    <PackageReference Include="Olive.Testing" Version="1.0.84" />
+    <PackageReference Include="Olive.Web" Version="2.1.51" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.5.1" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.6.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Domain\Domain.csproj" />

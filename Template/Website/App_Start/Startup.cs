@@ -6,6 +6,7 @@
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
     using Olive;
     using Olive.Entities.Data;
     using Olive.Hangfire;
@@ -13,13 +14,15 @@
     using Olive.Security;
     using System;
     using System.Globalization;
+    using System.Threading.Tasks;
 
     public class Startup : Olive.Mvc.Startup
     {
-        public Startup(IHostingEnvironment env, IConfiguration config)
-           : base(env, config)
+        public Startup(IHostingEnvironment env, IConfiguration config, ILoggerFactory loggerFactory)
+           : base(env, config, loggerFactory)
         {
             if (env.IsProduction()) config.LoadAwsIdentity();
+            else config.LoadAwsDevIdentity();
         }
 
         protected override CultureInfo GetRequestCulture() => new CultureInfo("en-GB");
@@ -53,13 +56,14 @@
         public override void Configure(IApplicationBuilder app)
         {
             base.Configure(app);
-
             app.ConfigureSwagger();
-
             Console.Title = Microservice.Me.Name;
+        }
 
-            if (Config.Get<bool>("Automated.Tasks:Enabled"))
-                app.UseScheduledTasks(TaskManager.Run);
+        public override async Task OnStartUpAsync(IApplicationBuilder app)
+        {
+            await base.OnStartUpAsync(app);
+            app.UseScheduledTasks<TaskManager>();
         }
 
         #region Show error screen even in production?
