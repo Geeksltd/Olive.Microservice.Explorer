@@ -43,7 +43,6 @@
     </Window.Resources>
     <Window.CommandBindings>
         <CommandBinding Command="Open" Executed="OpenProject_Executed"></CommandBinding>
-        <CommandBinding Command="{x:Static local:MainWindow.EditCommand}" Executed="EditProject_Executed"></CommandBinding>
         <CommandBinding Command="{x:Static local:MainWindow.RefreshCommand}" Executed="RefreshMenuItem_OnClick"></CommandBinding>
         <CommandBinding Command="{x:Static local:MainWindow.CloseCommand}" Executed="CloseMenuItem_OnClick"></CommandBinding>
         <CommandBinding Command="{x:Static local:MainWindow.ExitCommand}" Executed="ExitMenuItem_Click"></CommandBinding>
@@ -256,7 +255,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"  Orientation="Vertical" >
-                                <Border  Tag="{Binding}" Background="#bc0b3a" CornerRadius="2" Padding="4"     PreviewMouseLeftButtonDown="LocalGitActions_OnPreviewMouseLeftButtonDown"   >
+                                <Border  Tag="{Binding}" Background="#63a0c6" CornerRadius="2" Padding="4"     PreviewMouseLeftButtonDown="LocalGitActions_OnPreviewMouseLeftButtonDown"   >
                                         <Border.ToolTip>
                                             <ToolTip  Content="{Binding  LocalGitTooltip }" />
                                         </Border.ToolTip>

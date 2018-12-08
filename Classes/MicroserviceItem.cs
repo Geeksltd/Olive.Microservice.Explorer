@@ -558,10 +558,11 @@ namespace MicroserviceExplorer
                 {
                     FileName = "dotnet",
                     Arguments = "run --no-build --project " + WebsiteFolder,
-                    UseShellExecute = true,
                     CreateNoWindow = true,
-                    WindowStyle = ProcessWindowStyle.Minimized
+                    WindowStyle = ProcessWindowStyle.Minimized,
                     //RedirectStandardOutput = true
+                    WorkingDirectory =   WebsiteFolder,
+                    UseShellExecute = true,
                 }
             };
 

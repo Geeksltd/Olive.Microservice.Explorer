@@ -12,7 +12,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
-using MicroserviceExplorer.Utils.TinyJson;
 using MessageBox = System.Windows.Forms.MessageBox;
 using Process = System.Diagnostics.Process;
 using System.IO.Compression;
@@ -266,32 +265,26 @@ namespace MicroserviceExplorer
 
         void OpenProject_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            using (var openFileDialog = new System.Windows.Forms.OpenFileDialog
+            using (var openFileDialog = new System.Windows.Forms.FolderBrowserDialog
             {
-                CheckFileExists = true,
-                CheckPathExists = true,
-                Filter = $@"Services JSON File |{SERVICES_FILE_NAME}",
-                RestoreDirectory = true,
-                Multiselect = false,
-                SupportMultiDottedExtensions = true,
-                Title = $@"Select {SERVICES_FILE_NAME} file"
+                ShowNewFolderButton=false
             })
             {
                 if (openFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
                     return;
 
-                if (_recentFiles.None() || !_recentFiles.Contains(openFileDialog.FileName))
+                if (_recentFiles.None() || !_recentFiles.Contains(openFileDialog.SelectedPath))
                 {
                     if (_recentFiles.None())
                         mnuRecentFiles.Items.Clear();
 
-                    _recentFiles.Add(openFileDialog.FileName);
-                    AddRecentMenuItem(openFileDialog.FileName);
+                    _recentFiles.Add(openFileDialog.SelectedPath);
+                    AddRecentMenuItem(openFileDialog.SelectedPath);
 
                     SaveRecentFilesXml();
                 }
 
-                LoadFile(openFileDialog.FileName);
+                LoadFile(openFileDialog.SelectedPath);
             }
         }
 
@@ -300,12 +293,12 @@ namespace MicroserviceExplorer
             AutoRefreshProcessTimer.Stop();
             AutoRefreshTimer.Stop();
 
-            if (ServicesJsonFile != null)
+            if (ServicesDirectory != null)
                 Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(() =>
                 {
                     try
                     {
-                        RefreshFile(ServicesJsonFile.FullName);
+                        RefreshFile(ServicesDirectory.FullName);
                     }
                     catch (Exception e)
                     {
@@ -314,15 +307,8 @@ namespace MicroserviceExplorer
                     }
                 })
                 );
-
-
         }
 
-        void EditProject_Executed(object sender, ExecutedRoutedEventArgs e)
-        {
-            if (ServicesJsonFile != null)
-                Process.Start("Notepad.exe", ServicesJsonFile.FullName);
-        }
 
         void CloseMenuItem_OnClick(object sender, RoutedEventArgs e)
         {
@@ -344,7 +330,6 @@ namespace MicroserviceExplorer
         void TextBoxBase_OnTextChanged(object sender, TextChangedEventArgs e)
         {
             FilterListBy(txtSearch.Text);
-
         }
 
         void VsDebuggerAttach_OnClick(object sender, MouseButtonEventArgs e)
@@ -364,9 +349,6 @@ namespace MicroserviceExplorer
 
             service.OpenVs(solutionFile: service.GetServiceSolutionFilePath());
             process.Attach();
-
-
-
         }
 
         void RunAllMenuItem_Click(object sender, ExecutedRoutedEventArgs e)
@@ -388,7 +370,6 @@ namespace MicroserviceExplorer
             foreach (var service in MicroserviceGridItems)
                 if (service.Status == MicroserviceItem.EnumStatus.Stop)
                     service.Start();
-
         }
 
         void StopAllFilteredMenuItem_Click(object sender, ExecutedRoutedEventArgs e)
@@ -486,6 +467,8 @@ namespace MicroserviceExplorer
 
         private async void NewMicroservice_Click(object sender, ExecutedRoutedEventArgs e)
         {
+            string hubAddress = Path.Combine(ServicesDirectory.FullName, "hub");
+
             var msw = new NewMicroservice.NewMicroservice
             {
                 WindowStartupLocation = WindowStartupLocation.CenterScreen
@@ -494,44 +477,36 @@ namespace MicroserviceExplorer
             var dialog = msw.ShowDialog();
             if (dialog != true) return;
 
-            if (!ServicesJsonFile.Exists || ServicesJsonFile.Directory == null) return;
+            if (!ServicesDirectory.Exists || ServicesDirectory == null) return;
 
-            var servicesAllText = File.ReadAllText(ServicesJsonFile.FullName);
-            var servicesJObject = Newtonsoft.Json.Linq.JObject.Parse(servicesAllText);
-
+            var appSettingsProductionAllText = File.ReadAllText(Path.Combine(hubAddress, "website", "appsettings.Production.json"));
+            var appSettingsProductionJObject = JObject.Parse(appSettingsProductionAllText);
+            var domain = appSettingsProductionJObject["Authentication"]["Cookie"]["Domain"].ToString();
             var serviceName = msw.ServiceName;
-            var solutionName = servicesJObject["Solution"]["ShortName"].ToString();
-            var domain = servicesJObject["Solution"]["Production"]["Domain"].ToString();
-            var portNumber = GetNextPortNumberFromHubServices(ServicesJsonFile.Directory, out var serviesXmlPath);
+            var solutionName = ServicesDirectory.Name;
+            var portNumber = GetNextPortNumberFromHubServices(ServicesDirectory, out var serviesXmlPath);
             var dbType = DBType.SqlServer;
             var connectionString = dbType.ConnectionString;
 
             //AddMicroserviceToHubServices(serviesXmlPath, serviceName, domain, portNumber);
 
-            var serviceDirectoryPath = Path.Combine(ServicesJsonFile.Directory.FullName, serviceName);
+            var serviceDirectoryPath = Path.Combine(ServicesDirectory.FullName, serviceName);
             var serviceDirectory = new DirectoryInfo(serviceDirectoryPath);
 
             if (!serviceDirectory.Exists)
                 serviceDirectory.Create();
-
-
 
             var tmpFolder = await CreateTemplateAsync(serviceDirectoryPath, serviceName, solutionName, domain, portNumber.ToString(),
                 dbType, connectionString);
 
             if (tmpFolder.IsEmpty())
                 return;
-            //servicesJObject["Services"][serviceName] = Newtonsoft.Json.JsonConvert.SerializeObject(new { LiveUrl= msw.GitRepoUrl, UatUrl ="" });
-            servicesJObject["Services"][serviceName] = new JObject(new { LiveUrl = msw.GitRepoUrl, UatUrl = "" });
-            string output = Newtonsoft.Json.JsonConvert.SerializeObject(servicesJObject, Newtonsoft.Json.Formatting.Indented);
-            File.WriteAllText(ServicesJsonFile.FullName, output);
 
             AddMicroserviceToHubServices(serviesXmlPath, serviceName, domain, portNumber);
             Execute(serviceDirectoryPath, "build.bat", null);
 
             try
             {
-
                 Execute(serviceDirectoryPath, "git", "init");
                 Execute(serviceDirectoryPath, "git", $"remote add origin {msw.GitRepoUrl}");
                 Execute(serviceDirectoryPath, "git", "add .");
@@ -543,6 +518,8 @@ namespace MicroserviceExplorer
             {
                 MessageBox.Show($@"Error :{ex.Message}", @"Template initialization failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+
+            Refresh();
         }
 
         private void AddMicroserviceToHubServices(string serviesXmlPath, string serviceName, string domain, int portNumber)
@@ -578,8 +555,6 @@ namespace MicroserviceExplorer
                                   let y = srv.Attribute("url")?.Value.Replace("://", "").TrimBefore(":", caseSensitive: true, trimPhrase: true)
                                   where int.TryParse(y, out _)
                                   select Convert.ToInt32(y)).Max() + 1;
-
-
             return nextPortNumber;
         }
 

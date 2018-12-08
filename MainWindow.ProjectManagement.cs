@@ -1,71 +1,80 @@
 ﻿using NuGet;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Threading;
-using System.Xml.Serialization;
 using MessageBox = System.Windows.Forms.MessageBox;
 
 namespace MicroserviceExplorer
 {
+    public class ServiceInfo
+    {
+        public string Name { get; set; }
+        public string ProjectFolder { get; set; }
+        public string WebsiteFolder { get; set; }
+        public string LaunchSettingsPath { get; set; }
+    }
+
     partial class MainWindow
     {
-        public FileInfo ServicesJsonFile { get; set; }
+        public DirectoryInfo ServicesDirectory { get; set; }
         public Visibility FileOpened { get; set; }
 
-        const string SERVICES_FILE_NAME = "services.json";
         bool projectLoaded;
-        DateTime servicesJsonFileLastWriteTime;
-
+        DateTime servicesDirectoryLastWriteTime;
+        MicroserviceItem highPriority;
         FileSystemWatcher watcher;
 
+        string getServiceName(string appSettingPath)
+        {
+            var launchSettingsAllText = File.ReadAllText(appSettingPath);
+            var launchSettingsJObject = Newtonsoft.Json.Linq.JObject.Parse(launchSettingsAllText);
+            return launchSettingsJObject["Microservice"]["Me"]["Name"].ToString();
+        }
         bool LoadFile(string filePath)
         {
-            ServicesJsonFile = filePath.AsFile();
+            ServicesDirectory = filePath.AsDirectory();
 
-            if (!CheckIfServiceJsonExist()) return false;
+            var serviceInfos = ServicesDirectory.GetDirectories()
+                .Where(x => File.Exists(x.FullName + @"\Website\appsettings.json"))
+                .Select(x =>
+                        new ServiceInfo
+                        {
+                            Name = getServiceName(x.FullName + @"\Website\appSettings.json"),
+                            ProjectFolder = x.FullName,
+                            WebsiteFolder = Path.Combine(x.FullName, "Website"),
+                            LaunchSettingsPath = Path.Combine(x.FullName, @"Website\Properties", "launchSettings.json")
+                        });
 
-            servicesJsonFileLastWriteTime = ServicesJsonFile.LastWriteTime;
+            if (!CheckIfServicesDirectoryExist()) return false;
 
-            var servicesAllText = File.ReadAllText(ServicesJsonFile.FullName);
-            var servicesJObject = Newtonsoft.Json.Linq.JObject.Parse(servicesAllText);
-            txtFileInfo.Text = ServicesJsonFile.FullName;
-            txtSolName.Text = servicesJObject["Solution"]["FullName"].ToString();
+            servicesDirectoryLastWriteTime = ServicesDirectory.LastWriteTime;
 
-            var children = servicesJObject["Services"].Children();
-            foreach (var jToken in children)
+            txtFileInfo.Text = ServicesDirectory.FullName;
+            txtSolName.Text = ServicesDirectory.Name;
+
+            foreach (var serviceInfo in serviceInfos)
             {
-                var serviceName = jToken.Path.Replace("Services.", "");
+                var serviceName = serviceInfo.Name;
                 var srv = ServiceData.SingleOrDefault(srvc => srvc.Service == serviceName);
                 if (srv == null)
                 {
                     srv = new MicroserviceItem();
                     ServiceData.Add(srv);
                 }
-                string liveUrl = null;
-                string uatUrl = null;
-                foreach (var url in jToken.Children())
-                {
-                    liveUrl = url["LiveUrl"].ToString();
-                    uatUrl = url["UatUrl"].ToString();
-                }
 
                 var port = "";
                 var status = MicroserviceItem.EnumStatus.NoSourcerLocally;
-                var parentFullName = ServicesJsonFile.Directory?.Parent?.FullName ?? "";
-                var projFolder = Path.Combine(parentFullName, serviceName);
-                var websiteFolder = Path.Combine(projFolder, "website");
-                var launchSettings = Path.Combine(websiteFolder, "properties", "launchSettings.json");
+                var parentFullName = ServicesDirectory?.FullName ?? "";
+                var projFolder = serviceInfo.ProjectFolder;
+                var websiteFolder = serviceInfo.WebsiteFolder;
+                var launchSettings = serviceInfo.LaunchSettingsPath;
                 var procId = -1;
 
-                if (File.Exists(launchSettings))
+                if (File.Exists(@launchSettings))
                 {
                     status = MicroserviceItem.EnumStatus.Pending;
                     port = GetPortNumberFromLaunchSettingsFile(launchSettings);
@@ -76,8 +85,6 @@ namespace MicroserviceExplorer
                 srv.Status = status;
                 srv.Service = serviceName;
                 srv.Port = port;
-                srv.LiveUrl = liveUrl;
-                srv.UatUrl = uatUrl;
                 srv.ProcId = procId;
                 srv.SolutionFolder = projFolder;
                 srv.WebsiteFolder = websiteFolder;
@@ -88,44 +95,42 @@ namespace MicroserviceExplorer
             projectLoaded = true;
 
             if (watcher == null)
-                StartFileSystemWatcher(ServicesJsonFile);
+                StartFileSystemWatcher(ServicesDirectory);
 
             Refresh();
 
             return true;
         }
-
-        private bool CheckIfServiceJsonExist()
+        private bool CheckIfServicesDirectoryExist()
         {
-            if (!ServicesJsonFile.Exists())
+            if (!ServicesDirectory.Exists())
             {
                 var result = MessageBox.Show(
                     $@"file : {
-                            ServicesJsonFile.FullName
-                        } \ndoes not exist anymore. \nDo you want to removed it from recent files list?", @"File Not Found",
+                            ServicesDirectory.FullName
+                        } \ndoes not exist anymore. \nDo you want to removed it from recent directories list?", @"Directory Not Found",
                     System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question);
-                _recentFiles.Remove(ServicesJsonFile.FullName);
+                _recentFiles.Remove(ServicesDirectory.FullName);
                 if (result != System.Windows.Forms.DialogResult.Yes) return false;
 
                 SaveRecentFilesXml();
                 ReloadRecentFiles();
 
-                ServicesJsonFile = null;
+                ServicesDirectory = null;
                 projectLoaded = false;
                 return false;
             }
             return true;
         }
-
         bool RefreshFile(string filePath)
         {
             var srvFile = filePath.AsFile();
-            if (srvFile.LastWriteTime != servicesJsonFileLastWriteTime)
+            if (srvFile.LastWriteTime != servicesDirectoryLastWriteTime)
                 return LoadFile(filePath);
 
             foreach (var srv in ServiceData.ToArray())
             {
-                var projFolder = Path.Combine(ServicesJsonFile.Directory?.Parent?.FullName ?? "", srv.Service);
+                var projFolder = Path.Combine(ServicesDirectory?.FullName ?? "", srv.Service);
                 var websiteFolder = Path.Combine(projFolder, "website");
                 var launchSettings = Path.Combine(websiteFolder, "properties", "launchSettings.json");
                 if (File.Exists(launchSettings))
@@ -151,7 +156,6 @@ namespace MicroserviceExplorer
             RestartAutoRefreshProcess();
             return true;
         }
-
         static string GetPortNumberFromLaunchSettingsFile(string launchSettings)
         {
             var launchSettingsAllText = File.ReadAllText(launchSettings);
@@ -169,19 +173,15 @@ namespace MicroserviceExplorer
             port = portNumer;
             return port;
         }
-
-
-        void StartFileSystemWatcher(FileInfo fileInfo)
+        void StartFileSystemWatcher(DirectoryInfo directoryInfo)
         {
             if (watcher != null)
                 StopWatcher();
 
-            watcher = new FileSystemWatcher(fileInfo.Directory?.FullName ?? throw new InvalidOperationException($"File '{fileInfo.FullName}' does not exists anymore ..."), SERVICES_FILE_NAME);
-
+            watcher = new FileSystemWatcher(directoryInfo.FullName ?? throw new InvalidOperationException($"Directory '{directoryInfo.FullName}' does not exists anymore ..."), directoryInfo.FullName);
             watcher.Changed += Watcher_Changed;
             watcher.EnableRaisingEvents = true;
         }
-
         void StopWatcher()
         {
             if (watcher == null) return;
@@ -192,13 +192,10 @@ namespace MicroserviceExplorer
             watcher = null;
         }
         public delegate void MyDelegate();
-
         void Watcher_Changed(object sender, FileSystemEventArgs e)
         {
-            if (!string.Equals(e.FullPath, ServicesJsonFile.FullName,
+            if (!string.Equals(e.FullPath, ServicesDirectory.FullName,
                 StringComparison.CurrentCultureIgnoreCase)) return;
-
-
 
             switch (e.ChangeType)
             {
@@ -215,8 +212,6 @@ namespace MicroserviceExplorer
                     throw new ArgumentOutOfRangeException("");
             }
         }
-
-        MicroserviceItem highPriority;
         async void UIElement_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             var service = GetServiceByTag(sender);
@@ -242,7 +237,6 @@ namespace MicroserviceExplorer
                     break;
             }
         }
-
         void LocalGitActions_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             var service = GetServiceByTag(sender);
@@ -258,7 +252,6 @@ namespace MicroserviceExplorer
 
             var showDialog = localGitWindow.ShowDialog();
         }
-
         void BuildButton_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
@@ -279,6 +272,7 @@ namespace MicroserviceExplorer
                         {
                             var processInfo = new ProcessStartInfo();
                             processInfo.FileName = "CMD.EXE";
+                            processInfo.WorkingDirectory = service.SolutionFolder;
                             processInfo.Arguments = "/K " + Path.Combine(service.SolutionFolder, "Build.bat");
                             var process = Process.Start(processInfo);
                             process.WaitForExit();

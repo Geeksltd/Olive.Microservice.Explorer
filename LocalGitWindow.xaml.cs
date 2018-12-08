@@ -84,8 +84,16 @@ namespace MicroserviceExplorer
         }
         string RunGitCommand(string command)
         {
-            return "git.exe".AsFile(searchEnvironmentPath: true)
-               .Execute(command, waitForExit: true, configuration: x => x.StartInfo.WorkingDirectory = _serviceAddress);
+            try
+            {
+                return "git.exe".AsFile(searchEnvironmentPath: true)
+                   .Execute(command, waitForExit: true, configuration: x => x.StartInfo.WorkingDirectory = _serviceAddress);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return "";
+            }
         }
 
     }
