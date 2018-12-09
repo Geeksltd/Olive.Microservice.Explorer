@@ -561,7 +561,7 @@ namespace MicroserviceExplorer
                     CreateNoWindow = true,
                     WindowStyle = ProcessWindowStyle.Minimized,
                     //RedirectStandardOutput = true
-                    WorkingDirectory =   WebsiteFolder,
+                    WorkingDirectory = WebsiteFolder,
                     UseShellExecute = true,
                 }
             };

@@ -29,7 +29,7 @@
             <Label Content="New changes: " Grid.Column="0"    VerticalAlignment="Top"   Grid.Row="1"/>
         </DockPanel>
         <StackPanel Grid.Row="0" Orientation="Horizontal"   Grid.Column="1"  >
-            <Label Content="Commits: "    VerticalAlignment="Top"/>
+            <Label Content="Unpushed commits : "    VerticalAlignment="Top"/>
         </StackPanel>
         <DockPanel Grid.Row="1"  Grid.Column="0"     >
             <DataGrid x:Name="changesGrid" Padding="10"  Grid.Column="0" Margin="5"        ItemsSource="{Binding}" CanUserAddRows="False"   SelectionMode="Single" AutoGenerateColumns="False" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#FF0D3E61" AlternationCount="2"   
@@ -67,7 +67,7 @@
         </DockPanel>
 
         <DockPanel Grid.Row="1"  Grid.Column="1"  >
-            <TextBox   x:Name="txtCommited" Padding="10" Margin="5"      VerticalScrollBarVisibility="Auto" IsReadOnly="True" HorizontalScrollBarVisibility="Auto"      />
+            <TextBox   x:Name="txtCommited" Padding="10" Margin="5"   Text="There is no any unpushed changes."    VerticalScrollBarVisibility="Auto" IsReadOnly="True" HorizontalScrollBarVisibility="Auto"      />
         </DockPanel>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Grid.ColumnSpan="2">
@@ -75,8 +75,7 @@
             <Button Margin="5" Width="100" Name="btnCommit" Click="btnCommit_OnClick" Padding="8">
                 <TextBlock Text="Commit" ></TextBlock>
             </Button>
-            <Button Margin="5" Width="100"   Name="btnPush" Click="btnPush_OnClick">
-                <TextBlock Text="Push" ></TextBlock>
+            <Button Margin="5" Width="100"   Name="btnPush" Content="Push" Click="btnPush_OnClick">
             </Button>
             <Button Margin="5" Width="100"   Name="btnDeploy" Click="btnDeploy_OnClick">
                 <TextBlock Text="Deploy" ></TextBlock>

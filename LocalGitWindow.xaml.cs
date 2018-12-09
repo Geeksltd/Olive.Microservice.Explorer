@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -20,7 +21,19 @@ namespace MicroserviceExplorer
         }
         void BindUnPushedChanges()
         {
-            txtCommited.Text = RunGitCommand("reflog --name-only");
+            string result = RunGitCommand("log @{u}.. ");
+
+            if (result.None())
+            {
+                txtCommited.Text = "There is no any unpushed changes.";
+                btnPush.IsEnabled = false;
+            }
+            else
+            {
+                txtCommited.Text = result;
+                btnPush.IsEnabled = true;
+            }
+
         }
         void BindUnCommitedChanges()
         {
@@ -48,16 +61,28 @@ namespace MicroserviceExplorer
         {
             try
             {
-                var stageCommandResult = RunGitCommand("add .");
+                btnCommit.Content = "Committing...";
+                btnCommit.IsEnabled = false;
 
-                if (string.IsNullOrEmpty(stageCommandResult))
+                using (var backgroundWorker = new BackgroundWorker())
                 {
-                    RunGitCommand("commit -m 'commited-from-olive-microservice-explorer.'");
-                    BindUnCommitedChanges();
-                    BindUnPushedChanges();
+                    backgroundWorker.RunWorkerCompleted += CommitBackgroundWorker_RunWorkerCompleted;
+
+                    backgroundWorker.DoWork += (sender1, e1) =>
+                    {
+                        var stageCommandResult = RunGitCommand("add .");
+
+                        if (string.IsNullOrEmpty(stageCommandResult))
+                        {
+                            RunGitCommand("commit -m 'commited-from-olive-microservice-explorer.'");
+
+                        }
+                        else
+                            MessageBox.Show(stageCommandResult, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    };
+
+                    backgroundWorker.RunWorkerAsync();
                 }
-                else
-                    MessageBox.Show(stageCommandResult, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             catch (Exception ex)
             {
@@ -65,15 +90,55 @@ namespace MicroserviceExplorer
                 const RegexOptions OPTIONS = RegexOptions.Multiline | RegexOptions.IgnoreCase;
                 var commitNotChangeMatch = Regex.Match(ex.Message, pattern, OPTIONS);
                 if (commitNotChangeMatch.Success)
-                    MessageBox.Show("There is no changes to commit.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show("There is no any changes to commit.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
                 else
                     MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+        private void CommitBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            BindUnCommitedChanges();
+            BindUnPushedChanges();
+            btnCommit.Content = "Commit";
+        }
+
         void btnPush_OnClick(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show(@"Push action not implemented yet.");
+            try
+            {
+                btnPush.Content = "Pushing...";
+                btnPush.IsEnabled = false;
+
+                using (var backgroundWorker = new BackgroundWorker())
+                {
+                    backgroundWorker.RunWorkerCompleted += PushBackgroundWorker_RunWorkerCompleted;
+
+                    backgroundWorker.DoWork += (sender1, e1) =>
+                    {
+                        RunGitCommand("push");
+                    };
+
+                    backgroundWorker.RunWorkerAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
         }
+
+        private void PushBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+
+            txtCommited.Text = "There is no any unpushed changes.";
+            BindUnCommitedChanges();
+            BindUnPushedChanges();
+            btnPush.Content = "Push";
+
+        }
+
         void btnDeploy_OnClick(object sender, RoutedEventArgs e)
         {
             MessageBox.Show(@"Deploy action not implemented yet.");
@@ -84,16 +149,8 @@ namespace MicroserviceExplorer
         }
         string RunGitCommand(string command)
         {
-            try
-            {
-                return "git.exe".AsFile(searchEnvironmentPath: true)
-                   .Execute(command, waitForExit: true, configuration: x => x.StartInfo.WorkingDirectory = _serviceAddress);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return "";
-            }
+            return "git.exe".AsFile(searchEnvironmentPath: true)
+               .Execute(command, waitForExit: true, configuration: x => x.StartInfo.WorkingDirectory = _serviceAddress);
         }
 
     }
