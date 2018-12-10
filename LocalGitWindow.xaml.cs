@@ -21,41 +21,55 @@ namespace MicroserviceExplorer
         }
         void BindUnPushedChanges()
         {
-            string result = RunGitCommand("log @{u}.. ");
+            try
+            {
+                string result = RunGitCommand("log @{u}.. ");
 
-            if (result.None())
-            {
-                txtCommited.Text = "There is no any unpushed changes.";
-                btnPush.IsEnabled = false;
+                if (result.None())
+                {
+                    txtCommited.Text = "There is no any unpushed changes.";
+                    btnPush.IsEnabled = false;
+                }
+                else
+                {
+                    txtCommited.Text = result;
+                    btnPush.IsEnabled = true;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                txtCommited.Text = result;
-                btnPush.IsEnabled = true;
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
         }
         void BindUnCommitedChanges()
         {
-            var fetchFullOutput = RunGitCommand("status --short");
-
-            var changes = new List<string>(
-                         fetchFullOutput.Split(new string[] { "\r\n" },
-                         StringSplitOptions.RemoveEmptyEntries));
-
-            var changesList = changes.Select(x =>
-            new LocalGitChange
+            try
             {
-                Description = x.Substring(3),
-                Type =
-                    x.StartsWith("?? ") ? "Add" :
-                    x.StartsWith(" M ") ? "Modify" :
-                    x.StartsWith(" D ") ? "Delete" :
-                    ""
-            });
+                var fetchFullOutput = RunGitCommand("status --short");
 
-            DataContext = changesList.ToList();
-            btnCommit.IsEnabled = changes.Count() > 0;
+                var changes = new List<string>(
+                             fetchFullOutput.Split(new string[] { "\r\n" },
+                             StringSplitOptions.RemoveEmptyEntries));
+
+                var changesList = changes.Select(x =>
+                new LocalGitChange
+                {
+                    Description = x.Substring(3),
+                    Type =
+                        x.StartsWith("?? ") ? "Add" :
+                        x.StartsWith(" M ") ? "Modify" :
+                        x.StartsWith(" D ") ? "Delete" :
+                        ""
+                });
+
+                DataContext = changesList.ToList();
+                btnCommit.IsEnabled = changes.Count() > 0;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
         void btnCommit_OnClick(object sender, RoutedEventArgs e)
         {
