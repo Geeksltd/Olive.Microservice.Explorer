@@ -242,8 +242,9 @@ namespace MicroserviceExplorer
             var service = GetServiceByTag(sender);
 
             var projFOlder = service.WebsiteFolder.AsDirectory().Parent;
+            string hubAddress = Path.Combine(ServicesDirectory.FullName, "hub");
 
-            var localGitWindow = new LocalGitWindow(projFOlder.FullName)
+            var localGitWindow = new LocalGitWindow(projFOlder.FullName, hubAddress,service.Service)
             {
                 Owner = this,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,

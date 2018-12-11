@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -12,12 +13,148 @@ namespace MicroserviceExplorer
     public partial class LocalGitWindow : Window
     {
         readonly string _serviceAddress;
-        public LocalGitWindow(string serviceAddress)
+        readonly string _hubAddress;
+        readonly string _serviceName;
+
+        public LocalGitWindow(string serviceAddress, string hubAddress, string serviceName)
         {
             InitializeComponent();
             _serviceAddress = serviceAddress;
+            _hubAddress = hubAddress;
+            _serviceName = serviceName;
             BindUnCommitedChanges();
             BindUnPushedChanges();
+        }
+        void btnCommit_OnClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                btnCommit.Content = "Committing...";
+                btnCommit.IsEnabled = false;
+
+                using (var backgroundWorker = new BackgroundWorker())
+                {
+                    backgroundWorker.RunWorkerCompleted += CommitBackgroundWorker_RunWorkerCompleted;
+
+                    backgroundWorker.DoWork += (sender1, e1) =>
+                    {
+                        var stageCommandResult = RunGitCommand("add .");
+
+                        if (string.IsNullOrEmpty(stageCommandResult) || stageCommandResult.StartsWith("warning: LF"))
+                        {
+                            RunGitCommand("commit -m 'commited-from-olive-microservice-explorer.'");
+
+                        }
+                        else
+                            MessageBox.Show(stageCommandResult, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    };
+
+                    backgroundWorker.RunWorkerAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                var pattern = @"no changes added to commit";
+                const RegexOptions OPTIONS = RegexOptions.Multiline | RegexOptions.IgnoreCase;
+                var commitNotChangeMatch = Regex.Match(ex.Message, pattern, OPTIONS);
+                if (commitNotChangeMatch.Success)
+                    MessageBox.Show("There is no any changes to commit.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+                else
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        void btnPush_OnClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                btnPush.Content = "Pushing...";
+                btnPush.IsEnabled = false;
+
+                using (var backgroundWorker = new BackgroundWorker())
+                {
+                    backgroundWorker.RunWorkerCompleted += PushBackgroundWorker_RunWorkerCompleted;
+
+                    backgroundWorker.DoWork += (sender1, e1) =>
+                    {
+                        RunGitCommand("push");
+                    };
+
+                    backgroundWorker.RunWorkerAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        void btnDeploy_OnClick(object sender, RoutedEventArgs e)
+        {
+            Deploy();
+        }
+        void btnDoAll_OnClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                btnDoAll.Content = "Please wait...";
+                btnDoAll.IsEnabled = false;
+
+                using (var backgroundWorker = new BackgroundWorker())
+                {
+                    backgroundWorker.RunWorkerCompleted += DoAllBackgroundWorker_RunWorkerCompleted;
+
+                    backgroundWorker.DoWork += (sender1, e1) =>
+                    {
+
+                        var stageCommandResult = RunGitCommand("add .");
+
+                        if (string.IsNullOrEmpty(stageCommandResult) || stageCommandResult.StartsWith("warning: LF"))
+                        {
+                            var fetchFullOutput = RunGitCommand("status --short");
+
+                            var changes = new List<string>(
+                                         fetchFullOutput.Split(new string[] { "\r\n" },
+                                         StringSplitOptions.RemoveEmptyEntries));
+                            if (changes.Any())
+                                RunGitCommand("commit -m 'commited-from-olive-microservice-explorer.'");
+                            RunGitCommand("push");
+                        }
+                        else
+                            MessageBox.Show(stageCommandResult, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+
+                    };
+
+                    backgroundWorker.RunWorkerAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                var pattern = @"no changes added to commit";
+                const RegexOptions OPTIONS = RegexOptions.Multiline | RegexOptions.IgnoreCase;
+                var commitNotChangeMatch = Regex.Match(ex.Message, pattern, OPTIONS);
+                if (commitNotChangeMatch.Success)
+                    MessageBox.Show("There is no any changes to commit.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+                else
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        private void CommitBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            BindUnCommitedChanges();
+            BindUnPushedChanges();
+            btnCommit.Content = "Commit";
+        }
+        private void PushBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            BindUnCommitedChanges();
+            BindUnPushedChanges();
+            btnPush.Content = "Push";
+        }
+        private void DoAllBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            BindUnCommitedChanges();
+            BindUnPushedChanges();
+            Deploy();
+            btnDoAll.Content = "Commit, push and deploy";
         }
         void BindUnPushedChanges()
         {
@@ -71,104 +208,24 @@ namespace MicroserviceExplorer
                 MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-        void btnCommit_OnClick(object sender, RoutedEventArgs e)
+        void Deploy()
         {
-            try
+            var serverUrlFile = Path.Combine(_hubAddress, "website", "DeployServer.xml");
+            var depolyWindow = new DeployWindow(serverUrlFile, _serviceName)
             {
-                btnCommit.Content = "Committing...";
-                btnCommit.IsEnabled = false;
+                Owner = this,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Title = $"Deploying {_serviceName} service"
+            };
+            depolyWindow.ShowDialog();
 
-                using (var backgroundWorker = new BackgroundWorker())
-                {
-                    backgroundWorker.RunWorkerCompleted += CommitBackgroundWorker_RunWorkerCompleted;
-
-                    backgroundWorker.DoWork += (sender1, e1) =>
-                    {
-                        var stageCommandResult = RunGitCommand("add .");
-
-                        if (string.IsNullOrEmpty(stageCommandResult))
-                        {
-                            RunGitCommand("commit -m 'commited-from-olive-microservice-explorer.'");
-
-                        }
-                        else
-                            MessageBox.Show(stageCommandResult, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    };
-
-                    backgroundWorker.RunWorkerAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                var pattern = @"no changes added to commit";
-                const RegexOptions OPTIONS = RegexOptions.Multiline | RegexOptions.IgnoreCase;
-                var commitNotChangeMatch = Regex.Match(ex.Message, pattern, OPTIONS);
-                if (commitNotChangeMatch.Success)
-                    MessageBox.Show("There is no any changes to commit.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
-                else
-                    MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private void CommitBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            BindUnCommitedChanges();
-            BindUnPushedChanges();
-            btnCommit.Content = "Commit";
-        }
-
-        void btnPush_OnClick(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                btnPush.Content = "Pushing...";
-                btnPush.IsEnabled = false;
-
-                using (var backgroundWorker = new BackgroundWorker())
-                {
-                    backgroundWorker.RunWorkerCompleted += PushBackgroundWorker_RunWorkerCompleted;
-
-                    backgroundWorker.DoWork += (sender1, e1) =>
-                    {
-                        RunGitCommand("push");
-                    };
-
-                    backgroundWorker.RunWorkerAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-
-        }
-
-        private void PushBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-
-            txtCommited.Text = "There is no any unpushed changes.";
-            BindUnCommitedChanges();
-            BindUnPushedChanges();
-            btnPush.Content = "Push";
-
-        }
-
-        void btnDeploy_OnClick(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show(@"Deploy action not implemented yet.");
-        }
-        void btnDoAll_OnClick(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show(@"Do All action not implemented yet.");
         }
         string RunGitCommand(string command)
         {
             return "git.exe".AsFile(searchEnvironmentPath: true)
                .Execute(command, waitForExit: true, configuration: x => x.StartInfo.WorkingDirectory = _serviceAddress);
         }
-
     }
-
 
     class LocalGitChange
     {
@@ -200,6 +257,5 @@ namespace MicroserviceExplorer
         {
             return value;
         }
-
     }
 }

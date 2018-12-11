@@ -50,12 +50,14 @@ namespace MicroserviceExplorer
         }
         void LocalGitChanges(MicroserviceItem service)
         {
+            service.LocalGitChanges = "...";
+            service.LocalGitTooltip = "no changes.";
+
             if (service.WebsiteFolder.IsEmpty()) return;
 
             var projFOlder = service.WebsiteFolder.AsDirectory().Parent;
             if (projFOlder == null || !Directory.Exists(Path.Combine(projFOlder.FullName, ".git"))) return;
 
-            service.LocalGitChanges = "...";
             try
             {
                 var fetchoutput = "git.exe".AsFile(searchEnvironmentPath: true)
@@ -67,7 +69,8 @@ namespace MicroserviceExplorer
 
                 if (changes > 0)
                     service.LocalGitChanges = changes.ToString();
-                service.LocalGitTooltip = changes.ToString() + " uncommited changes.";
+
+                service.LocalGitTooltip = changes > 0 ? changes.ToString() + " uncommited changes." : "no changes.";
             }
             catch (Exception e)
             {

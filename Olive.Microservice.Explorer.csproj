@@ -77,6 +77,9 @@
     <Compile Include="Controls\WindowTitlebarControl.xaml.cs">
       <DependentUpon>WindowTitlebarControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DeployWindow.xaml.cs">
+      <DependentUpon>DeployWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="LocalGitWindow.xaml.cs">
       <DependentUpon>LocalGitWindow.xaml</DependentUpon>
@@ -112,6 +115,10 @@
     <Compile Include="Utils\WatermarkService.cs" />
     <Compile Include="Utils\WindowApi.cs" />
     <Page Include="Controls\WindowTitlebarControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DeployWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
