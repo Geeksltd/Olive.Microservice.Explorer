@@ -254,14 +254,17 @@
                 <DataGridTemplateColumn Header="Local Git" >
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"  Orientation="Vertical" >
-                                <Border  Tag="{Binding}" Background="#63a0c6" CornerRadius="2" Padding="4"     PreviewMouseLeftButtonDown="LocalGitActions_OnPreviewMouseLeftButtonDown"   >
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"  Orientation="Horizontal" >
+                                <Border  Tag="{Binding}" Background="#63a0c6" CornerRadius="2" Padding="4"  MinWidth="25"    PreviewMouseLeftButtonDown="LocalGitActions_OnPreviewMouseLeftButtonDown"   >
                                         <Border.ToolTip>
                                             <ToolTip  Content="{Binding  LocalGitTooltip }" />
                                         </Border.ToolTip>
                                     <TextBlock Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding LocalGitChanges}"></TextBlock>
                                     </Border>
-                                </StackPanel>
+                                <Button PreviewMouseLeftButtonDown="SourceTree_OnClick" Style="{StaticResource gridButton}" Tag="{Binding}"  >
+                                    <Image Source="Resources/SourceTree.png" Style="{StaticResource gridImage}"  Width="25" ToolTip="Browse with SourceTree"  />
+                                </Button>
+                            </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

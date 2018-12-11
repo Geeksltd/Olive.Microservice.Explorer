@@ -343,5 +343,8 @@
   <ItemGroup>
     <Resource Include="Resources\Menu\Microservice.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\SourceTree.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

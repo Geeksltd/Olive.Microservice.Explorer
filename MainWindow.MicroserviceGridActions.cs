@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
 using MicroserviceExplorer.Utils;
+using Microsoft.Win32;
 using MessageBox = System.Windows.Forms.MessageBox;
 
 namespace MicroserviceExplorer
@@ -55,6 +56,36 @@ namespace MicroserviceExplorer
             var service = GetServiceByTag(sender);
             BrowsMicroservice(service);
         }
+
+        void SourceTree_OnClick(object sender, MouseButtonEventArgs e)
+        {
+            try
+            {
+                using (RegistryKey key = Registry.ClassesRoot.OpenSubKey("sourcetree\\shell\\open\\command"))
+                {
+                    if (key != null)
+                    {
+                        var sourceTreePath = key.GetValue("")
+                            .ToString().Split(new string[] { "-url" }, StringSplitOptions.RemoveEmptyEntries)[0]
+                        .Replace("\"", "");
+
+                        var service = GetServiceByTag(sender);
+
+                        var projFOlder = service.WebsiteFolder.AsDirectory().Parent;
+
+                        sourceTreePath.AsFile(searchEnvironmentPath: true)
+                         .Execute($"-f {projFOlder.FullName}", waitForExit: false, configuration: x => x.StartInfo.WorkingDirectory = projFOlder.FullName);
+                    }
+                    else
+                        MessageBox.Show("SourceTree not installed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
 
         void FilterListBy(string txtSearchText)
         {
