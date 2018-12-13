@@ -255,7 +255,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"  Orientation="Horizontal" >
-                                <Border  Tag="{Binding}" Background="#63a0c6" CornerRadius="2" Padding="4"  MinWidth="25"    PreviewMouseLeftButtonDown="LocalGitActions_OnPreviewMouseLeftButtonDown"   >
+                                <Border  Tag="{Binding}" Background="#63a0c6" CornerRadius="2" Padding="4"  MinWidth="25"    PreviewMouseLeftButtonDown="LocalGitActions_OnPreviewMouseLeftButtonDown" Visibility="{Binding  LocalGitHasChange }"   >
                                         <Border.ToolTip>
                                             <ToolTip  Content="{Binding  LocalGitTooltip }" />
                                         </Border.ToolTip>

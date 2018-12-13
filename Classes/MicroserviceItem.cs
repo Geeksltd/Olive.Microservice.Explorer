@@ -514,6 +514,7 @@ namespace MicroserviceExplorer
         string _localGitUpdates = "...";
         public string LocalGitTooltip { get; set; }
 
+        public Visibility LocalGitHasChange => _localGitUpdates !="..." ? Visibility.Visible : Visibility.Hidden;
         public string LocalGitChanges
         {
             get => _localGitUpdates;
@@ -523,6 +524,8 @@ namespace MicroserviceExplorer
 
                 OnPropertyChanged(nameof(LocalGitChanges));
                 OnPropertyChanged(nameof(LocalGitTooltip));
+                OnPropertyChanged(nameof(LocalGitHasChange));
+
             }
         }
 
