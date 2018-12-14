@@ -42,9 +42,14 @@
             services.AddSwagger();
 
             if (Environment.IsDevelopment())
-                services.AddDevCommands(x => x
-                .AddTempDatabase<SqlServerManager, ReferenceData>()
-                 .AddClearApiCache());
+            {
+                services.AddDevCommands(x => x.AddTempDatabase<SqlServerManager, ReferenceData>().AddClearApiCache());
+                services.AddIOEventBus();
+            }
+            else
+            {
+                services.AddAwsEventBus();
+            }
         }
 
         protected override void ConfigureSecurity(IApplicationBuilder app)
