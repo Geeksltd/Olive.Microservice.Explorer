@@ -44,7 +44,7 @@ namespace MicroserviceExplorer
                 var refs = settings.ItemGroup.SelectMany(x => x.PackageReference.OrEmpty()).ToArray();
                 var nugetRefs = refs.Select(x => new NugetReference(x, this, project))
                             .Except(x => x.Name.StartsWith("Microsoft.AspNetCore.")).ToList();
-
+                
                 References.AddRange(nugetRefs);
             }
 
@@ -330,10 +330,16 @@ namespace MicroserviceExplorer
             NugetIsUpdating = true;
 
             OnPropertyChanged(nameof(NugetUpdates));
+            OnPropertyChanged(nameof(NugetIsUpdating));
 
             var toUpdate = References.Where(x => x.ShouldUpdate && !x.IsUpToDate);
-            await Task.WhenAll(toUpdate.Select(x => Task.Run(() => { x.Update(); NugetIsUpdating = false; })));
 
+            foreach (var item in toUpdate)
+                item.Update();
+
+            NugetIsUpdating = false;
+
+            OnPropertyChanged(nameof(NugetIsUpdating));
             OnPropertyChanged(nameof(NugetUpdates));
             OnPropertyChanged(nameof(NugetUpdatesTooltip));
         }

@@ -3,7 +3,9 @@ using MicroserviceExplorer.Classes.Web;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Xml.Linq;
 
 namespace MicroserviceExplorer
 {
@@ -72,35 +74,33 @@ namespace MicroserviceExplorer
 
         public void Update()
         {
-            var command = $"add package {Name} -v {Latest}";
             var dir = Service.SolutionFolder.AsDirectory().GetSubDirectory(Project.Path()).FullName;
+            Service.LogMessage($"Updating nuget package:\n{dir}> PackageName: {Name} Version: {Latest}");
 
-            Service.LogMessage($"Updating nuget package:\n{dir}>dotnet.exe {command}");
-
-            string response = null;
-
-            for (var retries = 5; retries > 0; retries--)
+            try
             {
-                try
-                {
-                    response = "dotnet.exe".AsFile(searchEnvironmentPath: true)
-                        .Execute(command, waitForExit: true,
-                            configuration: x => x.StartInfo.WorkingDirectory = dir);
-
-                    OnPropertyChanged(nameof(Version));
-
-                }
-                catch (Exception e)
-                {
-                    if (e.Message.Contains("The process cannot access the file")) continue;
-
-                    Service.LogMessage($"nuget update error on [{Project} -> {Name} ({Version} to {Latest})] :",
-                        e.Message);
-                    return;
-                }
+                var projectFullAddress = dir.AsDirectory().GetFiles("*.csproj").First().FullName;
+                UpdateCsProjFile(projectFullAddress);
+                OnPropertyChanged(nameof(Version));
             }
-
+            catch (Exception e)
+            {
+                Service.LogMessage($"nuget update error on [{Project} -> {Name} ({Version} to {Latest})] :",
+                    e.Message);
+                return;
+            }
             Version = Latest;
+        }
+
+        public void UpdateCsProjFile(string projectFullAddress)
+        {
+            var projectXML = XElement.Load(projectFullAddress);
+            IEnumerable<XElement> packageReference = null;
+            packageReference = projectXML.Descendants("PackageReference");
+            var referenceToUpdate = packageReference.Where(x => x.Attribute("Include").Value == Name);
+            var node = referenceToUpdate.Single();
+            node.Attribute("Version").Value = Latest;
+            projectXML.Save(projectFullAddress);
         }
     }
 }

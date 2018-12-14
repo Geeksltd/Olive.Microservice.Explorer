@@ -129,6 +129,10 @@ namespace MicroserviceExplorer
             var nugetRef = (NugetReference)chk.Tag;
             if (chk.IsChecked.HasValue)
                 nugetRef.ShouldUpdate = chk.IsChecked.Value;
+
+            _nugetList.Where(x => x == nugetRef).Do(itm => itm.ShouldUpdate = true);
+            nugetRef.Service.References = _nugetList;
+
         }
 
         void UpdateAll_OnClick(object sender, RoutedEventArgs e)
@@ -136,6 +140,11 @@ namespace MicroserviceExplorer
             if (!_nugetList.None())
             {
                 _nugetList.Do(itm => itm.ShouldUpdate = true);
+
+                var button = (Button)sender;
+                var nugetRef = ((List<NugetReference>)button.Tag).First();
+                nugetRef.Service.References = _nugetList;
+
                 DialogResult = true;
             }
             else

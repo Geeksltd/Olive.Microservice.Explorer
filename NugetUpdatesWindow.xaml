@@ -121,9 +121,9 @@
         </DataGrid>
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Margin="5" Width="120" Name="btnUpdate" IsDefault="True" Click="BtnUpdate_OnClick" Padding="8">
-                <TextBlock Text="Update Selected" ></TextBlock>
+                <TextBlock Text="Update Selected" Tag="{Binding}" ></TextBlock>
             </Button>
-            <Button Margin="5" Width="120" Click="UpdateAll_OnClick" Name="btnUpdateAll">
+            <Button Margin="5" Width="120" Click="UpdateAll_OnClick" Name="btnUpdateAll" Tag="{Binding}">
                 <TextBlock Text="Update All" ></TextBlock>
             </Button>
         </StackPanel>
