@@ -31,7 +31,7 @@
     <PackageReference Include="Olive.Encryption" Version="2.1.47" />
     <PackageReference Include="Olive.Entities" Version="1.0.84" />
     <PackageReference Include="Olive.Entities.Data" Version="1.0.86" />
-    <PackageReference Include="Olive.Entities.Data.Replication" Version="1.0.109" />
+    <PackageReference Include="Olive.Entities.Data.Replication" Version="1.0.110" />
     <PackageReference Include="Olive.Entities.Data.SqlServer" Version="1.0.36" />
     <PackageReference Include="Olive.EventBus" Version="1.0.28" />
     <PackageReference Include="Olive.Hangfire" Version="1.0.46" />
