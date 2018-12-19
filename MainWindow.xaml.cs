@@ -1,30 +1,30 @@
 ﻿using EnvDTE;
+using MicroserviceExplorer.MicroserviceGenerator;
+using MicroserviceExplorer.UI;
 using MicroserviceExplorer.Utils;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Threading;
-using MessageBox = System.Windows.Forms.MessageBox;
-using Process = System.Diagnostics.Process;
-using System.IO.Compression;
-using System.Net.Http;
-using System.Threading;
-using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
-using MicroserviceExplorer.MicroserviceGenerator;
-using MicroserviceExplorer.UI;
-using Newtonsoft.Json.Linq;
 using MenuItem = System.Windows.Controls.MenuItem;
+using MessageBox = System.Windows.Forms.MessageBox;
+using Process = System.Diagnostics.Process;
 
 namespace MicroserviceExplorer
 {
@@ -267,7 +267,7 @@ namespace MicroserviceExplorer
         {
             using (var openFileDialog = new System.Windows.Forms.FolderBrowserDialog
             {
-                ShowNewFolderButton=false
+                ShowNewFolderButton = false
             })
             {
                 if (openFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
@@ -660,6 +660,7 @@ namespace MicroserviceExplorer
                 {"MY.MICROSERVICE.NAME", serviceName},
                 {"MY.SOLUTION",solutionName  },
                 {"my-solution-domain",domain },
+                {"mysolution",domain.Remove(".")},
                 {"9012", port }
             };
 
