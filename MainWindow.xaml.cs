@@ -522,13 +522,14 @@ namespace MicroserviceExplorer
             Refresh();
         }
 
-        private void AddMicroserviceToHubServices(string serviesXmlPath, string serviceName, string domain, int portNumber)
+        void AddMicroserviceToHubServices(string serviesXmlPath, string serviceName, string domain, int portNumber)
         {
             var services = XDocument.Load(serviesXmlPath);
-            var url = $"{domain}:{portNumber}";
-            var x = new XElement(serviceName, new XAttribute("url", url));
+            var node = new XElement(serviceName,
+                new XAttribute("url", $"http://localhost:{portNumber}"),
+                new XAttribute("production", $"https://{serviceName}.{domain}"));
 
-            services.Root?.AddFirst(x);
+            services.Root?.AddFirst(node);
             services.Save(serviesXmlPath);
         }
 
@@ -539,9 +540,7 @@ namespace MicroserviceExplorer
             while (hubDir?.Parent != null && !Directory.Exists(Path.Combine(hubDir.FullName, "hub")))
                 hubDir = hubDir.Parent;
 
-
-            if (hubDir == null)
-                return 0;
+            if (hubDir == null) return 0;
 
             var servicePath = Path.Combine(hubDir.FullName, "hub", "website", "services.xml");
             if (!File.Exists(servicePath))
