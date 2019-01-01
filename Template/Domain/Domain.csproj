@@ -2,11 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <OutputPath>..\Website\bin\Debug</OutputPath>
     <NoWarn>1701;1702;1705;1998;NU1701</NoWarn>
+	<LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
