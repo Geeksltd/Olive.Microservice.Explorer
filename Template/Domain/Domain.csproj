@@ -10,14 +10,14 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.5" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-    <PackageReference Include="Olive" Version="2.1.152" />
+    <PackageReference Include="Olive" Version="2.1.156" />
     <PackageReference Include="Olive.ApiClient" Version="2.2.102" />
     <PackageReference Include="Olive.Audit" Version="2.1.102" />
     <PackageReference Include="Olive.CSV" Version="2.1.102" />
     <PackageReference Include="Olive.Encryption" Version="2.2.102" />
-    <PackageReference Include="Olive.Entities" Version="2.1.102" />
-    <PackageReference Include="Olive.Entities.Data" Version="2.1.102" />
-    <PackageReference Include="Olive.Entities.Data.SqlServer" Version="2.1.102" />
+    <PackageReference Include="Olive.Entities" Version="2.1.104" />
+    <PackageReference Include="Olive.Entities.Data" Version="2.1.107" />
+    <PackageReference Include="Olive.Entities.Data.SqlServer" Version="2.1.104" />
     <PackageReference Include="Olive.Integration" Version="1.0.7" />
     <PackageReference Include="Olive.Microservices" Version="2.1.102" />
     <PackageReference Include="Olive.Mvc.Security" Version="2.2.102" />

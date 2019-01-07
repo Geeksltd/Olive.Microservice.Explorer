@@ -38,6 +38,7 @@
         public override void ConfigureServices(IServiceCollection services)
         {
             base.ConfigureServices(services);
+            services.AddDataAccess(x => x.SqlServer());
             services.AddScheduledTasks();
             services.AddSwagger();
 
