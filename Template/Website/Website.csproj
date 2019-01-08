@@ -2,14 +2,13 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <PreserveCompilationContext>true</PreserveCompilationContext>
-    <MvcRazorCompileOnPublish>false</MvcRazorCompileOnPublish>
-    <TypeScriptToolsVersion>2.6</TypeScriptToolsVersion>
+    <MvcRazorCompileOnPublish>true</MvcRazorCompileOnPublish>
+    <TypeScriptToolsVersion>3.0</TypeScriptToolsVersion>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <TieredCompilation>true</TieredCompilation>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <NoWarn>1701;1702;1705;1998;NU1701</NoWarn>
     <OutputPath>bin\Debug\</OutputPath>
+	<LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="App_Data\**" />
@@ -23,16 +22,20 @@
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="Olive" Version="2.1.156" />
     <PackageReference Include="Olive.ApiClient" Version="2.2.102" />
-    <PackageReference Include="Olive.ApiProxyGenerator" Version="1.0.83" />
+    <PackageReference Include="Olive.ApiProxyGenerator" Version="2.0.99" />
     <PackageReference Include="Olive.Audit" Version="2.1.102" />
     <PackageReference Include="Olive.Aws" Version="2.2.102" />
+    <PackageReference Include="Olive.Aws.EventBus" Version="2.1.106" />
     <PackageReference Include="Olive.CSV" Version="2.1.102" />
     <PackageReference Include="Olive.Encryption" Version="2.2.102" />
     <PackageReference Include="Olive.Entities" Version="2.1.104" />
     <PackageReference Include="Olive.Entities.Data" Version="2.1.107" />
+    <PackageReference Include="Olive.Entities.Data.Replication" Version="2.1.110" />
     <PackageReference Include="Olive.Entities.Data.SqlServer" Version="2.1.104" />
+    <PackageReference Include="Olive.EventBus" Version="2.1.107" />
     <PackageReference Include="Olive.Hangfire" Version="2.1.102" />
     <PackageReference Include="Olive.Integration" Version="1.0.7" />
+    <PackageReference Include="Olive.Log.EventBus" Version="2.1.106" />
     <PackageReference Include="Olive.Microservices" Version="2.1.102" />
     <PackageReference Include="Olive.Mvc" Version="2.1.108" />
     <PackageReference Include="Olive.Mvc.Security" Version="2.2.102" />
