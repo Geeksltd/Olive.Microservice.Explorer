@@ -11,12 +11,11 @@
     using Olive.Entities.Data;
     using Olive.Hangfire;
     using Olive.Mvc.Testing;
-    using Olive.Security;
     using System;
     using System.Globalization;
     using System.Threading.Tasks;
 
-    public class Startup : Olive.Mvc.Startup
+    public class Startup : Olive.Mvc.Microservices.Startup
     {
         public Startup(IHostingEnvironment env, IConfiguration config, ILoggerFactory loggerFactory)
            : base(env, config, loggerFactory)
@@ -44,19 +43,11 @@
 
             if (Environment.IsDevelopment())
             {
-                services.AddDevCommands(x => x.AddTempDatabase<SqlServerManager, ReferenceData>().AddClearApiCache());
+                services.AddDevCommands(Configuration, x => x.AddTempDatabase<SqlServerManager, ReferenceData>().AddClearApiCache());
                 services.AddIOEventBus();
             }
             else
-            {
                 services.AddAwsEventBus();
-            }
-        }
-
-        protected override void ConfigureSecurity(IApplicationBuilder app)
-        {
-            app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowCredentials().AllowAnyMethod());
-            base.ConfigureSecurity(app);
         }
 
         public override void Configure(IApplicationBuilder app)
