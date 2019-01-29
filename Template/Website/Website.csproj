@@ -20,7 +20,7 @@
     <PackageReference Include="Hangfire" Version="1.6.22" />
     <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.5" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-    <PackageReference Include="Olive" Version="2.1.158" />
+    <PackageReference Include="Olive" Version="2.1.159" />
     <PackageReference Include="Olive.ApiClient" Version="2.2.102" />
     <PackageReference Include="Olive.ApiProxyGenerator" Version="2.0.99" />
     <PackageReference Include="Olive.Audit" Version="2.1.102" />
@@ -37,7 +37,7 @@
     <PackageReference Include="Olive.Integration" Version="1.0.7" />
     <PackageReference Include="Olive.Log.EventBus" Version="2.1.106" />
     <PackageReference Include="Olive.Microservices" Version="2.1.102" />
-    <PackageReference Include="Olive.Mvc" Version="2.1.112" />
+    <PackageReference Include="Olive.Mvc" Version="2.1.114" />
     <PackageReference Include="Olive.Mvc.Microservices" Version="2.1.101" />
     <PackageReference Include="Olive.Mvc.Security" Version="2.2.102" />
     <PackageReference Include="Olive.PDF" Version="2.1.102" />
