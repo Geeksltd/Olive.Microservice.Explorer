@@ -36,9 +36,11 @@ namespace MicroserviceExplorer
         }
         bool LoadFile(string filePath)
         {
-            ServicesDirectory = filePath.AsDirectory();
+            FileInfo file = filePath.AsFile();
 
-            var serviceInfos = ServicesDirectory.GetDirectories()
+            ServicesDirectory = file.Directory; //filePath.AsDirectory();
+
+            var serviceInfos = ServicesDirectory?.GetDirectories()
                 .Where(x => File.Exists(x.FullName + @"\Website\appsettings.json"))
                 .Select(x =>
                         new ServiceInfo
@@ -55,6 +57,7 @@ namespace MicroserviceExplorer
 
             txtFileInfo.Text = ServicesDirectory.FullName;
             txtSolName.Text = ServicesDirectory.Name;
+            if (serviceInfos == null) return false;
 
             foreach (var serviceInfo in serviceInfos)
             {
@@ -244,7 +247,7 @@ namespace MicroserviceExplorer
             var projFOlder = service.WebsiteFolder.AsDirectory().Parent;
             string hubAddress = Path.Combine(ServicesDirectory.FullName, "hub");
 
-            var localGitWindow = new LocalGitWindow(projFOlder.FullName, hubAddress,service.Service)
+            var localGitWindow = new LocalGitWindow(projFOlder.FullName, hubAddress, service.Service)
             {
                 Owner = this,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
