@@ -10,5 +10,5 @@
 
 <head>
     <title>@ViewData["Title"]</title>
-    <link rel='stylesheet' href="@Request.GetAbsoluteUrl("/styles/Styles.css")" type='text/css' />
+    <link rel='stylesheet' href="@Request.GetAbsoluteUrl($"/styles/Styles.css?v={ResourceConfig.Version}")" type='text/css' />
 </head>
