@@ -4,7 +4,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "olive.mvc": "Geeksltd/Olive.MvcJs#0.9.152"
+    "olive.mvc": "Geeksltd/Olive.MvcJs#0.9.197"
   },
   "engines": {
     "yarn": ">= 1.0.0"
