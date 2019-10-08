@@ -40,12 +40,19 @@ namespace MicroserviceExplorer
             References = new List<NugetReference>();
             foreach (var project in StandardProjects)
             {
-                var settings = project.GetProjectFile(SolutionFolder);
-                var refs = settings.ItemGroup.SelectMany(x => x.PackageReference.OrEmpty()).ToArray();
-                var nugetRefs = refs.Select(x => new NugetReference(x, this, project))
-                            .Except(x => x.Name.StartsWith("Microsoft.AspNetCore.")).ToList();
-                
-                References.AddRange(nugetRefs);
+                try
+                {
+                    var settings = project.GetProjectFile(SolutionFolder);
+                    var refs = settings.ItemGroup.SelectMany(x => x.PackageReference.OrEmpty()).ToArray();
+                    var nugetRefs = refs.Select(x => new NugetReference(x, this, project))
+                                .Except(x => x.Name.StartsWith("Microsoft.AspNetCore.")).ToList();
+
+                    References.AddRange(nugetRefs);
+                }
+                catch (Exception ex)
+                {
+                    LogMessage(ex.Message);
+                }
             }
 
             OnPropertyChanged(nameof(NugetUpdates));
@@ -520,7 +527,7 @@ namespace MicroserviceExplorer
         string _localGitUpdates = "...";
         public string LocalGitTooltip { get; set; }
 
-        public Visibility LocalGitHasChange => _localGitUpdates !="..." ? Visibility.Visible : Visibility.Hidden;
+        public Visibility LocalGitHasChange => _localGitUpdates != "..." ? Visibility.Visible : Visibility.Hidden;
         public string LocalGitChanges
         {
             get => _localGitUpdates;

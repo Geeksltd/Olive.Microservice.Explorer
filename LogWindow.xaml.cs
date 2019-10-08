@@ -20,7 +20,7 @@ namespace MicroserviceExplorer
     /// <summary>
     /// Interaction logic for LogWindow.xaml
     /// </summary>
-    public partial class LogWindow : Window,INotifyPropertyChanged
+    public partial class LogWindow : Window, INotifyPropertyChanged
     {
         public static readonly DependencyProperty TextLogProperty =
             DependencyProperty.Register("TextLog", typeof(string), typeof(Window) /*, new PropertyMetadata(false) */);
@@ -30,7 +30,7 @@ namespace MicroserviceExplorer
         public LogWindow()
         {
             InitializeComponent();
-            if(Servic != null)
+            if (Servic != null)
                 SaveLogMenuItem.Header = $"Save to {Servic.Service}_Log.txt";
         }
 
@@ -75,7 +75,7 @@ namespace MicroserviceExplorer
         {
             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MainWindow.MyDelegate(() =>
             {
-                TextLog += $"-{LocalTime.Now.ToLongTimeString()}: \t{message}{Environment.NewLine}";
+                TextLog += $"-{DateTime.Now.ToLongTimeString()}: \t{message}{Environment.NewLine}";
                 if (description.HasValue())
                     TextLog += "decription : \t" + description?.Replace("\n", "\n\t\t") + Environment.NewLine;
 
@@ -100,7 +100,7 @@ namespace MicroserviceExplorer
 
         void SaveLogMenuItem_OnClick(object sender, RoutedEventArgs e)
         {
-            File.WriteAllText($"{Servic.Service}_Log_{LocalTime.Now.ToShortDateString().Replace('\\','-').Replace('/','-')}_{LocalTime.Now.ToShortTimeString().Replace(':','-')}.txt",TextLog);
+            File.WriteAllText($"{Servic.Service}_Log_{LocalTime.Now.ToShortDateString().Replace('\\', '-').Replace('/', '-')}_{LocalTime.Now.ToShortTimeString().Replace(':', '-')}.txt", TextLog);
 
         }
     }
