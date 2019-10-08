@@ -22,7 +22,8 @@ namespace MicroserviceExplorer.NewMicroservice
     /// </summary>
     public partial class NewMicroservice : Window
     {
-        public string ServiceName {
+        public string ServiceName
+        {
             get => txtServiceName.Text;
             set => txtServiceName.Text = value;
         }
@@ -111,7 +112,7 @@ namespace MicroserviceExplorer.NewMicroservice
             if (url.IsEmpty())
                 return false;
 
-            var pattern = @"^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$";
+            var pattern = @"^(?:http(s)?:\/\/)?[\w.-]+@?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:\/?#[\]@!\$&'\(\)\*\+,;=.]+$";
             var regex = new Regex(pattern, RegexOptions.Singleline);
             LblError.Content = regex.Match(url).Success ? "" : "Git Repository Url is not in correct format ...";
             return regex.Match(url).Success;
