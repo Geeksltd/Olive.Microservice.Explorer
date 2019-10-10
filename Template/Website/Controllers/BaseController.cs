@@ -1,18 +1,16 @@
-﻿using Domain;
-using Olive;
-using Olive.Mvc;
+﻿using Olive;
 
 namespace Controllers
 {
-    public class BaseController : Olive.Mvc.Controller
+    public class BaseController : Olive.Mvc.Microservices.Controller
     {
         public BaseController()
         {
             ApiClient.FallBack.Handle(arg => Notify(arg.FriendlyMessage, false));
         }
 
-		protected override bool IsMicrofrontEnd => true;
-		
+        protected override bool IsMicrofrontEnd => true;
+
         // Here you can add helper methods to all your controllers.
     }
 }

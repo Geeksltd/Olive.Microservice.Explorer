@@ -3,7 +3,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <MvcRazorCompileOnPublish>true</MvcRazorCompileOnPublish>
-    <TypeScriptToolsVersion>3.0</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <TieredCompilation>true</TieredCompilation>
     <NoWarn>1701;1702;1705;1998;NU1701</NoWarn>
@@ -17,35 +17,35 @@
     <None Remove="App_Data\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Hangfire" Version="1.6.22" />
+    <PackageReference Include="Hangfire" Version="1.7.6" />
     <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.5" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-    <PackageReference Include="Olive" Version="2.1.159" />
-    <PackageReference Include="Olive.ApiClient" Version="2.2.102" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Olive" Version="2.1.169" />
+    <PackageReference Include="Olive.ApiClient" Version="2.2.103" />
     <PackageReference Include="Olive.ApiProxyGenerator" Version="2.0.99" />
     <PackageReference Include="Olive.Audit" Version="2.1.102" />
-    <PackageReference Include="Olive.Aws" Version="2.2.102" />
-    <PackageReference Include="Olive.Aws.EventBus" Version="2.1.108" />
-    <PackageReference Include="Olive.CSV" Version="2.1.102" />
+    <PackageReference Include="Olive.Aws" Version="2.2.108" />
+    <PackageReference Include="Olive.Aws.EventBus" Version="2.1.112" />
+    <PackageReference Include="Olive.CSV" Version="2.1.103" />
     <PackageReference Include="Olive.Encryption" Version="2.2.102" />
-    <PackageReference Include="Olive.Entities" Version="2.1.118" />
-    <PackageReference Include="Olive.Entities.Data" Version="2.1.127" />
-    <PackageReference Include="Olive.Entities.Data.Replication" Version="2.1.115" />
-    <PackageReference Include="Olive.Entities.Data.SqlServer" Version="2.1.104" />
-    <PackageReference Include="Olive.EventBus" Version="2.1.108" />
-    <PackageReference Include="Olive.Hangfire" Version="2.1.103" />
+    <PackageReference Include="Olive.Entities" Version="2.1.133" />
+    <PackageReference Include="Olive.Entities.Data" Version="2.1.139" />
+    <PackageReference Include="Olive.Entities.Data.Replication" Version="2.1.130" />
+    <PackageReference Include="Olive.Entities.Data.SqlServer" Version="2.1.106" />
+    <PackageReference Include="Olive.EventBus" Version="2.1.110" />
+    <PackageReference Include="Olive.Hangfire" Version="2.1.105" />
     <PackageReference Include="Olive.Integration" Version="1.0.7" />
     <PackageReference Include="Olive.Log.EventBus" Version="2.1.106" />
-    <PackageReference Include="Olive.Microservices" Version="2.1.102" />
-    <PackageReference Include="Olive.Mvc" Version="2.1.118" />
-    <PackageReference Include="Olive.Mvc.Microservices" Version="2.1.102" />
+    <PackageReference Include="Olive.Microservices" Version="2.1.103" />
+    <PackageReference Include="Olive.Mvc" Version="2.1.138" />
+    <PackageReference Include="Olive.Mvc.Microservices" Version="2.1.104" />
     <PackageReference Include="Olive.Mvc.Security" Version="2.2.103" />
-    <PackageReference Include="Olive.PDF" Version="2.1.102" />
+    <PackageReference Include="Olive.PDF" Version="2.1.104" />
     <PackageReference Include="Olive.Security.Aws" Version="2.2.102" />
-    <PackageReference Include="Olive.Testing" Version="2.1.110" />
-    <PackageReference Include="Olive.Web" Version="2.2.103" />
+    <PackageReference Include="Olive.Testing" Version="2.1.113" />
+    <PackageReference Include="Olive.Web" Version="2.2.105" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.6.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.7.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Domain\Domain.csproj" />

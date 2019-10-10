@@ -20,6 +20,11 @@
         public Startup(IHostingEnvironment env, IConfiguration config, ILoggerFactory loggerFactory)
            : base(env, config, loggerFactory)
         {
+            SetUpIdentity(env, config);
+        }
+
+        protected virtual void SetUpIdentity(IHostingEnvironment env, IConfiguration config)
+        {
             if (env.IsProduction()) config.LoadAwsIdentity();
             else config.LoadAwsDevIdentity();
         }
