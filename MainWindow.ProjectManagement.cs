@@ -51,7 +51,8 @@ namespace MicroserviceExplorer
                             LaunchSettingsPath = Path.Combine(x.FullName, @"Website\Properties", "launchSettings.json")
                         });
 
-            if (!CheckIfServicesDirectoryExist()) return false;
+            if (ServicesDirectory == null || 
+                !CheckIfServicesDirectoryExist()) return false;
 
             servicesDirectoryLastWriteTime = ServicesDirectory.LastWriteTime;
 
@@ -234,7 +235,7 @@ namespace MicroserviceExplorer
             switch (showDialog)
             {
                 case true:
-                    await service.UpdateSelectedPackages();
+                    service.UpdateSelectedPackages();
                     break;
                 default:
                     break;

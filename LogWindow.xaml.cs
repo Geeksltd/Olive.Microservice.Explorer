@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using MSharp.Framework;
 
 namespace MicroserviceExplorer
 {
@@ -30,6 +31,7 @@ namespace MicroserviceExplorer
         public LogWindow()
         {
             InitializeComponent();
+            MSharp.Framework.Context.Initialize(new DefaultServiceProvider());
             if(Servic != null)
                 SaveLogMenuItem.Header = $"Save to {Servic.Service}_Log.txt";
         }
@@ -73,7 +75,7 @@ namespace MicroserviceExplorer
 
         public void LogMessage(string message, string description = null)
         {
-            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MainWindow.MyDelegate(() =>
+            Dispatcher?.BeginInvoke(DispatcherPriority.Normal, new MainWindow.MyDelegate(() =>
             {
                 TextLog += $"-{LocalTime.Now.ToLongTimeString()}: \t{message}{Environment.NewLine}";
                 if (description.HasValue())

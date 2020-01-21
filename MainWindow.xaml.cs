@@ -22,6 +22,7 @@ using System.Windows.Threading;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
+
 using MenuItem = System.Windows.Controls.MenuItem;
 using MessageBox = System.Windows.Forms.MessageBox;
 using Process = System.Diagnostics.Process;
@@ -185,7 +186,7 @@ namespace MicroserviceExplorer
             await Task.Factory.StartNew(async () =>
             {
                 LocalGitChanges(service);
-                var nugetTasks = Task.Run(() => service.RefreshPackages());
+                var nugetTasks = Task.Run(service.RefreshPackages);
                 await CalculateGitUpdates(service);
                 await Task.WhenAll(nugetTasks);
             });
@@ -204,10 +205,13 @@ namespace MicroserviceExplorer
             ReloadRecentFiles();
             //logWindow.ShowInTaskbar = false;
             //logWindow.Hide();
-            while (_recentFiles.Any())
+            var recentFilesCount = _recentFiles.Count-1;
+
+            while (recentFilesCount > 0)
             {
-                if (LoadFile(_recentFiles[_recentFiles.Count - 1]))
+                if (LoadFile(_recentFiles[recentFilesCount]))
                     break;
+                recentFilesCount--;
             }
 
             if (projectLoaded) return;
