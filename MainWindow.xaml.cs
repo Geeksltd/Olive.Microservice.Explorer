@@ -298,7 +298,7 @@ namespace MicroserviceExplorer
             AutoRefreshTimer.Stop();
 
             if (ServicesDirectory != null)
-                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(() =>
+                Dispatcher?.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(() =>
                 {
                     try
                     {
@@ -328,7 +328,8 @@ namespace MicroserviceExplorer
         {
             e.Handled = true;
             var service = GetServiceByTag(sender);
-            Process.Start(service.WebsiteFolder.AsDirectory().Parent?.FullName ?? throw new Exception("Microservice projFolder Not Exists ..."));
+            Process.Start(service.WebsiteFolder.AsDirectory().Parent?.FullName ?? 
+                          throw new Exception("Microservice projFolder Not Exists ..."));
 
         }
         void TextBoxBase_OnTextChanged(object sender, TextChangedEventArgs e)
@@ -336,7 +337,7 @@ namespace MicroserviceExplorer
             FilterListBy(txtSearch.Text);
         }
 
-        void VsDebuggerAttach_OnClick(object sender, MouseButtonEventArgs e)
+        async void VsDebuggerAttach_OnClick(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
             var service = GetServiceByTag(sender);
@@ -351,7 +352,7 @@ namespace MicroserviceExplorer
             var process = processes.SingleOrDefault(x => x.ProcessID == service.ProcId);
             if (process == null) return;
 
-            service.OpenVs(solutionFile: service.GetServiceSolutionFilePath());
+            await service.OpenVs(solutionFile: service.GetServiceSolutionFilePath());
             process.Attach();
         }
 

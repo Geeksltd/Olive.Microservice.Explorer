@@ -134,7 +134,7 @@ namespace MicroserviceExplorer
 
             foreach (var srv in ServiceData.ToArray())
             {
-                var projFolder = Path.Combine(ServicesDirectory?.FullName ?? "", srv.Service);
+                var projFolder = Path.Combine(ServicesDirectory?.FullName ?? "", srv.SolutionFolder);
                 var websiteFolder = Path.Combine(projFolder, "website");
                 var launchSettings = Path.Combine(websiteFolder, "properties", "launchSettings.json");
                 if (File.Exists(launchSettings))
