@@ -183,6 +183,10 @@ namespace MicroserviceExplorer
 
         async Task FetchUpdates(MicroserviceItem service)
         {
+            Dispatcher?.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(() =>
+            {
+
+            }));
             await Task.Factory.StartNew(async () =>
             {
                 LocalGitChanges(service);

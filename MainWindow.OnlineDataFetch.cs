@@ -20,7 +20,7 @@ namespace MicroserviceExplorer
         async Task CalculateGitUpdates(MicroserviceItem service)
         {
             if (service.WebsiteFolder.IsEmpty()) return;
-
+            service.RollProgress($"Fetch '{service.Service}' local git updates ...");
             var projFOlder = service.WebsiteFolder.AsDirectory().Parent;
             if (projFOlder == null || !Directory.Exists(Path.Combine(projFOlder.FullName, ".git"))) return;
 
@@ -44,15 +44,17 @@ namespace MicroserviceExplorer
             catch (Exception e)
             {
                 service.LogMessage("Error on git command ...", e.Message);
+                service.StopProgress($"Error on git command, please open the '{service}' log window for detail.");
             }
 
             service.GitUpdateIsInProgress = false;
+            service.StopProgress();
         }
         void LocalGitChanges(MicroserviceItem service)
         {
             service.LocalGitChanges = "...";
             service.LocalGitTooltip = "no changes.";
-
+            
             if (service.WebsiteFolder.IsEmpty()) return;
 
             var projFOlder = service.WebsiteFolder.AsDirectory().Parent;

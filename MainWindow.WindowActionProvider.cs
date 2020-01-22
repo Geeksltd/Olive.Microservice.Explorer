@@ -46,7 +46,7 @@ namespace MicroserviceExplorer
 
         void StatusProgressStart()
         {
-            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(() =>
+            Dispatcher?.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(() =>
             {
                 statusProgress.IsIndeterminate = true;
             }));

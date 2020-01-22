@@ -66,7 +66,10 @@ namespace MicroserviceExplorer
                 var srv = ServiceData.SingleOrDefault(srvc => srvc.Service == serviceName);
                 if (srv == null)
                 {
-                    srv = new MicroserviceItem();
+                    srv = new MicroserviceItem
+                    {
+                        MainWindow = this
+                    };
                     ServiceData.Add(srv);
                 }
 

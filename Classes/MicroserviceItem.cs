@@ -18,6 +18,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Threading;
 using System.Xml.Serialization;
 using Process = System.Diagnostics.Process;
 using Thread = System.Threading.Thread;
@@ -37,6 +38,7 @@ namespace MicroserviceExplorer
 
         public void RefreshPackages()
         {
+            RollProgress($"Checking '{Service}' Microservice for nuget updates ...  ");
             References = new List<NugetReference>();
             foreach (var project in StandardProjects)
             {
@@ -44,12 +46,13 @@ namespace MicroserviceExplorer
                 var refs = settings.ItemGroup.SelectMany(x => x.PackageReference.OrEmpty()).ToArray();
                 var nugetRefs = refs.Select(x => new NugetReference(x, this, project))
                             .Except(x => x.Name.StartsWith("Microsoft.AspNetCore.")).ToList();
-                
+
                 References.AddRange(nugetRefs);
             }
 
             OnPropertyChanged(nameof(NugetUpdates));
             OnPropertyChanged(nameof(NugetUpdatesTooltip));
+            StopProgress();
         }
 
         int _nugetFetchTasks;
@@ -74,6 +77,36 @@ namespace MicroserviceExplorer
         #endregion
 
         private readonly LogWindow Logwindow;
+        public MainWindow MainWindow { get; set; }
+
+        public void UpdateProgress(int progress, string msg = null)
+        {
+            MainWindow?.Dispatcher?.BeginInvoke(DispatcherPriority.Normal, new MainWindow.MyDelegate(() =>
+            {
+                MainWindow.statusProgress.Value = progress;
+                MainWindow.txtStatusMessage.Text = msg;
+            }));
+        }
+        public void RollProgress(string msg = null)
+        {
+            MainWindow?.Dispatcher?.BeginInvoke(DispatcherPriority.Normal, new MainWindow.MyDelegate(() =>
+            {
+                MainWindow.statusProgress.IsIndeterminate = true;
+                MainWindow.txtStatusMessage.Text = msg;
+            }));
+        }
+
+        public void StopProgress(string msg = null)
+        {
+            MainWindow?.Dispatcher?.BeginInvoke(DispatcherPriority.Normal, new MainWindow.MyDelegate(() =>
+            {
+                MainWindow.statusProgress.Value = 0;
+                MainWindow.statusProgress.IsIndeterminate = false;
+                MainWindow.txtStatusMessage.Text = msg;
+            }));
+
+        }
+
         public MicroserviceItem()
         {
             Logwindow = new LogWindow { Servic = this };
@@ -520,7 +553,7 @@ namespace MicroserviceExplorer
         string _localGitUpdates = "...";
         public string LocalGitTooltip { get; set; }
 
-        public Visibility LocalGitHasChange => _localGitUpdates !="..." ? Visibility.Visible : Visibility.Hidden;
+        public Visibility LocalGitHasChange => _localGitUpdates != "..." ? Visibility.Visible : Visibility.Hidden;
         public string LocalGitChanges
         {
             get => _localGitUpdates;
