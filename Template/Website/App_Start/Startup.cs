@@ -48,7 +48,7 @@
 
             if (Environment.IsDevelopment())
             {
-                services.AddDevCommands(Configuration, x => x.AddTempDatabase<SqlServerManager, ReferenceData>().AddClearApiCache());
+                services.AddDevCommands(x => x.AddTempDatabase<SqlServerManager, ReferenceData>().AddClearApiCache());
                 services.AddIOEventBus();
             }
             else
