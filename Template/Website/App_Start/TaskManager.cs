@@ -10,10 +10,10 @@
     using Olive.Entities;
     using Olive.Entities.Data;
     using Hangfire;
-    
+
     /// <summary>Executes the scheduled tasks in independent threads automatically.</summary>
     [EscapeGCop("Auto generated code.")]
-    public static partial class TaskManager
+    public partial class TaskManager : BackgroundJobsPlan
     {
         /// <summary>
         /// This will start the scheduled activities.<para/>
@@ -21,13 +21,15 @@
         /// </summary>
         public static void Run()
         {
-            RecurringJob.AddOrUpdate("Clean old temp uploads", () => CleanOldTempUploads(), Cron.MinuteInterval(10));
+            //RecurringJob.AddOrUpdate("Clean old temp uploads", () => CleanOldTempUploads(), Cron.MinuteInterval(10));
         }
-        
-        /// <summary>Clean old temp uploads</summary>
-        public static async Task CleanOldTempUploads()
+
+        public override void Initialize()
         {
-            await Olive.Mvc.FileUploadService.DeleteTempFiles(olderThan: 1.Hours());
+
         }
+
+        /// <summary>Clean old temp uploads</summary>
+
     }
 }

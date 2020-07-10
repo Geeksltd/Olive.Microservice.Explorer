@@ -9,7 +9,8 @@
  
   <ItemGroup>
     <PackageReference Include="MSharp" Version="4.1.267" />
-    <PackageReference Include="Olive" Version="1.0.98" />
+    <PackageReference Include="Olive" Version="2.1.192" />
+    <PackageReference Include="Olive.Entities" Version="2.1.142" />
   </ItemGroup>
   <Target Name="Generate code" AfterTargets="AfterBuild">
     <Exec Command="powershell start-process -FilePath &quot;dotnet&quot; -ArgumentList &quot;$(TargetDir)msharp.dsl.dll&quot;, &quot;/build,  &quot;/model&quot;" />

@@ -6,12 +6,16 @@ using Olive.Entities.Data;
 
 namespace Domain
 {
-    public class ReferenceData
+    public class ReferenceData : IReferenceData
     {
+        public ReferenceData()
+        {
+        }
+
         static Task<T> Create<T>(T item) where T : IEntity
             => Context.Current.Database().Save(item, SaveBehaviour.BypassAll).ContinueWith(x => item);
 
-        public static async Task Create()
+        public async Task Create()
         {
             // ...
         }
