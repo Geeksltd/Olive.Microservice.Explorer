@@ -11,9 +11,10 @@ namespace Domain
         public ReferenceData(IDatabase database) => Database = database;
         async Task<T> Create<T>(T item) where T : IEntity
         {
-            await Context.Current.Database().Save(item, SaveBehaviour.BypassAll);
+            await Database.Save(item, SaveBehaviour.BypassAll);
             return item;
         }
+
 
         public async Task Create()
         {

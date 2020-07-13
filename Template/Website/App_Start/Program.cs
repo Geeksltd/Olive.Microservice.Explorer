@@ -16,7 +16,7 @@
             return WebHost.CreateDefaultBuilder(args)
                 .ConfigureLogging(ConfigureLogging)
                 .UseSetting("detailedErrors", "true").CaptureStartupErrors(true)
-                .UseStartup<Startup>();
+                .UseStartup(typeof(Startup).Assembly.FullName);
         }
 
         static void ConfigureLogging(WebHostBuilderContext context, ILoggingBuilder logging)

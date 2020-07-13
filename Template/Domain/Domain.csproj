@@ -8,20 +8,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.5" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
-    <PackageReference Include="Olive" Version="2.1.169" />
-    <PackageReference Include="Olive.ApiClient" Version="2.2.103" />
-    <PackageReference Include="Olive.Audit" Version="2.1.102" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="Olive" Version="2.1.192" />
+    <PackageReference Include="Olive.ApiClient" Version="2.2.104" />
+    <PackageReference Include="Olive.Audit" Version="2.1.104" />
     <PackageReference Include="Olive.CSV" Version="2.1.103" />
-    <PackageReference Include="Olive.Encryption" Version="2.2.102" />
-    <PackageReference Include="Olive.Entities" Version="2.1.133" />
-    <PackageReference Include="Olive.Entities.Data" Version="2.1.139" />
-    <PackageReference Include="Olive.Entities.Data.SqlServer" Version="2.1.106" />
+    <PackageReference Include="Olive.Entities" Version="2.1.142" />
+    <PackageReference Include="Olive.Entities.Data" Version="2.1.159" />
+    <PackageReference Include="Olive.Entities.Data.SqlServer" Version="2.1.109" />
     <PackageReference Include="Olive.Integration" Version="1.0.7" />
     <PackageReference Include="Olive.Microservices" Version="2.1.103" />
-    <PackageReference Include="Olive.Mvc.Security" Version="2.2.103" />
-    <PackageReference Include="Olive.Web" Version="2.2.105" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.7.0" />
+    <PackageReference Include="Olive.PassiveBackgroundTasks" Version="1.0.9" />
+    <PackageReference Include="Olive.Web" Version="2.2.106" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.5.1" />
   </ItemGroup>
 </Project>

@@ -1,4 +1,4 @@
-﻿namespace Website
+namespace Website
 {
     using System;
     using System.Collections;
@@ -9,21 +9,27 @@
     using Olive;
     using Olive.Entities;
     using Olive.Entities.Data;
-    
+    using Hangfire;
+
     /// <summary>Executes the scheduled tasks in independent threads automatically.</summary>
     [EscapeGCop("Auto generated code.")]
     public partial class TaskManager : BackgroundJobsPlan
     {
-        /// <summary>Registers the scheduled activities.</summary>
+        /// <summary>
+        /// This will start the scheduled activities.<para/>
+        /// It should be called once in Application_Start global event.<para/>
+        /// </summary>
+        public static void Run()
+        {
+            //RecurringJob.AddOrUpdate("Clean old temp uploads", () => CleanOldTempUploads(), Cron.MinuteInterval(10));
+        }
+
         public override void Initialize()
         {
-            Register(new BackgroundJob("Clean old temp uploads", () => CleanOldTempUploads(), Hangfire.Cron.MinuteInterval(10)));
+
         }
-        
+
         /// <summary>Clean old temp uploads</summary>
-        public static async Task CleanOldTempUploads()
-        {
-            await Olive.Mvc.FileUploadService.DeleteTempFiles(olderThan: 1.Hours());
-        }
+
     }
 }
