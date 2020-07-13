@@ -8,20 +8,20 @@ Get this source code via git clone (or getting the zip package which is not reco
 
 ### Prerequisites
 
-You'll need Visual Studio 2017 (Recommended last update) with .NET core 2 installed.
+You'll need Visual Studio 2019 (Recommended last update) with .NET core 2.2+ installed.
 
 ## Running the app
-After clone and getting ready the Visual Studio, you are ready to go! Just restore the packages and run.
+After cloning and getting ready the Visual Studio, you are ready to go! Just restore the packages and run.
 
 
 ## Contributing
 
-As this solution is an opensource project, so contributions are welcome! Just fork the repo, do your changes then make a merge request. 
+As this solution is an open source project, so contributions are welcome! Just fork the repo, do your changes then make a merge request. 
 We'll review your code ASAP and we will do the merge if everything was just fine.
 
 ## Author
 
-This project is maintained and supported by the GeeksLTD.
+This project is maintained and supported by Geeks Ltd.
 
 See also the list of [contributors](https://github.com/Geeksltd/Olive.MvcTemplate/contributors) who participated in this project.
 

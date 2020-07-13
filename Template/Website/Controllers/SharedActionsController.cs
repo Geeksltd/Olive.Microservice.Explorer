@@ -22,6 +22,14 @@
         {
             return Json(await new FileUploadService().TempSaveUploadedFile(files[0]));
         }
+		
+        [Route("healthcheck")]
+        public async Task<ActionResult> HealthCheck()
+        {
+            return Ok($"Health check @ {LocalTime.Now.ToLongTimeString()}," +
+                $" version: {Config.Get("App.Resource.Version")}," +
+                $" user: {User.GetEmail()}");
+        }
 
         [HttpGet, Route("file")]
         public async Task<ActionResult> DownloadFile()
@@ -39,6 +47,6 @@
         public Task<ActionResult> DownloadTempFile(string key) => TempFileService.Download(key);
 
         [Route("/login")]
-        public async Task<ActionResult> Login() => Redirect(Microservice.Of("auth").Url());
+        public async Task<ActionResult> Login() => Redirect(Microservice.Of("Hub").Url());
     }
 }

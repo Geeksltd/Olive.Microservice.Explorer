@@ -1,4 +1,8 @@
-﻿
+﻿/* Isolate the css code specific to each module in its own file, and include here */
+@import "components/first-module";
+@import "components/second-module";
+
+/* Common styles for the service, if any, goes here */
 .MY.MICROSERVICE.NAME-Service {
-    /* any app specific custom styles */
+    
 }
