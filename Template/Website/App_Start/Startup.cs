@@ -1,4 +1,4 @@
-﻿namespace Website
+namespace Website
 {
     using System.Globalization;
     using Domain;

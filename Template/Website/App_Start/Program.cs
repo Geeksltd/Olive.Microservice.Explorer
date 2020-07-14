@@ -1,10 +1,11 @@
 ﻿namespace Website
 {
-    using System;
     using Microsoft.AspNetCore;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Logging;
     using Olive;
+    using Olive.Logging;
+    using System;
 
     public class Program
     {
@@ -21,8 +22,8 @@
         static void ConfigureLogging(WebHostBuilderContext context, ILoggingBuilder logging)
         {
             // You can customise logging here
-            if (!context.HostingEnvironment.IsDevelopment())
-                logging.AddFile(x => x.FilePrefix = "log-");
+            if (context.HostingEnvironment.IsProduction())
+                logging.AddEventBus();
         }
     }
 }

@@ -1,14 +1,12 @@
 ﻿<main class="MY.MICROSERVICE.NAME-Service" data-root="@Request.RootUrl()">
-    <div class="container-fluid">
-        <div class="content">@RenderBody()</div>
-    </div>
+    <input type="hidden" id="page_meta_title" value="@ViewData["Title"]" />
+    <div class="content">@RenderBody()</div>
     @Html.RegisterDynamicScriptFiles()
-    @Html.WebTestWidget()
-    @Html.RunJavascript("page.ensureNonModal();")
+    @Html.DevCommandsWidget()
     @Html.RegisterStartupActions()
 </main>
 
 <head>
     <title>@ViewData["Title"]</title>
-    <link rel='stylesheet' href="@Request.GetAbsoluteUrl("/styles/Styles.css")" type='text/css' />
+    <link rel='stylesheet' href="@Request.GetAbsoluteUrl($"/styles/Styles.css?v={ResourceConfig.Version}")" type='text/css' />
 </head>
