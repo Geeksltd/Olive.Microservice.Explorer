@@ -11,6 +11,17 @@
 
     public class SharedActionsController : BaseController
     {
+        readonly IFileRequestService FileRequestService;
+        readonly IFileAccessorFactory FileAccessorFactory;
+
+        public SharedActionsController(
+            IFileRequestService fileRequestService,
+            IFileAccessorFactory fileAccessorFactory
+            )
+        {
+            FileRequestService = fileRequestService;
+            FileAccessorFactory = fileAccessorFactory;
+        }
         [Route("error")]
         public ActionResult Error() => View("error");
 
@@ -20,9 +31,9 @@
         [HttpPost, Authorize, Route("upload")]
         public async Task<IActionResult> UploadTempFileToServer(IFormFile[] files)
         {
-            return Json(await new FileUploadService().TempSaveUploadedFile(files[0]));
+            return Json(await FileRequestService.TempSaveUploadedFile(files[0]));
         }
-		
+
         [Route("healthcheck")]
         public async Task<ActionResult> HealthCheck()
         {
@@ -35,7 +46,7 @@
         public async Task<ActionResult> DownloadFile()
         {
             var path = Request.QueryString.ToString().TrimStart('?');
-            var accessor = await FileAccessor.Create(path, User);
+            var accessor = await FileAccessorFactory.Create(path, User);
             if (!accessor.IsAllowed()) return new UnauthorizedResult();
 
             if (accessor.Blob.IsMedia())
@@ -44,7 +55,7 @@
         }
 
         [Route("temp-file/{key}")]
-        public Task<ActionResult> DownloadTempFile(string key) => TempFileService.Download(key);
+        public Task<ActionResult> DownloadTempFile(string key) => FileRequestService.Download(key);
 
         [Route("/login")]
         public async Task<ActionResult> Login() => Redirect(Microservice.Of("Hub").Url());

@@ -40,7 +40,7 @@ namespace Website
 
         protected override void ConfigureRequestHandlers(IApplicationBuilder app)
         {
-            Task.Factory.RunSync(() => app.UseScheduledTasks<TaskManager>());
+            //Task.Factory.RunSync(() => app.UseScheduledTasks<TaskManager>());
 
             base.ConfigureRequestHandlers(app);
 
@@ -58,4 +58,4 @@ namespace Website
         }
     }
 }
- 
+
