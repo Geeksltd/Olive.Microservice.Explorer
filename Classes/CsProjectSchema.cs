@@ -53,13 +53,7 @@ namespace MicroserviceExplorer.Classes
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
     public partial class ProjectPropertyGroup
     {
-        string outputPathField;
-
-        string noWarnField;
-
-        string targetFrameworkField;
-
-        string conditionField;
+        string outputPathField, noWarnField, targetFrameworkField, conditionField;
 
         /// <remarks/>
         public string OutputPath
@@ -117,5 +111,4 @@ namespace MicroserviceExplorer.Classes
             set => versionField = value;
         }
     }
-
 }

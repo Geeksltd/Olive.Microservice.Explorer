@@ -22,7 +22,8 @@ namespace MicroserviceExplorer.NewMicroservice
     /// </summary>
     public partial class NewMicroservice : Window
     {
-        public string ServiceName {
+        public string ServiceName
+        {
             get => txtServiceName.Text;
             set => txtServiceName.Text = value;
         }
@@ -38,16 +39,10 @@ namespace MicroserviceExplorer.NewMicroservice
             InitializeComponent();
         }
 
-        private void cancelButton_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-        }
+        void cancelButton_Click(object sender, RoutedEventArgs e) => DialogResult = false;
 
-        private void btnCreate_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = true;
+        void btnCreate_Click(object sender, RoutedEventArgs e) => DialogResult = true;
 
-        }
         public static string Execute3(string workingDirectory, string command, string args, bool createNoWindow = true)
         {
             var output = new StringBuilder();
@@ -82,8 +77,8 @@ namespace MicroserviceExplorer.NewMicroservice
                 output.AppendLine(e.Data);
             };
 
-            //proc.Exited += (sender,e) =>
-            //{                
+            // proc.Exited += (sender,e) =>
+            // {
             //     Console.Beep();
             // };
             proc.Start();
@@ -99,8 +94,7 @@ namespace MicroserviceExplorer.NewMicroservice
             return output.ToString();
         }
 
-
-        private void TxtProjectName_OnTextChanged(object sender, TextChangedEventArgs e)
+        void TxtProjectName_OnTextChanged(object sender, TextChangedEventArgs e)
         {
             var validateGitRepoUrl = ValidateGitRepoUrl(txtGitRepoUrl.Text);
             btnCreate.IsEnabled = CanCreate() && validateGitRepoUrl;
@@ -108,17 +102,14 @@ namespace MicroserviceExplorer.NewMicroservice
 
         bool ValidateGitRepoUrl(string url)
         {
-            if (url.IsEmpty())
-                return false;
+            if (url.IsEmpty()) return false;
 
             var pattern = @"^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$";
             var regex = new Regex(pattern, RegexOptions.Singleline);
             LblError.Content = regex.Match(url).Success ? "" : "Git Repository Url is not in correct format ...";
             return regex.Match(url).Success;
         }
-        private bool CanCreate()
-        {
-            return !(txtServiceName.Text.IsEmpty() || txtGitRepoUrl.Text.IsEmpty());
-        }
+
+        bool CanCreate() => !(txtServiceName.Text.IsEmpty() || txtGitRepoUrl.Text.IsEmpty());
     }
 }
