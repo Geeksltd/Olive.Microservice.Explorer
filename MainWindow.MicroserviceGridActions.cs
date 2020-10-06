@@ -29,7 +29,7 @@ namespace MicroserviceExplorer
         {
             if (service.Status != MicroserviceItem.EnumStatus.Run)
             {
-                var ans =MessageBox.Show(@"Microservice not started, Do you want to start service first ?", @"Start Service" , MessageBoxButtons.YesNoCancel);
+                var ans = MessageBox.Show(@"Microservice not started, Do you want to start service first ?", @"Start Service", MessageBoxButtons.YesNoCancel);
                 switch (ans)
                 {
                     case System.Windows.Forms.DialogResult.Cancel:
@@ -47,7 +47,7 @@ namespace MicroserviceExplorer
 
                 }
             }
-                Helper.Launch($"http://localhost:{service.Port}");
+            Helper.Launch($"http://localhost:{service.Port}");
         }
 
         void Chrome_OnClick(object sender, MouseButtonEventArgs e)
@@ -61,7 +61,7 @@ namespace MicroserviceExplorer
         {
             try
             {
-                using (RegistryKey key = Registry.ClassesRoot.OpenSubKey("sourcetree\\shell\\open\\command"))
+                using (var key = Registry.ClassesRoot.OpenSubKey("sourcetree\\shell\\open\\command"))
                 {
                     if (key != null)
                     {

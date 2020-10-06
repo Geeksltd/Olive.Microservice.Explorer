@@ -1,11 +1,11 @@
-﻿using NuGet;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
+using NuGet;
 using MessageBox = System.Windows.Forms.MessageBox;
 
 namespace MicroserviceExplorer
@@ -28,30 +28,29 @@ namespace MicroserviceExplorer
         MicroserviceItem highPriority;
         FileSystemWatcher watcher;
 
-        string getServiceName(string appSettingPath)
+        string GetServiceName(string appSettingPath)
         {
             var launchSettingsAllText = File.ReadAllText(appSettingPath);
             var launchSettingsJObject = Newtonsoft.Json.Linq.JObject.Parse(launchSettingsAllText);
             return launchSettingsJObject["Microservice"]["Me"]["Name"].ToString();
         }
-        bool LoadFile(string filePath)
-        {
-            FileInfo file = filePath.AsFile();
 
-            ServicesDirectory = file.Directory; //filePath.AsDirectory();
+        bool LoadFile(string hub)
+        {
+            ServicesDirectory = hub.AsDirectory().Parent;
 
             var serviceInfos = ServicesDirectory?.GetDirectories()
                 .Where(x => File.Exists(x.FullName + @"\Website\appsettings.json"))
                 .Select(x =>
                         new ServiceInfo
                         {
-                            Name = getServiceName(x.FullName + @"\Website\appSettings.json"),
+                            Name = x.Name + GetServiceName(x.FullName + @"\Website\appSettings.json").Unless(x.Name).WithWrappers(" (", ")"),
                             ProjectFolder = x.FullName,
                             WebsiteFolder = Path.Combine(x.FullName, "Website"),
                             LaunchSettingsPath = Path.Combine(x.FullName, @"Website\Properties", "launchSettings.json")
                         });
 
-            if (ServicesDirectory == null || 
+            if (ServicesDirectory == null ||
                 !CheckIfServicesDirectoryExist()) return false;
 
             servicesDirectoryLastWriteTime = ServicesDirectory.LastWriteTime;
@@ -108,7 +107,8 @@ namespace MicroserviceExplorer
 
             return true;
         }
-        private bool CheckIfServicesDirectoryExist()
+
+        bool CheckIfServicesDirectoryExist()
         {
             if (!ServicesDirectory.Exists())
             {
@@ -127,8 +127,10 @@ namespace MicroserviceExplorer
                 projectLoaded = false;
                 return false;
             }
+
             return true;
         }
+
         bool RefreshFile(string filePath)
         {
             var srvFile = filePath.AsFile();
@@ -163,6 +165,7 @@ namespace MicroserviceExplorer
             RestartAutoRefreshProcess();
             return true;
         }
+
         static string GetPortNumberFromLaunchSettingsFile(string launchSettings)
         {
             var launchSettingsAllText = File.ReadAllText(launchSettings);
@@ -170,8 +173,7 @@ namespace MicroserviceExplorer
             var appUrl = launchSettingsJObject["profiles"]["Website"]["applicationUrl"].ToString();
             var port = appUrl.Substring(appUrl.LastIndexOf(":", StringComparison.Ordinal) + 1);
 
-            if (port.TryParseAs<int>().HasValue)
-                return port;
+            if (port.TryParseAs<int>().HasValue) return port;
 
             var pos = 0;
             var portNumer = "";
@@ -180,15 +182,16 @@ namespace MicroserviceExplorer
             port = portNumer;
             return port;
         }
+
         void StartFileSystemWatcher(DirectoryInfo directoryInfo)
         {
-            if (watcher != null)
-                StopWatcher();
+            if (watcher != null) StopWatcher();
 
             watcher = new FileSystemWatcher(directoryInfo.FullName ?? throw new InvalidOperationException($"Directory '{directoryInfo.FullName}' does not exists anymore ..."), directoryInfo.FullName);
             watcher.Changed += Watcher_Changed;
             watcher.EnableRaisingEvents = true;
         }
+
         void StopWatcher()
         {
             if (watcher == null) return;
@@ -198,6 +201,7 @@ namespace MicroserviceExplorer
             watcher.Dispose();
             watcher = null;
         }
+
         public delegate void MyDelegate();
         void Watcher_Changed(object sender, FileSystemEventArgs e)
         {
@@ -219,6 +223,7 @@ namespace MicroserviceExplorer
                     throw new ArgumentOutOfRangeException("");
             }
         }
+
         async void UIElement_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             var service = GetServiceByTag(sender);
@@ -244,12 +249,13 @@ namespace MicroserviceExplorer
                     break;
             }
         }
+
         void LocalGitActions_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             var service = GetServiceByTag(sender);
 
             var projFOlder = service.WebsiteFolder.AsDirectory().Parent;
-            string hubAddress = Path.Combine(ServicesDirectory.FullName, "hub");
+            var hubAddress = Path.Combine(ServicesDirectory.FullName, "hub");
 
             var localGitWindow = new LocalGitWindow(projFOlder.FullName, hubAddress, service.Service)
             {
@@ -260,6 +266,7 @@ namespace MicroserviceExplorer
 
             var showDialog = localGitWindow.ShowDialog();
         }
+
         void BuildButton_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
@@ -292,6 +299,7 @@ namespace MicroserviceExplorer
                             e1.Result = false;
                             return;
                         }
+
                         e1.Result = true;
                     }
                 };

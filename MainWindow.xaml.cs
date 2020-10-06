@@ -209,7 +209,7 @@ namespace MicroserviceExplorer
             ReloadRecentFiles();
             //logWindow.ShowInTaskbar = false;
             //logWindow.Hide();
-            var recentFilesCount = _recentFiles.Count-1;
+            var recentFilesCount = _recentFiles.Count - 1;
 
             while (recentFilesCount > 0)
             {
@@ -273,9 +273,10 @@ namespace MicroserviceExplorer
 
         void OpenProject_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            using (var openFileDialog = new System.Windows.Forms.FolderBrowserDialog
+            using (var openFileDialog = new  FolderBrowserDialog
             {
-                ShowNewFolderButton = false
+                ShowNewFolderButton = false,
+                Description = "Select your Hub folder"
             })
             {
                 if (openFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
@@ -288,7 +289,6 @@ namespace MicroserviceExplorer
 
                     _recentFiles.Add(openFileDialog.SelectedPath);
                     AddRecentMenuItem(openFileDialog.SelectedPath);
-
                     SaveRecentFilesXml();
                 }
 
@@ -332,7 +332,7 @@ namespace MicroserviceExplorer
         {
             e.Handled = true;
             var service = GetServiceByTag(sender);
-            Process.Start(service.WebsiteFolder.AsDirectory().Parent?.FullName ?? 
+            Process.Start(service.WebsiteFolder.AsDirectory().Parent?.FullName ??
                           throw new Exception("Microservice projFolder Not Exists ..."));
 
         }

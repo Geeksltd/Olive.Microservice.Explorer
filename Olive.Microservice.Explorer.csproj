@@ -96,7 +96,6 @@
     <Compile Include="UI\Loading.xaml.cs">
       <DependentUpon>Loading.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Utils\FileStructure\ServiceJsonStruct.cs" />
     <Compile Include="Utils\MenuItemExtensions.cs" />
     <Compile Include="Utils\extentions.cs" />
     <Compile Include="Utils\ForegroundColorConverter.cs" />
@@ -106,7 +105,6 @@
     <Compile Include="Utils\NativeMethods.cs" />
     <Compile Include="Utils\NullVisibilityConverter.cs" />
     <Compile Include="Utils\ParentProcessUtilities.cs" />
-    <Compile Include="Utils\TinyJson\JSONParser.cs" />
     <Compile Include="Utils\WatermarkAdorner.cs" />
     <Compile Include="Utils\WatermarkService.cs" />
     <Compile Include="Utils\WindowApi.cs" />
