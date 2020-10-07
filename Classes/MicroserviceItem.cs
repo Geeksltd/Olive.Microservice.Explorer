@@ -1,25 +1,20 @@
-﻿using EnvDTE;
-using EnvDTE80;
-using MicroserviceExplorer.Annotations;
-using MicroserviceExplorer.Classes.Web;
-using MicroserviceExplorer.TCPIP;
-using MicroserviceExplorer.Utils;
-using NuGet;
-using System;
-using System.Collections.Concurrent;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
-using System.Xml.Serialization;
+using EnvDTE;
+using EnvDTE80;
+using MicroserviceExplorer.Annotations;
+using MicroserviceExplorer.TCPIP;
+using MicroserviceExplorer.Utils;
+using NuGet;
 using Process = System.Diagnostics.Process;
 using Thread = System.Threading.Thread;
 
@@ -35,6 +30,11 @@ namespace MicroserviceExplorer
 
         static IEnumerable<SolutionProject> StandardProjects
            => Enum.GetValues(typeof(SolutionProject)).OfType<SolutionProject>();
+
+        public MicroserviceItem()
+        {
+            Logwindow = new LogWindow { Servic = this };
+        }
 
         public void RefreshPackages()
         {
@@ -106,11 +106,6 @@ namespace MicroserviceExplorer
             }));
 
         }
-
-        public MicroserviceItem()
-        {
-            Logwindow = new LogWindow { Servic = this };
-        }
         public enum EnumStatus
         {
             NoSourcerLocally = 1,
@@ -133,10 +128,8 @@ namespace MicroserviceExplorer
                             Logwindow.LogMessage("Service Started.");
                             break;
                         case EnumStatus.Stop:
-                            if (FirstStatus)
-                                FirstStatus = false;
-                            else
-                                Logwindow.LogMessage("Service Stoped.");
+                            if (FirstStatus) FirstStatus = false;
+                            else Logwindow.LogMessage("Service Stoped.");
                             break;
                     }
 
@@ -542,8 +535,7 @@ namespace MicroserviceExplorer
             set
             {
                 _gitUpdates = value;
-                if (_gitUpdates == "0")
-                    _gitUpdates = null;
+                if (_gitUpdates == "0") _gitUpdates = null;
 
                 OnPropertyChanged(nameof(GitUpdates));
                 OnPropertyChanged(nameof(GitUpdateImage));
@@ -579,8 +571,7 @@ namespace MicroserviceExplorer
             set
             {
                 _gitUpdateIsInProgress = value;
-                if (_gitUpdateIsInProgress)
-                    BuildStatus = "off";
+                if (_gitUpdateIsInProgress) BuildStatus = "off";
                 OnPropertyChanged(nameof(GitStatusImage));
             }
         }
@@ -633,8 +624,7 @@ namespace MicroserviceExplorer
             }
             Thread.Sleep(300);
             ProcId = GetProcessIdByPortNumber(Port.To<int>());
-            if (ProcId < 0)
-                Status = EnumStatus.Stop;
+            if (ProcId < 0) Status = EnumStatus.Stop;
         }
 
         int GetProcessIdByPortNumber(int port)

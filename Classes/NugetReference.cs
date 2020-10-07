@@ -1,11 +1,11 @@
-﻿using MicroserviceExplorer.Annotations;
-using MicroserviceExplorer.Classes.Web;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
+using MicroserviceExplorer.Annotations;
+using MicroserviceExplorer.Classes.Web;
 
 namespace MicroserviceExplorer
 {
@@ -22,6 +22,15 @@ namespace MicroserviceExplorer
 
         public event PropertyChangedEventHandler PropertyChanged;
 
+        public NugetReference(ProjectItemGroupPackageReference @ref, MicroserviceItem service, SolutionProject project)
+        {
+            Name = @ref.Include;
+            Version = @ref.Version;
+            Latest = FindLatest();
+            Project = project;
+            Service = service;
+        }
+
         [NotifyPropertyChangedInvocator]
         void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
@@ -32,15 +41,6 @@ namespace MicroserviceExplorer
 
         public SolutionProject Project { get; }
         public MicroserviceItem Service { get; }
-
-        public NugetReference(ProjectItemGroupPackageReference @ref, MicroserviceItem service, SolutionProject project)
-        {
-            Name = @ref.Include;
-            Version = @ref.Version;
-            Latest = FindLatest();
-            Project = project;
-            Service = service;
-        }
 
         public bool IsUpToDate => Version == Latest;
 
@@ -89,6 +89,7 @@ namespace MicroserviceExplorer
                     e.Message);
                 return;
             }
+
             Version = Latest;
         }
 
