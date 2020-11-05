@@ -12,7 +12,7 @@ namespace Website
 {
     public class StartupProduction : Startup
     {
-        public StartupProduction(IHostingEnvironment env, IConfiguration config, ILoggerFactory factory) : base(env, config, factory)
+        public StartupProduction(IWebHostEnvironment env, IConfiguration config, ILoggerFactory factory) : base(env, config, factory)
         {
 
         }

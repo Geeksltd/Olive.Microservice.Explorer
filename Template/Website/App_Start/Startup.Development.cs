@@ -1,5 +1,4 @@
 ﻿using Domain;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,7 +15,8 @@ namespace Website
 {
     public class StartupDevelopment : Startup
     {
-        public StartupDevelopment(IHostingEnvironment env, IConfiguration config, ILoggerFactory factory) : base(env, config, factory)
+        public StartupDevelopment(IWebHostEnvironment env, IConfiguration config, ILoggerFactory factory) : 
+            base(env, config, factory)
         {
 
         }

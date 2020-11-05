@@ -14,9 +14,9 @@ namespace App
             Layout("Default").Default().AjaxRedirect().VirtualPath("~/Views/Layouts/Default.cshtml");
             Layout("Modal").Modal().VirtualPath("~/Views/Layouts/Modal.cshtml");
 
-            AutoTask("Clean old temp uploads")
-                .Every(10, TimeUnit.Minute)
-                .Run("await Olive.Mvc.FileUploadService.DeleteTempFiles(olderThan: 1.Hours());");
+            AutoTask("Clean old temp uploads").Every(10, TimeUnit.Minute)
+                .Run(@"await Olive.Context.Current.GetService<Olive.Mvc.IFileRequestService>()
+                .DeleteTempFiles(olderThan: 1.Hours());");
 
             // Note: Often in micro-services you can have a large number of roles.
             // In the following example we're creating a large list of role/level permissions

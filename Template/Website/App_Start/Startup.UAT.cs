@@ -13,7 +13,7 @@ namespace Website
 {
     public class StartupUAT : StartupProduction
     {
-        public StartupUAT(IHostingEnvironment env, IConfiguration config, ILoggerFactory factory) : base(env, config, factory)
+        public StartupUAT(IWebHostEnvironment env, IConfiguration config, ILoggerFactory factory) : base(env, config, factory)
         {
 
         }

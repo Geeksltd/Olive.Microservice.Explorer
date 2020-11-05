@@ -17,9 +17,9 @@ namespace Website
     using Microsoft.Extensions.Logging;
     using Microsoft.AspNetCore.Authentication;
 
-    public abstract class Startup : Olive.Mvc.Startup
+    public abstract class Startup : Olive.Mvc.Microservices.Startup
     {
-        protected Startup(IHostingEnvironment env, IConfiguration config, ILoggerFactory factory) : base(env, config, factory)
+        protected Startup(IWebHostEnvironment env, IConfiguration config, ILoggerFactory factory) : base(env, config, factory)
         {
             SetUpIdentity();
         }
