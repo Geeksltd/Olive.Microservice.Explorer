@@ -11,6 +11,7 @@
     <DefineConstants>TRACE;DEBUG;NETCOREAPP2_1</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Olive.Microservices" Version="2.1.104" />
     <PackageReference Include="Olive.ApiClient" Version="2.2.105" />
     <PackageReference Include="Olive.Audit" Version="2.1.105" />
     <PackageReference Include="Olive.Entities" Version="2.1.148" />
