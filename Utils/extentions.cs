@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
@@ -12,11 +8,9 @@ using System.Windows.Media;
 
 namespace MicroserviceExplorer.Utils
 {
-
     [MarkupExtensionReturnType(typeof(Color))]
     public class DynamicResourceWithConverterExtension : DynamicResourceExtension, INotifyPropertyChanged
     {
-
         public DynamicResourceWithConverterExtension()
         {
         }
@@ -27,19 +21,16 @@ namespace MicroserviceExplorer.Utils
         }
 
         IValueConverter Converter;
-        object ConverterParameter;
-        object CachedValue;
+        object ConverterParameter, CachedValue;
 
         public override object ProvideValue(IServiceProvider provider)
         {
-
-            if (CachedValue != null)
-                return CachedValue;
+            if (CachedValue != null) return CachedValue;
 
             var value = base.ProvideValue(provider);
 
             if (value is Expression)
-                value = Application.Current.TryFindResource(this.ResourceKey);
+                value = Application.Current.TryFindResource(ResourceKey);
 
             if (value != this && Converter != null)
             {
@@ -52,6 +43,7 @@ namespace MicroserviceExplorer.Utils
                         targetType = targetDp.PropertyType;
                     }
                 }
+
                 if (targetType != null)
                     CachedValue = Converter.Convert(value, targetType, ConverterParameter, CultureInfo.CurrentCulture);
             }

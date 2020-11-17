@@ -58,6 +58,5 @@ namespace MicroserviceExplorer.Utils
 
         [DllImport("iphlpapi.dll", SetLastError = true)]
         internal static extern uint GetExtendedTcpTable(IntPtr tcpTable, ref int tcpTableLength, bool sort, int ipVersion, IpHelper.TcpTableType tcpTableType, int reserved);
-
     }
 }

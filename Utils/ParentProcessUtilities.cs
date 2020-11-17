@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MicroserviceExplorer.Utils
 {
@@ -50,8 +46,7 @@ namespace MicroserviceExplorer.Utils
         {
             var pbi = new ParentProcessUtilities();
             var status = NativeMethods.NtQueryInformationProcess(handle, 0, ref pbi, Marshal.SizeOf(pbi), out var returnLength);
-            if (status != 0)
-                throw new Win32Exception(status);
+            if (status != 0) throw new Win32Exception(status);
 
             try
             {

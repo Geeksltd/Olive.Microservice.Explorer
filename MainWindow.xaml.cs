@@ -1,9 +1,4 @@
-﻿using EnvDTE;
-using MicroserviceExplorer.MicroserviceGenerator;
-using MicroserviceExplorer.UI;
-using MicroserviceExplorer.Utils;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -22,7 +17,11 @@ using System.Windows.Threading;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
-
+using EnvDTE;
+using MicroserviceExplorer.MicroserviceGenerator;
+using MicroserviceExplorer.UI;
+using MicroserviceExplorer.Utils;
+using Newtonsoft.Json.Linq;
 using MenuItem = System.Windows.Controls.MenuItem;
 using MessageBox = System.Windows.Forms.MessageBox;
 using Process = System.Diagnostics.Process;
@@ -110,8 +109,9 @@ namespace MicroserviceExplorer
         bool AutoRefreshProcessTimerInProgress;
         void OnAutoRefreshProcessTimerOnTick(object sender, EventArgs args)
         {
-            if (AutoRefreshProcessTimerInProgress)
-                return;
+            return;
+
+            if (AutoRefreshProcessTimerInProgress) return;
 
             AutoRefreshProcessTimer.IsEnabled = false;
             foreach (var service in MicroserviceGridItems)
@@ -128,6 +128,7 @@ namespace MicroserviceExplorer
                     backgroundWorker.RunWorkerAsync();
                 }
             }
+
             AutoRefreshProcessTimer.IsEnabled = true;
         }
 
@@ -169,8 +170,7 @@ namespace MicroserviceExplorer
                            foreach (var p in projects)
                                await Task.Run(async () =>
                                {
-                                   if (highPriority == null)
-                                       await FetchUpdates(p);
+                                   if (highPriority == null) await FetchUpdates(p);
                                });
                        });
             }
@@ -181,19 +181,18 @@ namespace MicroserviceExplorer
         static IEnumerable<SolutionProject> SolutionProjects
             => Enum.GetValues(typeof(SolutionProject)).OfType<SolutionProject>();
 
-        async Task FetchUpdates(MicroserviceItem service)
+        Task FetchUpdates(MicroserviceItem service)
         {
-            Dispatcher?.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(() =>
-            {
+            // Dispatcher?.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(() =>
+            // {
 
-            }));
-            await Task.Factory.StartNew(async () =>
-            {
-                LocalGitChanges(service);
-                var nugetTasks = Task.Run(service.RefreshPackages);
-                await CalculateGitUpdates(service);
-                await Task.WhenAll(nugetTasks);
-            });
+            // }));
+
+            var refresh = Task.Factory.StartNew(service.RefreshPackages, TaskCreationOptions.LongRunning);
+            // var git = Task.Factory.StartNew(async () => { LocalGitChanges(service); await CalculateGitUpdates(service); }, TaskCreationOptions.LongRunning);
+
+            return refresh;
+            // return Task.WhenAll(refresh, git);
         }
 
         void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
@@ -201,14 +200,13 @@ namespace MicroserviceExplorer
             if (!File.Exists(RecentsXml))
             {
                 OpenProject_Executed(sender, null);
-                if (!projectLoaded)
-                    ExitMenuItem_Click(sender, e);
+                if (!projectLoaded) ExitMenuItem_Click(sender, e);
                 return;
             }
 
             ReloadRecentFiles();
-            //logWindow.ShowInTaskbar = false;
-            //logWindow.Hide();
+            // logWindow.ShowInTaskbar = false;
+            // logWindow.Hide();
             var recentFilesCount = _recentFiles.Count - 1;
 
             while (recentFilesCount > 0)
@@ -222,9 +220,7 @@ namespace MicroserviceExplorer
 
             File.Delete(RecentsXml);
             MainWindow_OnLoaded(sender, e);
-
         }
-
 
         void StartStop_OnClick(object sender, MouseButtonEventArgs e)
         {
@@ -248,9 +244,8 @@ namespace MicroserviceExplorer
             }
         }
 
-
-        //void microserviceRunCheckingTimer_Tick(object sender, EventArgs e)
-        //{
+        // void microserviceRunCheckingTimer_Tick(object sender, EventArgs e)
+        // {
         //    var timer = (DispatcherTimer)sender;
         //    var service = (MicroserviceItem)timer.Tag;
         //    service.UpdateProcessStatus();
@@ -260,8 +255,7 @@ namespace MicroserviceExplorer
         //    timer.Tick -= microserviceRunCheckingTimer_Tick;
         //    service.Status = MicroserviceItem.EnumStatus.Run;
         //    AutoRefreshTimer.Start();
-        //}
-
+        // }
 
         void OpenCode_OnClick(object sender, MouseButtonEventArgs e)
         {
@@ -273,14 +267,13 @@ namespace MicroserviceExplorer
 
         void OpenProject_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            using (var openFileDialog = new  FolderBrowserDialog
+            using (var openFileDialog = new FolderBrowserDialog
             {
                 ShowNewFolderButton = false,
                 Description = "Select your Hub folder"
             })
             {
-                if (openFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
-                    return;
+                if (openFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
 
                 if (_recentFiles.None() || !_recentFiles.Contains(openFileDialog.SelectedPath))
                 {
@@ -317,16 +310,9 @@ namespace MicroserviceExplorer
                 );
         }
 
+        void CloseMenuItem_OnClick(object sender, RoutedEventArgs e) => Close();
 
-        void CloseMenuItem_OnClick(object sender, RoutedEventArgs e)
-        {
-            Close();
-        }
-
-        void RefreshMenuItem_OnClick(object sender, ExecutedRoutedEventArgs e)
-        {
-            Refresh();
-        }
+        void RefreshMenuItem_OnClick(object sender, ExecutedRoutedEventArgs e) => Refresh();
 
         void OpenExplorer_OnClick(object sender, MouseButtonEventArgs e)
         {
@@ -334,8 +320,8 @@ namespace MicroserviceExplorer
             var service = GetServiceByTag(sender);
             Process.Start(service.WebsiteFolder.AsDirectory().Parent?.FullName ??
                           throw new Exception("Microservice projFolder Not Exists ..."));
-
         }
+
         void TextBoxBase_OnTextChanged(object sender, TextChangedEventArgs e)
         {
             FilterListBy(txtSearch.Text);
@@ -390,10 +376,7 @@ namespace MicroserviceExplorer
             }
         }
 
-        void WindowTitlebarControl_OnRefreshClicked(object sender, EventArgs e)
-        {
-            Refresh();
-        }
+        void WindowTitlebarControl_OnRefreshClicked(object sender, EventArgs e) => Refresh();
 
         void MnuAlwaysOnTop_OnChecked(object sender, RoutedEventArgs e)
         {
@@ -430,7 +413,7 @@ namespace MicroserviceExplorer
 
         void MainWindow_OnLocationChanged(object sender, EventArgs e)
         {
-            //if (logWindow.IsVisible)
+            // if (logWindow.IsVisible)
             //    logWindow.SetTheLogWindowBy(this);
         }
 
@@ -468,15 +451,15 @@ namespace MicroserviceExplorer
             service.ShowLogWindow();
         }
 
-        async void UpdateAllNuget_Click(object sender, RoutedEventArgs e)
+        void UpdateAllNuget_Click(object sender, RoutedEventArgs e)
         {
             ServiceData.SelectMany(x => x.References).Do(x => x.ShouldUpdate = true);
-            await Task.WhenAll(ServiceData.Select(x => x.UpdateSelectedPackages()));
+            ServiceData.ForEach(x => x.UpdateSelectedPackages());
         }
 
-        private async void NewMicroservice_Click(object sender, ExecutedRoutedEventArgs e)
+        async void NewMicroservice_Click(object sender, ExecutedRoutedEventArgs e)
         {
-            string hubAddress = Path.Combine(ServicesDirectory.FullName, "hub");
+            var hubAddress = Path.Combine(ServicesDirectory.FullName, "hub");
 
             var msw = new NewMicroservice.NewMicroservice
             {
@@ -497,7 +480,7 @@ namespace MicroserviceExplorer
             var dbType = DBType.SqlServer;
             var connectionString = dbType.ConnectionString;
 
-            //AddMicroserviceToHubServices(serviesXmlPath, serviceName, domain, portNumber);
+            // AddMicroserviceToHubServices(serviesXmlPath, serviceName, domain, portNumber);
 
             var serviceDirectoryPath = Path.Combine(ServicesDirectory.FullName, serviceName);
             var serviceDirectory = new DirectoryInfo(serviceDirectoryPath);
@@ -508,8 +491,7 @@ namespace MicroserviceExplorer
             var tmpFolder = await CreateTemplateAsync(serviceDirectoryPath, serviceName, solutionName, domain, portNumber.ToString(),
                 dbType, connectionString);
 
-            if (tmpFolder.IsEmpty())
-                return;
+            if (tmpFolder.IsEmpty()) return;
 
             AddMicroserviceToHubServices(serviesXmlPath, serviceName, domain, portNumber);
             Execute(serviceDirectoryPath, "build.bat", null);
@@ -521,7 +503,6 @@ namespace MicroserviceExplorer
                 Execute(serviceDirectoryPath, "git", "add .");
                 Execute(serviceDirectoryPath, "git", "commit -m \"Initial commit\"");
                 Execute(serviceDirectoryPath, "git", "push");
-
             }
             catch (Exception ex)
             {
@@ -542,7 +523,7 @@ namespace MicroserviceExplorer
             services.Save(serviesXmlPath);
         }
 
-        private int GetNextPortNumberFromHubServices(DirectoryInfo serviceJsonDir, out string serviesXmlPath)
+        int GetNextPortNumberFromHubServices(DirectoryInfo serviceJsonDir, out string serviesXmlPath)
         {
             serviesXmlPath = null;
             var hubDir = serviceJsonDir;
@@ -552,8 +533,7 @@ namespace MicroserviceExplorer
             if (hubDir == null) return 0;
 
             var servicePath = Path.Combine(hubDir.FullName, "hub", "website", "services.xml");
-            if (!File.Exists(servicePath))
-                return 0;
+            if (!File.Exists(servicePath)) return 0;
 
             serviesXmlPath = servicePath;
 
@@ -567,9 +547,7 @@ namespace MicroserviceExplorer
         }
 
         public string TemplateWebAddress => @"https://github.com/Geeksltd/Olive.Mvc.Microservice.Template/archive/master.zip";
-        const string ZIP_FILE_NAME = "master.zip";
-        const string TEMPLATE_FOLDER_NAME = "Template";
-
+        const string ZIP_FILE_NAME = "master.zip", TEMPLATE_FOLDER_NAME = "Template";
 
         async Task<string> CreateTemplateAsync(string solutionFolder, string serviceName, string solutionName, string domain, string port, DBType selectedDbType, string connestionString)
         {
@@ -586,15 +564,16 @@ namespace MicroserviceExplorer
                 Rename(downloadedFilesExtractPath, serviceName, solutionName, domain, port, selectedDbType, connestionString);
 
                 CopyFiles(solutionFolder, downloadedFilesExtractPath);
-
             }
             catch (Exception e)
             {
                 MessageBox.Show(e.Message, @"Error in download or create new Microservice", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
+
             return downloadedFilesExtractPath;
         }
+
         void CopyFiles(string solutionFolder, string extractPathPath)
         {
             try
@@ -612,6 +591,7 @@ namespace MicroserviceExplorer
                 // ignored
             }
         }
+
         public static void DeleteDirectory(string path)
         {
             if (!Directory.Exists(path)) return;
@@ -627,6 +607,7 @@ namespace MicroserviceExplorer
             // Delete a Directory
             Directory.Delete(path);
         }
+
         public static bool CopyFolderContents(string sourcePath, string destinationPath)
         {
             sourcePath = sourcePath.EndsWith(@"\") ? sourcePath : sourcePath + @"\";
@@ -660,6 +641,7 @@ namespace MicroserviceExplorer
                 return false;
             }
         }
+
         protected void Rename(string downloadedFilesExtractPath, string serviceName, string solutionName, string domain, string port, DBType selectedDbType, string connestionString)
         {
             domain = domain.TrimStart('*').TrimStart('.');
@@ -676,7 +658,7 @@ namespace MicroserviceExplorer
                 RenameHelper(downloadedFilesExtractPath, item.Key, item.Value);
 
             ApplyDbType(downloadedFilesExtractPath, selectedDbType, connestionString);
-            //SetRandomPortNumber(downloadedFilesExtractPath);
+            // SetRandomPortNumber(downloadedFilesExtractPath);
         }
 
         protected static void ApplyDbType(string destPath, DBType selectedDbType, string constr)
@@ -689,12 +671,13 @@ namespace MicroserviceExplorer
             FixSqlDialect(destPath, selectedDbType);
             FixStartUp(destPath, selectedDbType);
         }
+
         static void FixSqlDialect(string destPath, DBType selectedDbType)
         {
             var file = Directory.GetFiles(destPath, "Project.cs", SearchOption.AllDirectories).FirstOrDefault(x => x.Contains("M#\\Model\\"));
             if (file.IsEmpty()) throw new Exception("M#\\Model\\Project.cs was not found!");
 
-            //var file = Path.Combine(destPath, "Model", "Project.cs");
+            // var file = Path.Combine(destPath, "Model", "Project.cs");
 
             var text = File.ReadAllText(file);
             var index = text.IndexOf("\n", text.IndexOf("Name(\"", StringComparison.Ordinal), StringComparison.Ordinal) + 1;
@@ -730,6 +713,7 @@ namespace MicroserviceExplorer
             var newProjStruct = SerializeToString(proj);
             File.WriteAllText(domainFile, newProjStruct);
         }
+
         public static string SerializeToString<T>(T value)
         {
             var emptyNamepsaces = new XmlSerializerNamespaces(new[] { XmlQualifiedName.Empty });
@@ -765,6 +749,7 @@ namespace MicroserviceExplorer
 
             File.WriteAllLines(appsettings, allLines);
         }
+
         protected static void RenameHelper(string destPath, string templateKey, string templateValue)
         {
             foreach (var file in Directory.GetFiles(destPath, "*.*", SearchOption.AllDirectories))
@@ -783,6 +768,7 @@ namespace MicroserviceExplorer
                     File.Move(file, file.Replace(templateKey, templateValue));
             }
         }
+
         public static async System.Threading.Tasks.Task<bool> DownloadAsync(string sourceWebAddress, string destPath, string fileName)
         {
             var destFullPath = Path.Combine(destPath, fileName);
@@ -823,7 +809,6 @@ namespace MicroserviceExplorer
 
             return false;
         }
-
 
         public static void Execute(string workingDirectory, string command, string args, bool createNoWindow = true)
         {
@@ -875,7 +860,6 @@ namespace MicroserviceExplorer
 
             // return output.ToString();
         }
-
     }
 }
 
@@ -885,8 +869,7 @@ namespace System
     {
         public static string GetFisrtFile(this string @this, string basePath)
         {
-            if (!@this.Contains("*"))
-                @this = "*" + @this;
+            if (!@this.Contains("*")) @this = "*" + @this;
 
             var path = basePath.AsDirectory();
             if (!path.Exists) return null;
@@ -895,5 +878,4 @@ namespace System
             return file?.FullName;
         }
     }
-
 }

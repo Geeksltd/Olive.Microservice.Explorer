@@ -1,10 +1,10 @@
-﻿using NuGet;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using NuGet;
 
 namespace MicroserviceExplorer
 {
@@ -50,11 +50,12 @@ namespace MicroserviceExplorer
             service.GitUpdateIsInProgress = false;
             service.StopProgress();
         }
+
         void LocalGitChanges(MicroserviceItem service)
         {
             service.LocalGitChanges = "...";
             service.LocalGitTooltip = "no changes.";
-            
+
             if (service.WebsiteFolder.IsEmpty()) return;
 
             var projFOlder = service.WebsiteFolder.AsDirectory().Parent;

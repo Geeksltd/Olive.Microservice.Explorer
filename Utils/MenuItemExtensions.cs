@@ -2,22 +2,20 @@
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 
 namespace MicroserviceExplorer.Utils
 {
-
     public class MenuItemExtensions : DependencyObject
     {
-        public static Dictionary<MenuItem, String> ElementToGroupNames = new Dictionary<MenuItem, String>();
+        public static Dictionary<MenuItem, string> ElementToGroupNames = new Dictionary<MenuItem, string>();
 
         public static readonly DependencyProperty GroupNameProperty =
             DependencyProperty.RegisterAttached("GroupName",
-                                         typeof(String),
+                                         typeof(string),
                                          typeof(MenuItemExtensions),
-                                         new PropertyMetadata(String.Empty, OnGroupNameChanged));
+                                         new PropertyMetadata(string.Empty, OnGroupNameChanged));
 
-        public static void SetGroupName(MenuItem element, String value)
+        public static void SetGroupName(MenuItem element, string value)
         {
             element.SetValue(GroupNameProperty, value);
         }
@@ -26,26 +24,27 @@ namespace MicroserviceExplorer.Utils
 
         static void OnGroupNameChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs dependencyPropertyChangedEventArgs)
         {
-            //Add an entry to the group name collection
+            // Add an entry to the group name collection
 
             if (!(dependencyObject is MenuItem menuItem)) return;
             var newGroupName = dependencyPropertyChangedEventArgs.NewValue.ToString();
             var oldGroupName = dependencyPropertyChangedEventArgs.OldValue.ToString();
             if (newGroupName.IsEmpty())
             {
-                //Removing the toggle button from grouping
+                // Removing the toggle button from grouping
                 RemoveCheckboxFromGrouping(menuItem);
             }
             else
             {
-                //Switching to a new group
+                // Switching to a new group
                 if (newGroupName == oldGroupName) return;
 
                 if (oldGroupName.HasValue())
                 {
-                    //Remove the old group mapping
+                    // Remove the old group mapping
                     RemoveCheckboxFromGrouping(menuItem);
                 }
+
                 ElementToGroupNames.Add(menuItem, dependencyPropertyChangedEventArgs.NewValue.ToString());
                 menuItem.Checked += MenuItemChecked;
             }
@@ -56,7 +55,6 @@ namespace MicroserviceExplorer.Utils
             ElementToGroupNames.Remove(checkBox);
             checkBox.Checked -= MenuItemChecked;
         }
-
 
         static void MenuItemChecked(object sender, RoutedEventArgs e)
         {

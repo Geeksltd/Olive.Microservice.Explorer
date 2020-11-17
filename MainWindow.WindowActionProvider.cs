@@ -17,10 +17,7 @@ namespace MicroserviceExplorer
             Application.Current.Shutdown(0);
         }
 
-        void TrayOpenWindow(object sender, EventArgs eventArgs)
-        {
-            Visibility = Visibility.Visible;
-        }
+        void TrayOpenWindow(object sender, EventArgs eventArgs) => Visibility = Visibility.Visible;
 
         void InitNotifyIcon()
         {
@@ -37,12 +34,10 @@ namespace MicroserviceExplorer
 
             notifyIcon.ContextMenuStrip.Items.Add(new System.Windows.Forms.ToolStripMenuItem("Exit", null, ExitMenuItem_Click));
 
-            //notifyIcon.ContextMenuStrip.Opening += ContextMenuStrip_Opening;
+            // notifyIcon.ContextMenuStrip.Opening += ContextMenuStrip_Opening;
             notifyIcon.Click += TrayOpenWindow;
-            //notifyIcon.MouseUp += notifyIcon_MouseUp;
+            // notifyIcon.MouseUp += notifyIcon_MouseUp;
         }
-
-
 
         void StatusProgressStart()
         {
@@ -58,11 +53,10 @@ namespace MicroserviceExplorer
             {
                 statusProgress.IsIndeterminate = false;
             }));
-
         }
 
-        //void ShowStatusMessage(string message, string tooltip = null, MicroserviceItem service = null)
-        //{
+        // void ShowStatusMessage(string message, string tooltip = null, MicroserviceItem service = null)
+        // {
         //    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(() =>
         //    {
         //        txtStatusMessage.Text = message;
@@ -71,7 +65,7 @@ namespace MicroserviceExplorer
         //        service?.LogMessage(message, tooltip);
         //    }));
 
-        //}
+        // }
 
         void MainWindow_OnClosed(object sender, EventArgs e)
         {
@@ -85,6 +79,5 @@ namespace MicroserviceExplorer
             Visibility = Visibility.Hidden;
             e.Cancel = !exit;
         }
-
     }
 }

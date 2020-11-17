@@ -12,9 +12,7 @@ namespace MicroserviceExplorer
 {
     public partial class LocalGitWindow : Window
     {
-        readonly string _serviceAddress;
-        readonly string _hubAddress;
-        readonly string _serviceName;
+        readonly string _serviceAddress, _hubAddress, _serviceName;
 
         public LocalGitWindow(string serviceAddress, string hubAddress, string serviceName)
         {
@@ -43,7 +41,6 @@ namespace MicroserviceExplorer
                         if (string.IsNullOrEmpty(stageCommandResult) || stageCommandResult.StartsWith("warning: LF"))
                         {
                             RunGitCommand("commit -m 'commited-from-olive-microservice-explorer.'");
-
                         }
                         else
                             MessageBox.Show(stageCommandResult, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -63,6 +60,7 @@ namespace MicroserviceExplorer
                     MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
         void btnPush_OnClick(object sender, RoutedEventArgs e)
         {
             try
@@ -87,10 +85,9 @@ namespace MicroserviceExplorer
                 MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-        void btnDeploy_OnClick(object sender, RoutedEventArgs e)
-        {
-            Deploy();
-        }
+
+        void btnDeploy_OnClick(object sender, RoutedEventArgs e) => Deploy();
+
         void btnDoAll_OnClick(object sender, RoutedEventArgs e)
         {
             try
@@ -104,7 +101,6 @@ namespace MicroserviceExplorer
 
                     backgroundWorker.DoWork += (sender1, e1) =>
                     {
-
                         var stageCommandResult = RunGitCommand("add .");
 
                         if (string.IsNullOrEmpty(stageCommandResult) || stageCommandResult.StartsWith("warning: LF"))
@@ -120,7 +116,6 @@ namespace MicroserviceExplorer
                         }
                         else
                             MessageBox.Show(stageCommandResult, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-
                     };
 
                     backgroundWorker.RunWorkerAsync();
@@ -137,30 +132,34 @@ namespace MicroserviceExplorer
                     MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-        private void CommitBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+
+        void CommitBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             BindUnCommitedChanges();
             BindUnPushedChanges();
             btnCommit.Content = "Commit";
         }
-        private void PushBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+
+        void PushBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             BindUnCommitedChanges();
             BindUnPushedChanges();
             btnPush.Content = "Push";
         }
-        private void DoAllBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+
+        void DoAllBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             BindUnCommitedChanges();
             BindUnPushedChanges();
             Deploy();
             btnDoAll.Content = "Commit, push and deploy";
         }
+
         void BindUnPushedChanges()
         {
             try
             {
-                string result = RunGitCommand("log @{u}.. ");
+                var result = RunGitCommand("log @{u}.. ");
 
                 if (result.None())
                 {
@@ -177,8 +176,8 @@ namespace MicroserviceExplorer
             {
                 MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
         }
+
         void BindUnCommitedChanges()
         {
             try
@@ -208,6 +207,7 @@ namespace MicroserviceExplorer
                 MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
         void Deploy()
         {
             var serverUrlFile = Path.Combine(_hubAddress, "website", "DeployServer.xml");
@@ -218,8 +218,8 @@ namespace MicroserviceExplorer
                 Title = $"Deploying {_serviceName} service"
             };
             depolyWindow.ShowDialog();
-
         }
+
         string RunGitCommand(string command)
         {
             return "git.exe".AsFile(searchEnvironmentPath: true)
@@ -253,6 +253,7 @@ namespace MicroserviceExplorer
                     return new SolidColorBrush(Colors.White);
             }
         }
+
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             return value;

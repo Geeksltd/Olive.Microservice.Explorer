@@ -1,17 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace MicroserviceExplorer.Controls
 {
@@ -20,11 +10,7 @@ namespace MicroserviceExplorer.Controls
     /// </summary>
     public sealed partial class WindowTitlebarControl : UserControl
     {
-
-        public WindowTitlebarControl()
-        {
-            InitializeComponent();
-        }
+        public WindowTitlebarControl() => InitializeComponent();
 
         #region Title Dependency Property
         public static readonly DependencyProperty TitleProperty =
@@ -42,6 +28,7 @@ namespace MicroserviceExplorer.Controls
             var titlebarControl = (WindowTitlebarControl)dpObject;
             titlebarControl.OnTitleChanged(e);
         }
+
         void OnTitleChanged(DependencyPropertyChangedEventArgs e)
         {
             txtTitle.Text = e.NewValue.ToString();
@@ -68,7 +55,6 @@ namespace MicroserviceExplorer.Controls
             {
                 Application.Current.MainWindow.WindowState = Application.Current.MainWindow.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
             }
-                
         }
 
         void Minimize_OnClick(object sender, RoutedEventArgs e)
@@ -77,18 +63,10 @@ namespace MicroserviceExplorer.Controls
                 Application.Current.MainWindow.WindowState = WindowState.Minimized;
         }
 
-        void Refresh_OnClick(object sender, RoutedEventArgs e)
-        {
-            OnRefreshClicked();
-        }
-
+        void Refresh_OnClick(object sender, RoutedEventArgs e) => OnRefreshClicked();
 
         public event EventHandler<EventArgs> RefreshClicked;
 
-        void OnRefreshClicked()
-        {
-            RefreshClicked?.Invoke(this, EventArgs.Empty);
-        }
-
+        void OnRefreshClicked() => RefreshClicked?.Invoke(this, EventArgs.Empty);
     }
 }

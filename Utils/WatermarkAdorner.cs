@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
@@ -30,18 +25,18 @@ namespace MicroserviceExplorer.Utils
         public WatermarkAdorner(UIElement adornedElement, object watermark) :
             base(adornedElement)
         {
-            this.IsHitTestVisible = false;
+            IsHitTestVisible = false;
 
-            this.ContentPresenter = new ContentPresenter();
-            this.ContentPresenter.Content = watermark;
-            this.ContentPresenter.Opacity = 0.5;
-            this.ContentPresenter.Margin = new Thickness(Control.Margin.Left + Control.Padding.Left,
+            ContentPresenter = new ContentPresenter();
+            ContentPresenter.Content = watermark;
+            ContentPresenter.Opacity = 0.5;
+            ContentPresenter.Margin = new Thickness(Control.Margin.Left + Control.Padding.Left,
                 Control.Margin.Top + Control.Padding.Top, 0, 0);
 
-            if (this.Control is ItemsControl && !(this.Control is ComboBox))
+            if (Control is ItemsControl && !(Control is ComboBox))
             {
-                this.ContentPresenter.VerticalAlignment = VerticalAlignment.Center;
-                this.ContentPresenter.HorizontalAlignment = HorizontalAlignment.Center;
+                ContentPresenter.VerticalAlignment = VerticalAlignment.Center;
+                ContentPresenter.HorizontalAlignment = HorizontalAlignment.Center;
             }
 
             // Hide the control adorner when the adorned element is hidden
@@ -50,7 +45,7 @@ namespace MicroserviceExplorer.Utils
                 Source = adornedElement,
                 Converter = new BooleanToVisibilityConverter()
             };
-            this.SetBinding(VisibilityProperty, binding);
+            SetBinding(VisibilityProperty, binding);
         }
 
         #endregion
@@ -69,7 +64,7 @@ namespace MicroserviceExplorer.Utils
         /// <summary>
         /// Gets the control that is being adorned
         /// </summary>
-        private Control Control => (Control)this.AdornedElement;
+        Control Control => (Control)AdornedElement;
 
         #endregion
 
@@ -80,7 +75,7 @@ namespace MicroserviceExplorer.Utils
         /// </summary>
         /// <param name="index">A 32-bit signed integer that represents the index value of the child <see cref="Visual"/>. The value of index must be between 0 and <see cref="VisualChildrenCount"/> - 1.</param>
         /// <returns>The child <see cref="Visual"/>.</returns>
-        protected override Visual GetVisualChild(int index) => this.ContentPresenter;
+        protected override Visual GetVisualChild(int index) => ContentPresenter;
 
         /// <summary>
         /// Implements any custom measuring behavior for the adorner.
@@ -90,7 +85,7 @@ namespace MicroserviceExplorer.Utils
         protected override Size MeasureOverride(Size constraint)
         {
             // Here's the secret to getting the adorner to cover the whole control
-            this.ContentPresenter.Measure(Control.RenderSize);
+            ContentPresenter.Measure(Control.RenderSize);
             return Control.RenderSize;
         }
 
@@ -101,7 +96,7 @@ namespace MicroserviceExplorer.Utils
         /// <returns>The actual size used.</returns>
         protected override Size ArrangeOverride(Size finalSize)
         {
-            this.ContentPresenter.Arrange(new Rect(finalSize));
+            ContentPresenter.Arrange(new Rect(finalSize));
             return finalSize;
         }
 

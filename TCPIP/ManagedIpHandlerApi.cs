@@ -1,18 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using MicroserviceExplorer.Utils;
-
 
 namespace MicroserviceExplorer.TCPIP
 {
-
     #region Managed IP Helper API
 
     [EscapeGCop("It's not applicable because its part of other resources")]
@@ -20,43 +15,26 @@ namespace MicroserviceExplorer.TCPIP
     {
         #region Private Fields
 
-        private IEnumerable<TcpRow> tcpRows;
-
-        #endregion
-
-        #region Constructors
-
-        public TcpTable(IEnumerable<TcpRow> tcpRows)
-        {
-            this.tcpRows = tcpRows;
-        }
+        IEnumerable<TcpRow> tcpRows;
+        public TcpTable(IEnumerable<TcpRow> tcpRows) => this.tcpRows = tcpRows;
 
         #endregion
 
         #region Public Properties
 
-        public IEnumerable<TcpRow> Rows
-        {
-            get { return this.tcpRows; }
-        }
+        public IEnumerable<TcpRow> Rows => tcpRows;
 
         #endregion
 
         #region IEnumerable<TcpRow> Members
 
-        public IEnumerator<TcpRow> GetEnumerator()
-        {
-            return this.tcpRows.GetEnumerator();
-        }
+        public IEnumerator<TcpRow> GetEnumerator() => tcpRows.GetEnumerator();
 
         #endregion
 
         #region IEnumerable Members
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return this.tcpRows.GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => tcpRows.GetEnumerator();
 
         #endregion
     }
@@ -66,10 +44,10 @@ namespace MicroserviceExplorer.TCPIP
     {
         #region Private Fields
 
-        private IPEndPoint localEndPoint;
-        private IPEndPoint remoteEndPoint;
-        private TcpState state;
-        private int processId;
+        IPEndPoint localEndPoint;
+        IPEndPoint remoteEndPoint;
+        TcpState state;
+        int processId;
 
         #endregion
 
@@ -77,41 +55,29 @@ namespace MicroserviceExplorer.TCPIP
 
         public TcpRow(IpHelper.TcpRow tcpRow)
         {
-            this.state = tcpRow.state;
-            this.processId = tcpRow.owningPid;
+            state = tcpRow.state;
+            processId = tcpRow.owningPid;
 
             int localPort = (tcpRow.localPort1 << 8) + (tcpRow.localPort2) + (tcpRow.localPort3 << 24) + (tcpRow.localPort4 << 16);
             long localAddress = tcpRow.localAddr;
-            this.localEndPoint = new IPEndPoint(localAddress, localPort);
+            localEndPoint = new IPEndPoint(localAddress, localPort);
 
             int remotePort = (tcpRow.remotePort1 << 8) + (tcpRow.remotePort2) + (tcpRow.remotePort3 << 24) + (tcpRow.remotePort4 << 16);
             long remoteAddress = tcpRow.remoteAddr;
-            this.remoteEndPoint = new IPEndPoint(remoteAddress, remotePort);
+            remoteEndPoint = new IPEndPoint(remoteAddress, remotePort);
         }
 
         #endregion
 
         #region Public Properties
 
-        public IPEndPoint LocalEndPoint
-        {
-            get { return this.localEndPoint; }
-        }
+        public IPEndPoint LocalEndPoint => localEndPoint;
 
-        public IPEndPoint RemoteEndPoint
-        {
-            get { return this.remoteEndPoint; }
-        }
+        public IPEndPoint RemoteEndPoint => remoteEndPoint;
 
-        public TcpState State
-        {
-            get { return this.state; }
-        }
+        public TcpState State => state;
 
-        public int ProcessId
-        {
-            get { return this.processId; }
-        }
+        public int ProcessId => processId;
 
         #endregion
     }

@@ -5,7 +5,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 using MicroserviceExplorer.Annotations;
-using MicroserviceExplorer.Classes.Web;
 
 namespace MicroserviceExplorer
 {
@@ -22,10 +21,10 @@ namespace MicroserviceExplorer
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public NugetReference(ProjectItemGroupPackageReference @ref, MicroserviceItem service, SolutionProject project)
+        public NugetReference(string package, string version, MicroserviceItem service, SolutionProject project)
         {
-            Name = @ref.Include;
-            Version = @ref.Version;
+            Name = package;
+            Version = version;
             Latest = FindLatest();
             Project = project;
             Service = service;
@@ -62,7 +61,7 @@ namespace MicroserviceExplorer
                     .Download().ToLower()
                         .Substring($"<meta property=\"og:title\" content=\"{Name.ToLower()} ", "\"", inclusive: false);
                 }
-                catch (Exception ex) when (ex.Message.Contains("404"))
+                catch (Exception ex) when (ex.Message.Contains("404") || ex.Message.Contains("429"))
                 {
                     return Version;
                 }

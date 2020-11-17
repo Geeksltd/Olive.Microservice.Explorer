@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
@@ -30,7 +28,6 @@ namespace MicroserviceExplorer
                 DataContext = _nugetList;
             }
         }
-
 
         public NugetUpdatesWindow(bool isUpdating)
         {
@@ -132,7 +129,6 @@ namespace MicroserviceExplorer
 
             _nugetList.Where(x => x == nugetRef).Do(itm => itm.ShouldUpdate = true);
             nugetRef.Service.References = _nugetList;
-
         }
 
         void UpdateAll_OnClick(object sender, RoutedEventArgs e)
@@ -149,7 +145,6 @@ namespace MicroserviceExplorer
             }
             else
                 MessageBox.Show(@"Please wait, packages are loading... ", @"Loading");
-
         }
     }
     public class ProjectTypeBackgroundColorConverter : IValueConverter
@@ -179,7 +174,7 @@ namespace MicroserviceExplorer
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            //throw new NotImplementedException();
+            // throw new NotImplementedException();
             return value;
         }
 
@@ -189,8 +184,7 @@ namespace MicroserviceExplorer
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (!(value is IEnumerable values))
-                return null;
+            if (!(value is IEnumerable values)) return null;
 
             var myNugetRefs = values.Cast<NugetReference>().Distinct(dist => dist.Project).Select(itm => itm.Project.ToString()).ToList();
             myNugetRefs.Insert(0, "All");

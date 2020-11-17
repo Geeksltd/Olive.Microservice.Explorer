@@ -155,8 +155,9 @@
         </Menu>
 
         <Grid Grid.Row="2" HorizontalAlignment="Stretch" >
-            <StackPanel Margin="10" >
-                <TextBlock HorizontalAlignment="Left" Name="txtSolName" FontWeight="Heavy" FontSize="17">{Solution:FullName}</TextBlock>
+            
+            <StackPanel Margin="10">
+                <TextBlock HorizontalAlignment="Left" Name="txtSolName" FontWeight="SemiBold" FontSize="20">{Solution:FullName}</TextBlock>
                 <TextBlock >
                     <Hyperlink Command="{x:Static local:MainWindow.EditCommand}" >
                         <TextBlock Name="txtFileInfo" />
@@ -171,12 +172,14 @@
         <StackPanel Grid.Row="3">
             <TextBox Name="txtSearch" Height="30" VerticalContentAlignment="Center" TextChanged="TextBoxBase_OnTextChanged">
                 <utils:WatermarkService.Watermark>
-                    <TextBlock VerticalAlignment="Center" Padding="5,3">Search ... (by Service Name or Port number)</TextBlock>
+                    <TextBlock VerticalAlignment="Center" Padding="5,3">Search... (name / port number)</TextBlock>
                 </utils:WatermarkService.Watermark>
             </TextBox>
         </StackPanel>
 
-        <DataGrid Grid.Row="4" Name="srvGrid"  Padding="10" ItemsSource="{Binding}" SelectionMode="Single" AutoGenerateColumns="False" CanUserSortColumns="True" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#FF0D3E61" AlternationCount="2" IsReadOnly="True" VerticalContentAlignment="Center" 
+        <DataGrid Grid.Row="4" Name="srvGrid"  Padding="0" ItemsSource="{Binding}" SelectionMode="Single"
+                  AutoGenerateColumns="False" CanUserSortColumns="True" GridLinesVisibility="Horizontal" 
+                  HorizontalGridLinesBrush="#FF0D3E61" AlternationCount="2" IsReadOnly="True" VerticalContentAlignment="Center" 
                   SelectedItem="{Binding Path=SelectedService,
                                          RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}, 
                                          Mode=TwoWay}">

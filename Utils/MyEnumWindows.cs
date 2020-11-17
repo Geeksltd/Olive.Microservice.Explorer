@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MicroserviceExplorer.Utils
 {
@@ -22,14 +19,12 @@ namespace MicroserviceExplorer.Utils
         static bool EnumWindowsCallback(IntPtr testWindowHandle, IntPtr includeChildren)
         {
             var title = GetWindowTitle(testWindowHandle);
-            if (TitleMatches(title))
-            {
-                windowTitles.Add(title);
-            }
+            if (TitleMatches(title)) windowTitles.Add(title);
             if (includeChildren.Equals(IntPtr.Zero) == false)
             {
                 NativeMethods.EnumChildWindows(testWindowHandle, EnumWindowsCallback, IntPtr.Zero);
             }
+
             return true;
         }
 

@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -60,7 +57,7 @@ namespace MicroserviceExplorer.Utils
         /// </summary>
         /// <param name="dependencyObject"><see cref="DependencyObject"/> that fired the event</param>
         /// <param name="_">A <see cref="DependencyPropertyChangedEventArgs"/> that contains the event data.</param>
-        private static void OnWatermarkChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs _)
+        static void OnWatermarkChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs _)
         {
             var control = (Control)dependencyObject;
             control.Loaded += Control_Loaded;
@@ -121,9 +118,9 @@ namespace MicroserviceExplorer.Utils
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">A <see cref="RoutedEventArgs"/> that contains the event data.</param>
-        private static void Control_Loaded(object sender, RoutedEventArgs e)
+        static void Control_Loaded(object sender, RoutedEventArgs e)
         {
-            Control control = (Control)sender;
+            var control = (Control)sender;
             if (ShouldShowWatermark(control))
             {
                 ShowWatermark(control);
@@ -135,7 +132,7 @@ namespace MicroserviceExplorer.Utils
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">A <see cref="EventArgs"/> that contains the event data.</param>
-        private static void ItemsSourceChanged(object sender, EventArgs e)
+        static void ItemsSourceChanged(object sender, EventArgs e)
         {
             var itemsControl = (ItemsControl)sender;
             if (itemsControl.ItemsSource != null)
@@ -160,7 +157,7 @@ namespace MicroserviceExplorer.Utils
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">A <see cref="ItemsChangedEventArgs"/> that contains the event data.</param>
-        private static void ItemsChanged(object sender, ItemsChangedEventArgs e)
+        static void ItemsChanged(object sender, ItemsChangedEventArgs e)
         {
             ItemsControl control;
             if (ItemsControls.TryGetValue(sender, out control))
@@ -184,18 +181,15 @@ namespace MicroserviceExplorer.Utils
         /// Remove the watermark from the specified element
         /// </summary>
         /// <param name="control">Element to remove the watermark from</param>
-        private static void RemoveWatermark(UIElement control)
+        static void RemoveWatermark(UIElement control)
         {
-            AdornerLayer layer = AdornerLayer.GetAdornerLayer(control);
+            var layer = AdornerLayer.GetAdornerLayer(control);
 
             // layer could be null if control is no longer in the visual tree
             if (layer != null)
             {
                 Adorner[] adorners = layer.GetAdorners(control);
-                if (adorners == null)
-                {
-                    return;
-                }
+                if (adorners == null) return;
 
                 foreach (Adorner adorner in adorners)
                 {
@@ -212,9 +206,9 @@ namespace MicroserviceExplorer.Utils
         /// Show the watermark on the specified control
         /// </summary>
         /// <param name="control">Control to show the watermark on</param>
-        private static void ShowWatermark(Control control)
+        static void ShowWatermark(Control control)
         {
-            AdornerLayer layer = AdornerLayer.GetAdornerLayer(control);
+            var layer = AdornerLayer.GetAdornerLayer(control);
 
             // layer could be null if control is no longer in the visual tree
             if (layer != null)
@@ -228,7 +222,7 @@ namespace MicroserviceExplorer.Utils
         /// </summary>
         /// <param name="control"><see cref="Control"/> to test</param>
         /// <returns>true if the watermark should be shown; false otherwise</returns>
-        private static bool ShouldShowWatermark(Control control)
+        static bool ShouldShowWatermark(Control control)
         {
             switch (control)
             {
@@ -237,7 +231,7 @@ namespace MicroserviceExplorer.Utils
                 case TextBoxBase _:
                     return (control as TextBox)?.Text == string.Empty;
                 case ItemsControl _:
-                    return ((ItemsControl) control).Items.Count == 0;
+                    return ((ItemsControl)control).Items.Count == 0;
                 default:
                     return false;
             }

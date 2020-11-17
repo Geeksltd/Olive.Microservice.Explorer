@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
 using MicroserviceExplorer.Utils;
@@ -22,9 +20,10 @@ namespace MicroserviceExplorer
         MicroserviceItem GetServiceByTag(object sender)
         {
             var element = (FrameworkElement)sender;
-            //var serviceName = element.Tag.ToString();
+            // var serviceName = element.Tag.ToString();
             return element.Tag as MicroserviceItem;//MicroserviceGridItems.Single(s => s.Service == serviceName);
         }
+
         void BrowsMicroservice(MicroserviceItem service)
         {
             if (service.Status != MicroserviceItem.EnumStatus.Run)
@@ -47,6 +46,7 @@ namespace MicroserviceExplorer
 
                 }
             }
+
             Helper.Launch($"http://localhost:{service.Port}");
         }
 
@@ -86,7 +86,6 @@ namespace MicroserviceExplorer
             }
         }
 
-
         void FilterListBy(string txtSearchText)
         {
             MicroserviceGridItems.Clear();
@@ -98,6 +97,5 @@ namespace MicroserviceExplorer
 
             MicroserviceGridItems.AddRange(ServiceData.Where(x => x.Service.ToLower().Contains(txtSearchText.ToLower()) || x.Port.OrEmpty().Contains(txtSearchText)));
         }
-
     }
 }

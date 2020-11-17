@@ -38,8 +38,8 @@ namespace MicroserviceExplorer
 
             foreach (var recentFile in _recentFiles)
                 AddRecentMenuItem(recentFile);
-
         }
+
         void AddRecentMenuItem(string recentFile)
         {
             var menuItem = new MenuItem { Header = recentFile };
@@ -52,9 +52,9 @@ namespace MicroserviceExplorer
                 hasClearAll = true;
             }
 
-            if (!hasClearAll)
-                AddClearRecentMenuItem();
+            if (!hasClearAll) AddClearRecentMenuItem();
         }
+
         void AddClearRecentMenuItem()
         {
             var menuItem = new MenuItem { Header = "Clear All" };
@@ -67,6 +67,5 @@ namespace MicroserviceExplorer
             mnuRecentFiles.Items.Add(new Separator());
             mnuRecentFiles.Items.Add(menuItem);
         }
-
     }
 }

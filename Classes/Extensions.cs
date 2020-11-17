@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
+using System.Xml.Linq;
 
 namespace MicroserviceExplorer
 {
@@ -22,16 +18,18 @@ namespace MicroserviceExplorer
             }
         }
 
-        public static Classes.Web.Project GetProjectFile(this SolutionProject project, string solutionFolder)
+        public static (string name, string ver)[] GetNugetPackages(this SolutionProject project, string solutionFolder)
         {
             var folder = solutionFolder.AsDirectory().GetSubDirectory(project.Path(), onlyWhenExists: false);
             if (!folder.Exists()) return null;
-            var csproj = folder.GetFiles("*.csproj").SingleOrDefault();
+            var csproj = folder.GetFiles("*.csproj").WithMax(x => x.LastWriteTimeUtc);
             if (csproj == null) return null;
+            var text = csproj.ReadAllText().Trim();
 
-            var serializer = new XmlSerializer(typeof(Classes.Web.Project));
-            using (var fileStream = File.OpenRead(csproj.FullName))
-                return (Classes.Web.Project)serializer.Deserialize(fileStream);
+            return text.To<XDocument>().Root.RemoveNamespaces().Descendants(XName.Get("PackageReference"))
+                   .Select(v => new { Package = v.GetValue<string>("@Include"), Version = v.GetValue<string>("@Version") })
+                   .Select(x => (name: x.Package, ver: x.Version))
+                   .ToArray();
         }
     }
 }

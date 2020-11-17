@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using EnvDTE;
 using EnvDTE80;
 using Process = System.Diagnostics.Process;
 
@@ -19,7 +15,6 @@ namespace MicroserviceExplorer.Utils
             var vsList = new List<DTE2>();
             try
             {
-
                 var retVal = NativeMethods.GetRunningObjectTable(0, out var rot);
 
                 if (retVal != 0) return Enumerable.Empty<DTE2>();
@@ -32,7 +27,7 @@ namespace MicroserviceExplorer.Utils
                 {
                     NativeMethods.CreateBindCtx(0, out var bindCtx);
                     moniker[0].GetDisplayName(bindCtx, null, out var displayName);
-                    //Console.WriteLine("Display Name: {0}", displayName);
+                    // Console.WriteLine("Display Name: {0}", displayName);
                     var isVisualStudio = displayName.StartsWith("!VisualStudio");
                     if (!isVisualStudio) continue;
 
@@ -43,10 +38,10 @@ namespace MicroserviceExplorer.Utils
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);                
+                Console.WriteLine(e);
             }
-            return vsList;
 
+            return vsList;
         }
 
         public static void Launch(string url)
@@ -60,6 +55,5 @@ namespace MicroserviceExplorer.Utils
                 MessageBox.Show(ex.Message);
             }
         }
-
     }
 }

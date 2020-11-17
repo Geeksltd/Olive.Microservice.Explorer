@@ -30,24 +30,20 @@ namespace MicroserviceExplorer
 
         static IEnumerable<SolutionProject> StandardProjects
            => Enum.GetValues(typeof(SolutionProject)).OfType<SolutionProject>();
-
-        public MicroserviceItem()
-        {
-            Logwindow = new LogWindow { Servic = this };
-        }
+        public MicroserviceItem() => Logwindow = new LogWindow { Servic = this };
 
         public void RefreshPackages()
         {
             RollProgress($"Checking '{Service}' Microservice for nuget updates ...  ");
             References = new List<NugetReference>();
+
             foreach (var project in StandardProjects)
             {
-                var settings = project.GetProjectFile(SolutionFolder);
-                var refs = settings.ItemGroup.SelectMany(x => x.PackageReference.OrEmpty()).ToArray();
-                var nugetRefs = refs.Select(x => new NugetReference(x, this, project))
-                            .Except(x => x.Name.StartsWith("Microsoft.AspNetCore.")).ToList();
+                var packages = project.GetNugetPackages(SolutionFolder)
+                    .Except(x => x.name.StartsWith("Microsoft.AspNetCore."));
 
-                References.AddRange(nugetRefs);
+                foreach (var p in packages)
+                    References.Add(new NugetReference(p.name, p.ver, this, project));
             }
 
             OnPropertyChanged(nameof(NugetUpdates));
@@ -55,7 +51,7 @@ namespace MicroserviceExplorer
             StopProgress();
         }
 
-        int _nugetFetchTasks;
+        int _nugetFetchTasks, _procId;
         readonly double runImageOpacity = .2;
 
         #region INotifyPropertyChanged Implementations
@@ -76,7 +72,7 @@ namespace MicroserviceExplorer
 
         #endregion
 
-        private readonly LogWindow Logwindow;
+        readonly LogWindow Logwindow;
         public MainWindow MainWindow { get; set; }
 
         public void UpdateProgress(int progress, string msg = null)
@@ -87,6 +83,7 @@ namespace MicroserviceExplorer
                 MainWindow.txtStatusMessage.Text = msg;
             }));
         }
+
         public void RollProgress(string msg = null)
         {
             MainWindow?.Dispatcher?.BeginInvoke(DispatcherPriority.Normal, new MainWindow.MyDelegate(() =>
@@ -104,8 +101,8 @@ namespace MicroserviceExplorer
                 MainWindow.statusProgress.IsIndeterminate = false;
                 MainWindow.txtStatusMessage.Text = msg;
             }));
-
         }
+
         public enum EnumStatus
         {
             NoSourcerLocally = 1,
@@ -114,7 +111,7 @@ namespace MicroserviceExplorer
             Pending = 4
         }
 
-        private bool FirstStatus = true;
+        bool _nugetUpdateIsInProgress, _gitUpdateIsInProgress, FirstStatus = true;
         EnumStatus _status;
         public EnumStatus Status
         {
@@ -232,10 +229,8 @@ namespace MicroserviceExplorer
                     default:
                         return null;
                 }
-
             }
         }
-
 
         public object BuildImage
         {
@@ -252,13 +247,10 @@ namespace MicroserviceExplorer
                     default:
                         return null;
                 }
-
             }
         }
 
         public double RunImageOpacity => Status == EnumStatus.Run ? 1 : runImageOpacity;
-
-        int _procId;
         public int ProcId
         {
             get => _procId;
@@ -351,7 +343,7 @@ namespace MicroserviceExplorer
             }
         }
 
-        internal async Task UpdateSelectedPackages()
+        internal void UpdateSelectedPackages()
         {
             NugetIsUpdating = true;
 
@@ -371,7 +363,6 @@ namespace MicroserviceExplorer
         }
 
         public Visibility VisibleKestrel => ProcId <= 0 ? Visibility.Collapsed : Visibility.Visible;
-
 
         string _nugetUpdates;
 
@@ -398,7 +389,6 @@ namespace MicroserviceExplorer
                 {
                     return "Updating";
                 }
-
             }
             set { _nugetUpdates = value; }
         }
@@ -428,6 +418,7 @@ namespace MicroserviceExplorer
                     projFolder = null;
                     break;
             }
+
             return projFolder;
         }
 
@@ -449,8 +440,6 @@ namespace MicroserviceExplorer
             }
             set => _nugetStatusImage = value;
         }
-
-        bool _nugetUpdateIsInProgress;
         public bool NugetUpdateIsInProgress
         {
             get => _nugetUpdateIsInProgress;
@@ -556,15 +545,12 @@ namespace MicroserviceExplorer
                 OnPropertyChanged(nameof(LocalGitChanges));
                 OnPropertyChanged(nameof(LocalGitTooltip));
                 OnPropertyChanged(nameof(LocalGitHasChange));
-
             }
         }
 
         public object GitUpdateImage => GitUpdates.HasValue() ? "Resources/git.png" : null;
 
         public object GitStatusImage => GitUpdateIsInProgress ? "Resources/git_progress.gif" : null;
-
-        bool _gitUpdateIsInProgress;
         public bool GitUpdateIsInProgress
         {
             get => _gitUpdateIsInProgress;
@@ -578,12 +564,9 @@ namespace MicroserviceExplorer
 
         // GIT --------------------------------------------------------
 
-
-
-
         public void Start()
         {
-            //AutoRefreshTimer.Stop();
+            // AutoRefreshTimer.Stop();
             Status = EnumStatus.Pending;
             var proc = new Process
             {
@@ -601,17 +584,16 @@ namespace MicroserviceExplorer
 
             proc.Start();
 
-            //Console.Beep();
+            // Console.Beep();
 
-            //var microserviceRunCheckingTimer = new DispatcherTimer { Tag = service };
-            //microserviceRunCheckingTimer.Tick += microserviceRunCheckingTimer_Tick;
-            //microserviceRunCheckingTimer.Interval = new TimeSpan(0, 0, 1);
-            //microserviceRunCheckingTimer.Start();
+            // var microserviceRunCheckingTimer = new DispatcherTimer { Tag = service };
+            // microserviceRunCheckingTimer.Tick += microserviceRunCheckingTimer_Tick;
+            // microserviceRunCheckingTimer.Interval = new TimeSpan(0, 0, 1);
+            // microserviceRunCheckingTimer.Start();
         }
 
         public void Stop()
         {
-
             Status = EnumStatus.Pending;
             try
             {
@@ -622,6 +604,7 @@ namespace MicroserviceExplorer
                 // Already stopped.
                 // No logging is needed.
             }
+
             Thread.Sleep(300);
             ProcId = GetProcessIdByPortNumber(Port.To<int>());
             if (ProcId < 0) Status = EnumStatus.Stop;
@@ -637,10 +620,7 @@ namespace MicroserviceExplorer
             return tcpRow.ProcessId;
         }
 
-        public void UpdateProcessStatus()
-        {
-            ProcId = GetProcessIdByPortNumber(Port.To<int>());
-        }
+        public void UpdateProcessStatus() => ProcId = GetProcessIdByPortNumber(Port.To<int>());
 
         public async Task OpenVs(FileInfo solutionFile)
         {
@@ -672,7 +652,7 @@ namespace MicroserviceExplorer
         {
             try
             {
-                return new Helper().GetVsInstances().FirstOrDefault(dte2 => string.Equals(dte2.Solution.FullName,
+                return new Helper().GetVsInstances().ExceptNull().FirstOrDefault(dte2 => string.Equals(dte2.Solution.FullName,
                     solutionFile.FullName, StringComparison.CurrentCultureIgnoreCase));
             }
             catch
@@ -682,13 +662,12 @@ namespace MicroserviceExplorer
             }
         }
 
-
         public FileInfo GetServiceSolutionFilePath()
         {
             return !Directory.Exists(WebsiteFolder) ? null : WebsiteFolder.AsDirectory().Parent?.GetFiles("*.sln").FirstOrDefault();
         }
 
-        private string _service;
+        string _service;
 
         public void LogMessage(string message, string desc = null)
         {
@@ -696,11 +675,7 @@ namespace MicroserviceExplorer
             OnPropertyChanged(nameof(LogWindowVisibility));
         }
 
-
-        public void ShowLogWindow()
-        {
-            Logwindow.Show();
-        }
+        public void ShowLogWindow() => Logwindow.Show();
 
         public Visibility LogWindowVisibility => Logwindow.TextLog.IsEmpty() ? Visibility.Collapsed : Visibility.Visible;
     }
