@@ -205,7 +205,7 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
 
-                <DataGridTemplateColumn Header="Service" SortMemberPath="Service"  Width="150" >
+                <DataGridTemplateColumn Header="Service" SortMemberPath="Service" Width="270" >
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
@@ -236,7 +236,7 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
 
-                <DataGridTemplateColumn Header="Remote Git">
+                <DataGridTemplateColumn Header="☁️ Git" Width="45">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"  Orientation="Horizontal" >
@@ -254,11 +254,11 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
 
-                <DataGridTemplateColumn Header="Local Git" >
+                <DataGridTemplateColumn Header="My Git" Width="45" >
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"  Orientation="Horizontal" >
-                                <Border  Tag="{Binding}" Background="#63a0c6" CornerRadius="2" Padding="4"  MinWidth="25"    PreviewMouseLeftButtonDown="LocalGitActions_OnPreviewMouseLeftButtonDown" Visibility="{Binding  LocalGitHasChange }"   >
+                                <Border  Tag="{Binding}" Background="#63a0c6" CornerRadius="2" Padding="4"  MinWidth="25" PreviewMouseLeftButtonDown="LocalGitActions_OnPreviewMouseLeftButtonDown" Visibility="{Binding  LocalGitHasChange }"   >
                                         <Border.ToolTip>
                                             <ToolTip  Content="{Binding  LocalGitTooltip }" />
                                         </Border.ToolTip>
@@ -306,7 +306,7 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
 
-                <DataGridTemplateColumn Header="Debug" SortMemberPath="VisibleCode" >
+                <DataGridTemplateColumn Header="Debug" SortMemberPath="VisibleCode" Width="50" >
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">

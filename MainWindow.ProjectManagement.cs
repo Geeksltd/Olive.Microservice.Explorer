@@ -278,30 +278,25 @@ namespace MicroserviceExplorer
                 {
                     service.BuildStatus = "Pending";
                     service.LogMessage($"{service.Service} Microservice build started ...");
-                    foreach (var projEnum in Enum.GetValues(typeof(SolutionProject)))
+
+                    try
                     {
-                        var projFolder = service.GetAbsoluteProjFolder((SolutionProject)projEnum);
-                        if (projFolder.IsEmpty()) return;
-
-                        try
-                        {
-                            var processInfo = new ProcessStartInfo();
-                            processInfo.FileName = "CMD.EXE";
-                            processInfo.WorkingDirectory = service.SolutionFolder;
-                            processInfo.Arguments = "/K " + Path.Combine(service.SolutionFolder, "Build.bat");
-                            var process = Process.Start(processInfo);
-                            process.WaitForExit();
-                        }
-                        catch (Exception ex)
-                        {
-                            service.BuildStatus = "Failed";
-                            service.LogMessage($"Build error on [{projEnum} :", ex.Message);
-                            e1.Result = false;
-                            return;
-                        }
-
-                        e1.Result = true;
+                        var processInfo = new ProcessStartInfo();
+                        processInfo.FileName = "CMD.EXE";
+                        processInfo.WorkingDirectory = service.SolutionFolder;
+                        processInfo.Arguments = "/K " + Path.Combine(service.SolutionFolder, "Build.bat");
+                        var process = Process.Start(processInfo);
+                        process.WaitForExit();
                     }
+                    catch (Exception ex)
+                    {
+                        service.BuildStatus = "Failed";
+                        service.LogMessage($"Build error.", ex.Message);
+                        e1.Result = false;
+                        return;
+                    }
+
+                    e1.Result = true;
                 };
                 worker.RunWorkerCompleted += (o, args) =>
                 {
