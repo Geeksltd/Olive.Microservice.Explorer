@@ -30,6 +30,8 @@ namespace MicroserviceExplorer
 {
     public partial class MainWindow : IDisposable
     {
+        internal static DirectoryInfo ServicesDirectory { get; set; }
+
         #region Commands
 
         public static readonly RoutedCommand EditCommand = new RoutedUICommand("Edit", "EditCommand", typeof(MainWindow), new InputGestureCollection(new InputGesture[]
@@ -289,26 +291,7 @@ namespace MicroserviceExplorer
             }
         }
 
-        void Refresh()
-        {
-            AutoRefreshProcessTimer.Stop();
-            AutoRefreshTimer.Stop();
 
-            if (ServicesDirectory != null)
-                Dispatcher?.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(() =>
-                {
-                    try
-                    {
-                        RefreshFile(ServicesDirectory.FullName);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                        throw;
-                    }
-                })
-                );
-        }
 
         void CloseMenuItem_OnClick(object sender, RoutedEventArgs e) => Close();
 
@@ -457,9 +440,126 @@ namespace MicroserviceExplorer
             ServiceData.ForEach(x => x.UpdateSelectedPackages());
         }
 
+        bool LoadFile(string hub)
+        {
+            ServicesDirectory = hub.AsDirectory().Parent;
+
+            var serviceInfos = ServicesDirectory?.GetDirectories()
+                .Where(x => File.Exists(x.FullName + @"\Website\appsettings.json"))
+                .Select(x =>
+                        new ServiceInfo
+                        {
+                            Name = x.Name + GetServiceName(x.FullName + @"\Website\appSettings.json").Unless(x.Name).WithWrappers(" (", ")"),
+                            ProjectFolder = x.FullName,
+                            WebsiteFolder = Path.Combine(x.FullName, "Website"),
+                            LaunchSettingsPath = Path.Combine(x.FullName, @"Website\Properties", "launchSettings.json")
+                        });
+
+            if (ServicesDirectory == null ||
+                !CheckIfServicesDirectoryExist()) return false;
+
+            servicesDirectoryLastWriteTime = ServicesDirectory.LastWriteTime;
+
+            txtFileInfo.Text = ServicesDirectory.FullName;
+            txtSolName.Text = ServicesDirectory.Name;
+            if (serviceInfos == null) return false;
+
+            foreach (var serviceInfo in serviceInfos)
+            {
+                var serviceName = serviceInfo.Name;
+                var srv = ServiceData.SingleOrDefault(srvc => srvc.Service == serviceName);
+                if (srv == null)
+                {
+                    srv = new MicroserviceItem
+                    {
+                        MainWindow = this
+                    };
+                    ServiceData.Add(srv);
+                }
+
+                var port = "";
+                var status = MicroserviceItem.EnumStatus.NoSourcerLocally;
+                var parentFullName = ServicesDirectory?.FullName ?? "";
+                var projFolder = serviceInfo.ProjectFolder;
+                var websiteFolder = serviceInfo.WebsiteFolder;
+                var launchSettings = serviceInfo.LaunchSettingsPath;
+                var procId = -1;
+
+                if (File.Exists(@launchSettings))
+                {
+                    status = MicroserviceItem.EnumStatus.Pending;
+                    port = GetPortNumberFromLaunchSettingsFile(launchSettings);
+                }
+                else
+                    websiteFolder = null;
+
+                srv.Status = status;
+                srv.Service = serviceName;
+                srv.Port = port;
+                srv.ProcId = procId;
+                srv.SolutionFolder = projFolder;
+                srv.WebsiteFolder = websiteFolder;
+            }
+
+            FilterListBy(txtSearch.Text);
+
+            projectLoaded = true;
+
+            if (watcher == null)
+                StartFileSystemWatcher(ServicesDirectory);
+
+            Refresh();
+
+            return true;
+        }
+
+        bool CheckIfServicesDirectoryExist()
+        {
+            if (!ServicesDirectory.Exists())
+            {
+                var result = MessageBox.Show(
+                    $@"file : {
+                            ServicesDirectory.FullName
+                        } \ndoes not exist anymore. \nDo you want to removed it from recent directories list?", @"Directory Not Found",
+                    System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question);
+                _recentFiles.Remove(ServicesDirectory.FullName);
+                if (result != System.Windows.Forms.DialogResult.Yes) return false;
+
+                SaveRecentFilesXml();
+                ReloadRecentFiles();
+
+                ServicesDirectory = null;
+                projectLoaded = false;
+                return false;
+            }
+
+            return true;
+        }
+
+        void Refresh()
+        {
+            AutoRefreshProcessTimer.Stop();
+            AutoRefreshTimer.Stop();
+
+            if (ServicesDirectory != null)
+                Dispatcher?.BeginInvoke(DispatcherPriority.Normal, new MyDelegate(() =>
+                {
+                    try
+                    {
+                        RefreshFile(ServicesDirectory.FullName);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        throw;
+                    }
+                })
+                );
+        }
+
         async void NewMicroservice_Click(object sender, ExecutedRoutedEventArgs e)
         {
-            var hubAddress = Path.Combine(ServicesDirectory.FullName, "hub");
+            if (ServicesDirectory == null || !ServicesDirectory.Exists) return;
 
             var msw = new NewMicroservice.NewMicroservice
             {
@@ -469,396 +569,9 @@ namespace MicroserviceExplorer
             var dialog = msw.ShowDialog();
             if (dialog != true) return;
 
-            if (!ServicesDirectory.Exists || ServicesDirectory == null) return;
-
-            var appSettingsProductionAllText = File.ReadAllText(Path.Combine(hubAddress, "website", "appsettings.Production.json"));
-            var appSettingsProductionJObject = JObject.Parse(appSettingsProductionAllText);
-            var domain = appSettingsProductionJObject["Authentication"]["Cookie"]["Domain"].ToString();
-            var serviceName = msw.ServiceName;
-            var solutionName = ServicesDirectory.Name;
-            var portNumber = GetNextPortNumberFromHubServices(ServicesDirectory, out var serviesXmlPath);
-            var dbType = DBType.SqlServer;
-            var connectionString = dbType.ConnectionString;
-
-            // AddMicroserviceToHubServices(serviesXmlPath, serviceName, domain, portNumber);
-
-            var serviceDirectoryPath = Path.Combine(ServicesDirectory.FullName, serviceName);
-            var serviceDirectory = new DirectoryInfo(serviceDirectoryPath);
-
-            if (!serviceDirectory.Exists)
-                serviceDirectory.Create();
-
-            var tmpFolder = await CreateTemplateAsync(serviceDirectoryPath, serviceName, solutionName, domain, portNumber.ToString(),
-                dbType, connectionString);
-
-            if (tmpFolder.IsEmpty()) return;
-
-            AddMicroserviceToHubServices(serviesXmlPath, serviceName, domain, portNumber);
-            Execute(serviceDirectoryPath, "build.bat", null);
-
-            try
-            {
-                Execute(serviceDirectoryPath, "git", "init");
-                Execute(serviceDirectoryPath, "git", $"remote add origin {msw.GitRepoUrl}");
-                Execute(serviceDirectoryPath, "git", "add .");
-                Execute(serviceDirectoryPath, "git", "commit -m \"Initial commit\"");
-                Execute(serviceDirectoryPath, "git", "push");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($@"Error :{ex.Message}", @"Template initialization failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
+            await new NewMicroserviceCreator(msw.ServiceName, msw.GitRepoUrl).Create();
 
             Refresh();
-        }
-
-        void AddMicroserviceToHubServices(string serviesXmlPath, string serviceName, string domain, int portNumber)
-        {
-            var services = XDocument.Load(serviesXmlPath);
-            var node = new XElement(serviceName,
-                new XAttribute("url", $"http://localhost:{portNumber}"),
-                new XAttribute("production", $"https://{serviceName}.{domain}"));
-
-            services.Root?.AddFirst(node);
-            services.Save(serviesXmlPath);
-        }
-
-        int GetNextPortNumberFromHubServices(DirectoryInfo serviceJsonDir, out string serviesXmlPath)
-        {
-            serviesXmlPath = null;
-            var hubDir = serviceJsonDir;
-            while (hubDir?.Parent != null && !Directory.Exists(Path.Combine(hubDir.FullName, "hub")))
-                hubDir = hubDir.Parent;
-
-            if (hubDir == null) return 0;
-
-            var servicePath = Path.Combine(hubDir.FullName, "hub", "website", "services.xml");
-            if (!File.Exists(servicePath)) return 0;
-
-            serviesXmlPath = servicePath;
-
-            var services = XElement.Load(servicePath);
-            var nextPortNumber = (from srv in services.FirstNode.ElementsAfterSelf()
-                                  where srv.Attribute("url") != null && srv.Attribute("url").Value.Replace("://", "").Contains(":")
-                                  let y = srv.Attribute("url")?.Value.Replace("://", "").TrimBefore(":", caseSensitive: true, trimPhrase: true)
-                                  where int.TryParse(y, out _)
-                                  select Convert.ToInt32(y)).Max() + 1;
-            return nextPortNumber;
-        }
-
-        public string TemplateWebAddress => @"https://github.com/Geeksltd/Olive.Mvc.Microservice.Template/archive/master.zip";
-        const string ZIP_FILE_NAME = "master.zip", TEMPLATE_FOLDER_NAME = "Template";
-
-        async Task<string> CreateTemplateAsync(string solutionFolder, string serviceName, string solutionName, string domain, string port, DBType selectedDbType, string connestionString)
-        {
-            // DownloadedFilesExtractPath = Path.Combine(solutionFolder, "tempExtract");
-            var downloadedFilesExtractPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(downloadedFilesExtractPath);
-            try
-            {
-                if (!await DownloadAsync(TemplateWebAddress, downloadedFilesExtractPath, ZIP_FILE_NAME)) return null;
-
-                var zipFilePath = Path.Combine(downloadedFilesExtractPath, ZIP_FILE_NAME);
-                ZipFile.ExtractToDirectory(zipFilePath, downloadedFilesExtractPath);
-                File.Delete(zipFilePath);
-                Rename(downloadedFilesExtractPath, serviceName, solutionName, domain, port, selectedDbType, connestionString);
-
-                CopyFiles(solutionFolder, downloadedFilesExtractPath);
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message, @"Error in download or create new Microservice", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return null;
-            }
-
-            return downloadedFilesExtractPath;
-        }
-
-        void CopyFiles(string solutionFolder, string extractPathPath)
-        {
-            try
-            {
-                var template = Directory.GetDirectories(extractPathPath).FirstOrDefault();
-                if (template.IsEmpty()) return;
-                var templateDirectory = Directory.GetDirectories(template).FirstOrDefault();
-                var tempDIrObj = new DirectoryInfo(templateDirectory);
-                if (tempDIrObj.Name != TEMPLATE_FOLDER_NAME) return;
-                CopyFolderContents(templateDirectory, solutionFolder);
-                DeleteDirectory(extractPathPath);
-            }
-            catch
-            {
-                // ignored
-            }
-        }
-
-        public static void DeleteDirectory(string path)
-        {
-            if (!Directory.Exists(path)) return;
-
-            // Delete all files from the Directory
-            foreach (var file in Directory.GetFiles(path))
-                File.Delete(file);
-
-            // Delete all child Directories
-            foreach (var directory in Directory.GetDirectories(path))
-                DeleteDirectory(directory);
-
-            // Delete a Directory
-            Directory.Delete(path);
-        }
-
-        public static bool CopyFolderContents(string sourcePath, string destinationPath)
-        {
-            sourcePath = sourcePath.EndsWith(@"\") ? sourcePath : sourcePath + @"\";
-            destinationPath = destinationPath.EndsWith(@"\") ? destinationPath : destinationPath + @"\";
-
-            try
-            {
-                if (Directory.Exists(sourcePath))
-                {
-                    if (Directory.Exists(destinationPath) == false)
-                        Directory.CreateDirectory(destinationPath);
-
-                    foreach (var files in Directory.GetFiles(sourcePath))
-                    {
-                        var fileInfo = files.AsFile();
-                        fileInfo.CopyTo($@"{destinationPath}\{fileInfo.Name}", overwrite: true);
-                    }
-
-                    foreach (var drs in Directory.GetDirectories(sourcePath))
-                    {
-                        var directoryInfo = new DirectoryInfo(drs);
-                        if (CopyFolderContents(drs, destinationPath + directoryInfo.Name) == false)
-                            return false;
-                    }
-                }
-
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
-
-        protected void Rename(string downloadedFilesExtractPath, string serviceName, string solutionName, string domain, string port, DBType selectedDbType, string connestionString)
-        {
-            domain = domain.TrimStart('*').TrimStart('.');
-            var replacements = new Dictionary<string, string>
-            {
-                {"MY.MICROSERVICE.NAME", serviceName},
-                {"MY.SOLUTION",solutionName  },
-                {"my-solution-domain",domain },
-                {"mysolution",domain.Remove(".")},
-                {"9012", port }
-            };
-
-            foreach (var item in replacements)
-                RenameHelper(downloadedFilesExtractPath, item.Key, item.Value);
-
-            ApplyDbType(downloadedFilesExtractPath, selectedDbType, connestionString);
-            // SetRandomPortNumber(downloadedFilesExtractPath);
-        }
-
-        protected static void ApplyDbType(string destPath, DBType selectedDbType, string constr)
-        {
-            ChangeConnectionString(destPath, constr);
-
-            if (selectedDbType == DBType.SqlServer) return;
-
-            FixDomainCsProjectReference(destPath, selectedDbType);
-            FixSqlDialect(destPath, selectedDbType);
-            FixStartUp(destPath, selectedDbType);
-        }
-
-        static void FixSqlDialect(string destPath, DBType selectedDbType)
-        {
-            var file = Directory.GetFiles(destPath, "Project.cs", SearchOption.AllDirectories).FirstOrDefault(x => x.Contains("M#\\Model\\"));
-            if (file.IsEmpty()) throw new Exception("M#\\Model\\Project.cs was not found!");
-
-            // var file = Path.Combine(destPath, "Model", "Project.cs");
-
-            var text = File.ReadAllText(file);
-            var index = text.IndexOf("\n", text.IndexOf("Name(\"", StringComparison.Ordinal), StringComparison.Ordinal) + 1;
-            text = text.Insert(index, $"SqlDialect(MSharp.SqlDialect.{selectedDbType.Dialect});");
-
-            File.WriteAllText(file, text);
-        }
-
-        static void FixStartUp(string destPath, DBType selectedDbType)
-        {
-            var file = Directory.GetFiles(destPath, "StartUp.cs", SearchOption.AllDirectories).SingleOrDefault();
-            if (file.IsEmpty()) throw new Exception("StartUp.cs was not found!");
-
-            var text = File.ReadAllText(file).ReplaceWholeWord("SqlServerManager", selectedDbType.Manager);
-            File.WriteAllText(file, text);
-        }
-
-        static void FixDomainCsProjectReference(string destPath, DBType selectedDbType)
-        {
-            var domainFile = Directory.GetFiles(destPath, "Domain.csproj", SearchOption.AllDirectories).FirstOrDefault();
-            if (domainFile.IsEmpty()) return;
-
-            var serializer = new XmlSerializer(typeof(MicroserviceGenerator.Schema.Project));
-
-            MicroserviceGenerator.Schema.Project proj;
-            using (var fileStream = File.OpenRead(domainFile))
-                proj = (MicroserviceGenerator.Schema.Project)serializer.Deserialize(fileStream);
-
-            var sqlServerReference = proj.ItemGroup.Single(x => x.Include == "Olive.Entities.Data.SqlServer");
-            sqlServerReference.Include = "Olive.Entities.Data." + selectedDbType.Provider;
-            sqlServerReference.Version = selectedDbType.OliveVersion;
-
-            var newProjStruct = SerializeToString(proj);
-            File.WriteAllText(domainFile, newProjStruct);
-        }
-
-        public static string SerializeToString<T>(T value)
-        {
-            var emptyNamepsaces = new XmlSerializerNamespaces(new[] { XmlQualifiedName.Empty });
-            var serializer = new XmlSerializer(value.GetType());
-            var settings = new XmlWriterSettings
-            {
-                Indent = true,
-                OmitXmlDeclaration = true
-            };
-
-            using (var stream = new StringWriter())
-            using (var writer = XmlWriter.Create(stream, settings))
-            {
-                serializer.Serialize(writer, value, emptyNamepsaces);
-                return stream.ToString();
-            }
-        }
-
-        static void ChangeConnectionString(string destPath, string constr)
-        {
-            var jsonkey = @"""AppDatabase""";
-            var appsettings = Directory.GetFiles(destPath, "appsettings.json", SearchOption.AllDirectories).Single(f => f.AsFile().DirectoryName?.ToLower().EndsWith("\\website") == true);
-            var allLines = File.ReadAllLines(appsettings);
-            for (var index = 0; index < allLines.Length; index++)
-            {
-                var line = allLines[index];
-                if (line.Lacks(jsonkey)) continue;
-                var hasComma = line.Trim().EndsWith(",");
-
-                allLines[index] = $"\t{jsonkey}: \"{constr}\" {(hasComma ? "," : "")}";
-                break;
-            }
-
-            File.WriteAllLines(appsettings, allLines);
-        }
-
-        protected static void RenameHelper(string destPath, string templateKey, string templateValue)
-        {
-            foreach (var file in Directory.GetFiles(destPath, "*.*", SearchOption.AllDirectories))
-            {
-                var fileContent = File.ReadAllText(file);
-                if (fileContent.Contains(templateKey, caseSensitive: false))
-                {
-                    fileContent = fileContent.Replace(templateKey, templateValue);
-                    fileContent = fileContent.Replace(templateKey.ToLower(), templateValue.ToLowerOrEmpty());
-
-                    File.WriteAllText(file, fileContent);
-                }
-
-                var fileName = Path.GetFileName(file);
-                if (fileName.Contains(templateKey))
-                    File.Move(file, file.Replace(templateKey, templateValue));
-            }
-        }
-
-        public static async System.Threading.Tasks.Task<bool> DownloadAsync(string sourceWebAddress, string destPath, string fileName)
-        {
-            var destFullPath = Path.Combine(destPath, fileName);
-            try
-            {
-                Loading loadingWindow;
-                HttpResponseMessage response;
-                using (var cancellationTokenSource = new CancellationTokenSource())
-                {
-                    cancellationTokenSource.CancelAfter(new TimeSpan(0, 0, 2, 30));
-                    loadingWindow = new Loading(cancellationTokenSource);
-
-                    loadingWindow.Show();
-                    var httpClient = new HttpClient();
-                    response = await httpClient.GetAsync(sourceWebAddress, HttpCompletionOption.ResponseContentRead, cancellationTokenSource.Token);
-                }
-
-                response.EnsureSuccessStatusCode();
-
-                using (var fileStream = new FileStream(destFullPath, FileMode.Create, FileAccess.Write, FileShare.None))
-                    await response.Content.CopyToAsync(fileStream);
-
-                loadingWindow.Close();
-                return true;
-            }
-            catch (HttpRequestException ex)
-            {
-                MessageBox.Show($"Error in downloading template file \n {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            catch (OperationCanceledException ex)
-            {
-                MessageBox.Show("Project template download canceled.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error in downloading template file \n {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-
-            return false;
-        }
-
-        public static void Execute(string workingDirectory, string command, string args, bool createNoWindow = true)
-        {
-            var output = new StringBuilder();
-            var proc = new Process
-            {
-                EnableRaisingEvents = true,
-                StartInfo = new ProcessStartInfo
-                {
-
-                    FileName = command,
-                    Arguments = args ?? "",
-                    WorkingDirectory = workingDirectory ?? "",
-                    CreateNoWindow = createNoWindow,
-                    UseShellExecute = true,
-                    //RedirectStandardOutput = true,
-                    //RedirectStandardError = true,
-                    //Verb = "runas",
-                    //StandardOutputEncoding = Encoding.UTF8,
-                    //StandardErrorEncoding = Encoding.UTF8
-                }
-            };
-
-            // proc.ErrorDataReceived += (sender, e) =>
-            // {
-            //    if (e.Data.IsEmpty()) return;
-            //    output.AppendLine(e.Data);
-            // };
-
-            // proc.OutputDataReceived += (DataReceivedEventHandler)((sender, e) =>
-            // {
-            //    if (e.Data == null) return;
-            //    output.AppendLine(e.Data);
-            // });
-
-            // proc.Exited += (object sender, EventArgs e) =>
-            // {
-            //    //Console.Beep();
-            // };
-            proc.Start();
-
-            // proc.BeginOutputReadLine();
-            // proc.BeginErrorReadLine();
-
-            proc.WaitForExit();
-
-            if ((uint)proc.ExitCode > 0U)
-                throw new Exception($"External command failed: \"{command}\" {args}\r\n\r\n{(object)output}");
-
-            // return output.ToString();
         }
     }
 }

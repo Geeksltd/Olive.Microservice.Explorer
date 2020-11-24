@@ -103,6 +103,7 @@
     <Compile Include="Utils\MyEnumWindows.cs" />
     <Compile Include="Utils\IntVisibilityConverter.cs" />
     <Compile Include="Utils\NativeMethods.cs" />
+    <Compile Include="Utils\NewMicroservice.cs" />
     <Compile Include="Utils\NullVisibilityConverter.cs" />
     <Compile Include="Utils\ParentProcessUtilities.cs" />
     <Compile Include="Utils\WatermarkAdorner.cs" />

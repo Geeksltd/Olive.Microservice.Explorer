@@ -20,7 +20,7 @@ namespace MicroserviceExplorer
 
     partial class MainWindow
     {
-        public DirectoryInfo ServicesDirectory { get; set; }
+        
         public Visibility FileOpened { get; set; }
 
         bool projectLoaded;
@@ -35,101 +35,8 @@ namespace MicroserviceExplorer
             return launchSettingsJObject["Microservice"]["Me"]["Name"].ToString();
         }
 
-        bool LoadFile(string hub)
-        {
-            ServicesDirectory = hub.AsDirectory().Parent;
-
-            var serviceInfos = ServicesDirectory?.GetDirectories()
-                .Where(x => File.Exists(x.FullName + @"\Website\appsettings.json"))
-                .Select(x =>
-                        new ServiceInfo
-                        {
-                            Name = x.Name + GetServiceName(x.FullName + @"\Website\appSettings.json").Unless(x.Name).WithWrappers(" (", ")"),
-                            ProjectFolder = x.FullName,
-                            WebsiteFolder = Path.Combine(x.FullName, "Website"),
-                            LaunchSettingsPath = Path.Combine(x.FullName, @"Website\Properties", "launchSettings.json")
-                        });
-
-            if (ServicesDirectory == null ||
-                !CheckIfServicesDirectoryExist()) return false;
-
-            servicesDirectoryLastWriteTime = ServicesDirectory.LastWriteTime;
-
-            txtFileInfo.Text = ServicesDirectory.FullName;
-            txtSolName.Text = ServicesDirectory.Name;
-            if (serviceInfos == null) return false;
-
-            foreach (var serviceInfo in serviceInfos)
-            {
-                var serviceName = serviceInfo.Name;
-                var srv = ServiceData.SingleOrDefault(srvc => srvc.Service == serviceName);
-                if (srv == null)
-                {
-                    srv = new MicroserviceItem
-                    {
-                        MainWindow = this
-                    };
-                    ServiceData.Add(srv);
-                }
-
-                var port = "";
-                var status = MicroserviceItem.EnumStatus.NoSourcerLocally;
-                var parentFullName = ServicesDirectory?.FullName ?? "";
-                var projFolder = serviceInfo.ProjectFolder;
-                var websiteFolder = serviceInfo.WebsiteFolder;
-                var launchSettings = serviceInfo.LaunchSettingsPath;
-                var procId = -1;
-
-                if (File.Exists(@launchSettings))
-                {
-                    status = MicroserviceItem.EnumStatus.Pending;
-                    port = GetPortNumberFromLaunchSettingsFile(launchSettings);
-                }
-                else
-                    websiteFolder = null;
-
-                srv.Status = status;
-                srv.Service = serviceName;
-                srv.Port = port;
-                srv.ProcId = procId;
-                srv.SolutionFolder = projFolder;
-                srv.WebsiteFolder = websiteFolder;
-            }
-
-            FilterListBy(txtSearch.Text);
-
-            projectLoaded = true;
-
-            if (watcher == null)
-                StartFileSystemWatcher(ServicesDirectory);
-
-            Refresh();
-
-            return true;
-        }
-
-        bool CheckIfServicesDirectoryExist()
-        {
-            if (!ServicesDirectory.Exists())
-            {
-                var result = MessageBox.Show(
-                    $@"file : {
-                            ServicesDirectory.FullName
-                        } \ndoes not exist anymore. \nDo you want to removed it from recent directories list?", @"Directory Not Found",
-                    System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question);
-                _recentFiles.Remove(ServicesDirectory.FullName);
-                if (result != System.Windows.Forms.DialogResult.Yes) return false;
-
-                SaveRecentFilesXml();
-                ReloadRecentFiles();
-
-                ServicesDirectory = null;
-                projectLoaded = false;
-                return false;
-            }
-
-            return true;
-        }
+      
+        
 
         bool RefreshFile(string filePath)
         {
