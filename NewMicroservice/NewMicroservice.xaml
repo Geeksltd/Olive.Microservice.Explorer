@@ -1,0 +1,25 @@
+﻿<Window x:Class="MicroserviceExplorer.NewMicroservice.NewMicroservice"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MicroserviceExplorer.NewMicroservice"
+        mc:Ignorable="d"
+        Title="NewMicroservice" Height="287.252" Width="483.853">
+    <StackPanel Margin="30,30,30,38" >
+        <Label>Service Name:</Label>
+        <TextBox Name="txtServiceName" Height="25" Margin="0,0,0,5" TextChanged="TxtProjectName_OnTextChanged" />
+
+        <Label>Git Repository URL:</Label>
+        <TextBox Name="txtGitRepoUrl" Height="25" Margin="0,0,0,5" TextChanged="TxtProjectName_OnTextChanged" />
+        <Label Name="LblError" Foreground="Crimson" FontWeight="Bold" />
+        
+        <StackPanel Orientation="Horizontal" Margin="3" HorizontalAlignment="Right">
+            <Button Margin="10" Width="80" Height="28" IsCancel="True" Click="cancelButton_Click">Cancel</Button>
+            <Button Margin="10" Width="80" Height="28" IsEnabled="False" Name="btnCreate" Click="btnCreate_Click"
+                    IsDefault="True">
+                Create
+            </Button>
+        </StackPanel>
+    </StackPanel>
+</Window>

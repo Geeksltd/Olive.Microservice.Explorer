@@ -1,0 +1,388 @@
+﻿<Window xmlns:Controls="clr-namespace:MicroserviceExplorer.Controls"  x:Class="MicroserviceExplorer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:gif="http://wpfanimatedgif.codeplex.com"        
+        xmlns:local="clr-namespace:MicroserviceExplorer"
+        xmlns:utils="clr-namespace:MicroserviceExplorer.Utils"
+        mc:Ignorable="d" 
+        Name="window"
+        Title="Olive Microservice Explorer"         
+        Height="571" Width="700" Icon="Olive.ico" 
+        AllowsTransparency="True" WindowStyle="None"
+        WindowState="Normal" 
+        ResizeMode="CanResize"
+        Loaded="MainWindow_OnLoaded" 
+        Closed="MainWindow_OnClosed" 
+        Closing="MainWindow_OnClosing" LocationChanged="MainWindow_OnLocationChanged" >
+    <WindowChrome.WindowChrome>
+        <WindowChrome 
+            CaptionHeight="0"
+            ResizeBorderThickness="5" />
+    </WindowChrome.WindowChrome>
+    <Window.Resources>
+        <Style TargetType="Image" x:Key="gridImage">
+            <Setter Property="Width" Value="20" />
+            <Setter Property="RenderOptions.BitmapScalingMode" Value="Fant"></Setter>
+        </Style>
+        <Style TargetType="Image" x:Key="menuImage">
+            <Setter Property="Width" Value="20" />
+            <Setter Property="RenderOptions.BitmapScalingMode" Value="Fant"></Setter>
+        </Style>
+
+        <Style TargetType="Button" x:Key="gridButton">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+
+        <local:ForegroundColorConverter x:Key="myConverter"></local:ForegroundColorConverter>
+        <local:NullVisibilityConverter x:Key="nullVisibilityConverter"></local:NullVisibilityConverter>
+        <local:IntVisibilityConverter x:Key="intVisibilityConverter"></local:IntVisibilityConverter>
+        <local:BoolVisibilityConverter x:Key="boolVisibilityConverter"></local:BoolVisibilityConverter>
+    </Window.Resources>
+    <Window.CommandBindings>
+        <CommandBinding Command="Open" Executed="OpenProject_Executed"></CommandBinding>
+        <CommandBinding Command="{x:Static local:MainWindow.RefreshCommand}" Executed="RefreshMenuItem_OnClick"></CommandBinding>
+        <CommandBinding Command="{x:Static local:MainWindow.CloseCommand}" Executed="CloseMenuItem_OnClick"></CommandBinding>
+        <CommandBinding Command="{x:Static local:MainWindow.ExitCommand}" Executed="ExitMenuItem_Click"></CommandBinding>
+        <CommandBinding Command="{x:Static local:MainWindow.NewMicroserviceCommand}" Executed="NewMicroservice_Click"></CommandBinding>
+
+        <CommandBinding Command="{x:Static local:MainWindow.RunAllCommand}" Executed="RunAllMenuItem_Click"></CommandBinding>
+        <CommandBinding Command="{x:Static local:MainWindow.StopAllCommand}" Executed="StopAllMenuItem_Click"></CommandBinding>
+        <CommandBinding Command="{x:Static local:MainWindow.RunAllFilteredCommand}" Executed="RunAllFilteredMenuItem_Click"></CommandBinding>
+        <CommandBinding Command="{x:Static local:MainWindow.StopAllFilteredCommand}" Executed="StopAllFilteredMenuItem_Click"></CommandBinding>
+
+    </Window.CommandBindings>
+    <Window.InputBindings>
+        <KeyBinding Key="O" Modifiers="Control" Command="Open"></KeyBinding>
+    </Window.InputBindings>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Controls:WindowTitlebarControl Grid.Row="0" Title="{Binding ElementName=window,Path=Title,Mode=TwoWay}" RefreshClicked="WindowTitlebarControl_OnRefreshClicked" />
+        <Menu Grid.Row="1">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Open Project" Command="Open" >
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Menu/folder.png" Style="{StaticResource menuImage}"></Image>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Re_cent projects" Name="mnuRecentFiles">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Menu/Recent.png" Style="{StaticResource menuImage}"></Image>
+                    </MenuItem.Icon>
+                    <MenuItem Header="[Empty]"></MenuItem>
+                </MenuItem>
+                <Separator></Separator>
+                <MenuItem Header="New M_icroservice" Name="mnuCreateNewMicroservice" Command="{x:Static local:MainWindow.NewMicroserviceCommand}">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Menu/Microservice.png" Style="{StaticResource menuImage}"></Image>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator></Separator>
+                <MenuItem Header="Window">
+                    <MenuItem Header="Always on top" IsCheckable="True" Name="mnuAlwaysOnTop" Checked="MnuAlwaysOnTop_OnChecked" Unchecked="MnuAlwaysOnTop_OnChecked" >
+                    </MenuItem>
+                    <MenuItem Header="Opacity" Name="OpacityMenuItem">
+                        <MenuItem Header="100%" IsCheckable="True" utils:MenuItemExtensions.GroupName="opacity" Click="WindowOpacityMenuItem_OnClick" IsChecked="True"></MenuItem>
+                        <MenuItem Header="75%"  IsCheckable="True" utils:MenuItemExtensions.GroupName="opacity" Click="WindowOpacityMenuItem_OnClick"></MenuItem>
+                        <MenuItem Header="50%"  IsCheckable="True" utils:MenuItemExtensions.GroupName="opacity" Click="WindowOpacityMenuItem_OnClick"></MenuItem>
+                        <MenuItem Header="25%"  IsCheckable="True" utils:MenuItemExtensions.GroupName="opacity" Click="WindowOpacityMenuItem_OnClick"></MenuItem>
+                        <MenuItem Name="SliderMenuItem">
+                            <MenuItem.Template>
+                                <ControlTemplate TargetType="{x:Type MenuItem}">
+                                    <Border Padding="5">
+                                        <Grid Width="200">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="35" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Slider Name="OpacitySlider" Grid.Column="1" Value="100" Maximum="100" Minimum="5" ValueChanged="OpacitySlider_OnValueChanged" IsMoveToPointEnabled="True"
+                                                    AutoToolTipPrecision="0" AutoToolTipPlacement="BottomRight"  TickFrequency="5" IsSnapToTickEnabled="True" TickPlacement="BottomRight">
+                                            </Slider>
+                                        </Grid>
+                                    </Border>
+                                </ControlTemplate>
+                            </MenuItem.Template>
+                        </MenuItem>
+                    </MenuItem>
+                    <MenuItem Header="_Hide" Command="{x:Static local:MainWindow.CloseCommand}">
+                        <MenuItem.Icon>
+                            <Image Source="Resources/Menu/Close.png" Style="{StaticResource menuImage}"></Image>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </MenuItem>
+                <MenuItem Header="E_xit Microservice Explorer"  Command="{x:Static local:MainWindow.ExitCommand}">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Menu/Exit.png" Style="{StaticResource menuImage}"></Image>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="_Global">
+                <MenuItem Header="_Run all" Command="{x:Static local:MainWindow.RunAllCommand}">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Menu/RunAll.png" Style="{StaticResource menuImage}"></Image>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Stop all" Command="{x:Static local:MainWindow.StopAllCommand}">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Menu/StopAll.png" Style="{StaticResource menuImage}"></Image>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator ></Separator>
+                <MenuItem Header="R_un all (filtered)" Command="{x:Static local:MainWindow.RunAllFilteredCommand}">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Menu/RunAllFiltered.png" Style="{StaticResource menuImage}" ></Image>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="S_top all (filtered)" Command="{x:Static local:MainWindow.StopAllFilteredCommand}">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Menu/StopAllFiltered.png" Style="{StaticResource menuImage}"></Image>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="Nuget" >
+                <MenuItem Header="Update All" Click="UpdateAllNuget_Click"></MenuItem>
+                <MenuItem Header="Auto Update" IsCheckable="True"></MenuItem>
+            </MenuItem>
+        </Menu>
+
+        <Grid Grid.Row="2" HorizontalAlignment="Stretch" >
+            
+            <StackPanel Margin="10">
+                <TextBlock HorizontalAlignment="Left" Name="txtSolName" FontWeight="SemiBold" FontSize="20">{Solution:FullName}</TextBlock>
+                <TextBlock >
+                    <Hyperlink Command="{x:Static local:MainWindow.EditCommand}" >
+                        <TextBlock Name="txtFileInfo" />
+                    </Hyperlink>
+                </TextBlock>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock></TextBlock>
+            </StackPanel>
+        </Grid>
+
+        <StackPanel Grid.Row="3">
+            <TextBox Name="txtSearch" Height="30" VerticalContentAlignment="Center" TextChanged="TextBoxBase_OnTextChanged">
+                <utils:WatermarkService.Watermark>
+                    <TextBlock VerticalAlignment="Center" Padding="5,3">Search... (name / port number)</TextBlock>
+                </utils:WatermarkService.Watermark>
+            </TextBox>
+        </StackPanel>
+
+        <DataGrid Grid.Row="4" Name="srvGrid"  Padding="0" ItemsSource="{Binding}" SelectionMode="Single"
+                  AutoGenerateColumns="False" CanUserSortColumns="True" GridLinesVisibility="Horizontal" 
+                  HorizontalGridLinesBrush="#FF0D3E61" AlternationCount="2" IsReadOnly="True" VerticalContentAlignment="Center" 
+                  SelectedItem="{Binding Path=SelectedService,
+                                         RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}, 
+                                         Mode=TwoWay}">
+            <DataGrid.CellStyle>
+                <Style TargetType="DataGridCell">
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                </Style>
+            </DataGrid.CellStyle>
+            <DataGrid.Resources>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" 
+                                 Color="#F3FACE"/>
+            </DataGrid.Resources>
+            <DataGrid.Columns>
+
+                <DataGridTemplateColumn Header="Status" SortMemberPath="Status" >
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Style="{StaticResource gridButton}" Tag="{Binding}" PreviewMouseLeftButtonDown="StartStop_OnClick" VerticalAlignment="Center" >
+                                <Image Style="{StaticResource gridImage}" gif:ImageBehavior.AnimatedSource="{Binding RunImage}"  />
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Header="Service" SortMemberPath="Service" Width="270" >
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="{Binding Service}" Foreground="{Binding ServiceColor, Converter={StaticResource myConverter}}" FontWeight="{Binding ServiceFontWeight}" ToolTip="{Binding ServiceTooltip}"></TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Header="Port" SortMemberPath="Port">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Port}" VerticalAlignment="Center" Foreground="{Binding ServiceColor, Converter={StaticResource myConverter}}" FontWeight="{Binding ServiceFontWeight}"></TextBlock>
+                                <Image Style="{StaticResource gridImage}" gif:ImageBehavior.AnimatedSource="{Binding PortIcon}" ToolTip="{Binding PortTooltip}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Header="Open" SortMemberPath="Port">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button PreviewMouseLeftButtonDown="Chrome_OnClick" Style="{StaticResource gridButton}" Tag="{Binding}" >
+                                <Image Source="Resources/Chrome.png" Style="{StaticResource gridImage}" Opacity="{Binding RunImageOpacity}" />
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Header="☁️ Git" Width="45">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"  Orientation="Horizontal" >
+                                <Button PreviewMouseLeftButtonDown="GitUpdate_OnPreviewMouseLeftButtonDown" Style="{StaticResource gridButton}" Tag="{Binding}" Visibility="{Binding GitUpdates,Converter={StaticResource nullVisibilityConverter}}" >
+                                    <Button.Content>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding GitUpdates}" VerticalAlignment="Center" Margin="7,0,0,0" HorizontalAlignment="Center"></TextBlock>
+                                            <Image Source="{Binding GitUpdateImage}" VerticalAlignment="Center" Margin="7,0,0,0" Style="{StaticResource gridImage}" />
+                                        </StackPanel>
+                                    </Button.Content>
+                                </Button>
+                                <Image Style="{StaticResource gridImage}" gif:ImageBehavior.AnimatedSource="{Binding GitStatusImage}" Margin="7,0,0,0" Visibility="{Binding GitUpdateIsInProgress,Converter={StaticResource boolVisibilityConverter}}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Header="My Git" Width="45" >
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"  Orientation="Horizontal" >
+                                <Border  Tag="{Binding}" Background="#63a0c6" CornerRadius="2" Padding="4"  MinWidth="25" PreviewMouseLeftButtonDown="LocalGitActions_OnPreviewMouseLeftButtonDown" Visibility="{Binding  LocalGitHasChange }"   >
+                                        <Border.ToolTip>
+                                            <ToolTip  Content="{Binding  LocalGitTooltip }" />
+                                        </Border.ToolTip>
+                                    <TextBlock Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding LocalGitChanges}"></TextBlock>
+                                    </Border>
+                                <Button PreviewMouseLeftButtonDown="SourceTree_OnClick" Style="{StaticResource gridButton}" Tag="{Binding}"  >
+                                    <Image Source="Resources/SourceTree.png" Style="{StaticResource gridImage}"  Width="25" ToolTip="Browse with SourceTree"  />
+                                </Button>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                
+                <DataGridTemplateColumn Header="Nuget">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"  Orientation="Vertical" >
+                                <Border  Tag="{Binding}" Background="#004880" CornerRadius="2" Padding="4"     PreviewMouseLeftButtonDown="UIElement_OnPreviewMouseLeftButtonDown"  Visibility="{Binding NugetUpdates,Converter={StaticResource intVisibilityConverter}}">
+                                    <Border.ToolTip>
+                                        <ToolTip  Content="{Binding  NugetUpdatesTooltip }"
+                                                  ContentStringFormat="There is {0} nuget project update(s) availabble.&#x0a; so click here for update all nuget references."/>
+                                    </Border.ToolTip>
+                                    <TextBlock Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding NugetUpdates}"></TextBlock>
+                                </Border>
+                                <Image Style="{StaticResource gridImage}" gif:ImageBehavior.AnimatedSource="{Binding NugetStatusImage}" Margin="7,0,0,0" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Code" SortMemberPath="VisibleCode" >
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="OpenCode_OnClick"  Tag="{Binding}" Visibility="{Binding VisibleCode}" ToolTip="Edit Microservice Source Code in Visual Studio">
+                                    <Image Source="{Binding VsCodeIcon}" Style="{StaticResource gridImage}"  Width="25"/>
+                                </Button>
+                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="OpenExplorer_OnClick" Tag="{Binding}" Visibility="{Binding VisibleCode}" ToolTip="Brows Folder in Windows Explorer">
+                                    <Image Source="Resources/folder2.png" Style="{StaticResource gridImage}"  Width="25"/>
+                                </Button>
+                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="BuildButton_OnPreviewMouseLeftButtonDown" Tag="{Binding}" Visibility="{Binding VisibleCode}" ToolTip="{Binding BuildTooltip}">
+                                    <Image   Style="{StaticResource gridImage}"   gif:ImageBehavior.AnimatedSource="{Binding BuildIcon}" Width="25" />
+                                </Button>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Header="Debug" SortMemberPath="VisibleCode" Width="50" >
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="ShowKestrelLog_OnClick"  Tag="{Binding}" Visibility="{Binding VisibleKestrel}" ToolTip="Show the running Kestrel console log window.">
+                                    <Image Source="Resources/log.png" Style="{StaticResource gridImage}"  Width="25"/>
+                                </Button>
+                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="VsDebuggerAttach_OnClick"  Tag="{Binding}" Visibility="{Binding VisibleDebug}" ToolTip="Attach Microservice Process to Current Visual Studio for Debugging">
+                                    <Image Source="{Binding DebuggerIcon}" Style="{StaticResource gridImage}"  Width="25"/>
+                                </Button>
+                                <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="ShowServiceLog_OnClick"  Tag="{Binding}" Visibility="{Binding LogWindowVisibility}" ToolTip="Displays microservice action log window.">
+                                    <Image Source="Resources/servicelog.png" Style="{StaticResource gridImage}"  Width="25"/>
+                                </Button>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StatusBar Grid.Row="5">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="100" />
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
+            <StatusBarItem>
+                <TextBlock Name="lblCursorPosition" />
+            </StatusBarItem>
+            <Separator Grid.Column="1" />
+            <StatusBarItem Grid.Column="2">
+                <TextBlock Name="txtStatusMessage" Text="Microservice Explorer Started ..." />
+            </StatusBarItem>
+            <Separator Grid.Column="3" />
+            <StatusBarItem Grid.Column="4">
+                <ProgressBar Value="0" Width="90" Height="16" Name="statusProgress" />
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</Window>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

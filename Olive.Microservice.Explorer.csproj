@@ -1,0 +1,331 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{464203BA-3D5F-405A-B1F4-AEF602C1AFAB}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>MicroserviceExplorer</RootNamespace>
+    <AssemblyName>MicroserviceExplorer</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Olive.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="Classes\CsProjectSchema.cs" />
+    <Compile Include="Classes\Extensions.cs" />
+    <Compile Include="Classes\NugetReference.cs" />
+    <Compile Include="Classes\WebprojecSchema.cs" />
+    <Compile Include="Controls\WindowTitlebarControl.xaml.cs">
+      <DependentUpon>WindowTitlebarControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DeployWindow.xaml.cs">
+      <DependentUpon>DeployWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="LocalGitWindow.xaml.cs">
+      <DependentUpon>LocalGitWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="LogWindow.xaml.cs">
+      <DependentUpon>LogWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MicroserviceGenerator\DBType.cs" />
+    <Compile Include="MicroserviceGenerator\Schema\CsprojSchema.cs" />
+    <Compile Include="NewMicroservice\NewMicroservice.xaml.cs">
+      <DependentUpon>NewMicroservice.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="NugetUpdatesWindow.xaml.cs">
+      <DependentUpon>NugetUpdatesWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="TCPIP\ManagedIpHandlerApi.cs" />
+    <Compile Include="TCPIP\PInvokeIPHelperAPI.cs" />
+    <Compile Include="UI\Loading.xaml.cs">
+      <DependentUpon>Loading.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Utils\MenuItemExtensions.cs" />
+    <Compile Include="Utils\extentions.cs" />
+    <Compile Include="Utils\ForegroundColorConverter.cs" />
+    <Compile Include="Utils\Helper.cs" />
+    <Compile Include="Utils\MyEnumWindows.cs" />
+    <Compile Include="Utils\IntVisibilityConverter.cs" />
+    <Compile Include="Utils\NativeMethods.cs" />
+    <Compile Include="Utils\NewMicroservice.cs" />
+    <Compile Include="Utils\NullVisibilityConverter.cs" />
+    <Compile Include="Utils\ParentProcessUtilities.cs" />
+    <Compile Include="Utils\WatermarkAdorner.cs" />
+    <Compile Include="Utils\WatermarkService.cs" />
+    <Compile Include="Utils\WindowApi.cs" />
+    <Page Include="Controls\WindowTitlebarControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DeployWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="LocalGitWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="LogWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Classes\MicroserviceItem.cs" />
+    <Compile Include="MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MainWindow.OnlineDataFetch.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MainWindow.ProjectManagement.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MainWindow.MicroserviceGridActions.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MainWindow.WindowActionProvider.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MainWindow.RecentProvider.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
+    <Page Include="NewMicroservice\NewMicroservice.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="NugetUpdatesWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Loading.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\Annotations.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="App.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Resource Include="Resources\font\segoe-mdl2-assets.ttf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Olive.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Chrome.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Gray.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Green.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Red.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\VS.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\loading.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\gears.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Warning.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\folder2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\run2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="EnvDTE">
+      <Version>8.0.2</Version>
+    </PackageReference>
+    <PackageReference Include="EnvDTE80">
+      <Version>8.0.3</Version>
+    </PackageReference>
+    <PackageReference Include="EnvDTE90">
+      <Version>9.0.3</Version>
+    </PackageReference>
+    <PackageReference Include="MSharp.Framework">
+      <Version>4.0.109</Version>
+    </PackageReference>
+    <PackageReference Include="NETStandard.Library">
+      <Version>2.0.3</Version>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>12.0.3</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Core">
+      <Version>2.14.0</Version>
+    </PackageReference>
+    <PackageReference Include="WpfAnimatedGif">
+      <Version>1.4.18</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\VS2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\debug.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\debug_stop_2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\debug_stop.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Menu\folder.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Menu\Recent.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Menu\Refresh.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Menu\Edit.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Menu\Close.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Menu\Exit.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Menu\RunAll.png" />
+    <Resource Include="Resources\Menu\StopAll.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Menu\RunAllFiltered.png" />
+    <Resource Include="Resources\Menu\StopAllFiltered.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\git.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\pause.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\log.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\warning1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\git_progress.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\servicelog.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\build.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\build_pending.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\build_off.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\build-stop.gif" />
+    <Resource Include="Resources\build.gif" />
+    <Resource Include="Resources\building.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Menu\Microservice.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\SourceTree.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

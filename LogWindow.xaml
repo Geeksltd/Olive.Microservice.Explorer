@@ -1,0 +1,20 @@
+﻿<Window x:Class="MicroserviceExplorer.LogWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MicroserviceExplorer"
+        mc:Ignorable="d" x:Name="window" ShowInTaskbar="True"
+        Title="LogWindow" Height="500" Width="600" Closing="LogWindow_OnClosing" >
+    <Grid DataContext="{Binding ElementName=window, Path=.}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Menu Grid.Row="0">
+            <MenuItem Header="Clear log" Click="ClearLogMenuItem_OnClick"></MenuItem>
+            <MenuItem Name="SaveLogMenuItem" Header="Save log to Log.txt" Click="SaveLogMenuItem_OnClick"></MenuItem>
+        </Menu>
+        <TextBox Grid.Row="1" Text="{Binding  Path=TextLog}" Name="txtLog" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" ></TextBox>
+    </Grid>
+</Window>

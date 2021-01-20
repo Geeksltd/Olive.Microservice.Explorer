@@ -1,0 +1,11 @@
+{
+  "Items": [
+    {
+      "Analyzer": "UseUsingsOnIDisposableAnalyzer",
+      "OccurrenceCount": 31,
+      "Exceptions": null,
+      "SentToServer": true,
+      "InstallationName": "DESKTOP-1744E47"
+    }
+  ]
+}
