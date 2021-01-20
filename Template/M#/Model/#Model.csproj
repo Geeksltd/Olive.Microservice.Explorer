@@ -8,9 +8,9 @@
   </PropertyGroup>
  
   <ItemGroup>
-    <PackageReference Include="MSharp" Version="5.2.111" />
-    <PackageReference Include="Olive" Version="2.1.199" />
-    <PackageReference Include="Olive.Entities" Version="2.1.148" />
+       <PackageReference Include="MSharp" Version="5.2.156" />
+    <PackageReference Include="Olive" Version="2.1.210" />
+    <PackageReference Include="Olive.Entities" Version="2.1.151" />
   </ItemGroup>
   <Target Name="Generate code" AfterTargets="AfterBuild">
     <Exec Condition="'$(MSHARP_BUILD)' != 'FULL'" WorkingDirectory="$(TargetDir)" Command="dotnet msharp.dsl.dll /build /model" />

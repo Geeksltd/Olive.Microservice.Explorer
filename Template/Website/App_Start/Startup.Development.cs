@@ -15,24 +15,10 @@ namespace Website
 {
     public class StartupDevelopment : Startup
     {
-        public StartupDevelopment(IWebHostEnvironment env, IConfiguration config, ILoggerFactory factory) : 
+        public StartupDevelopment(IWebHostEnvironment env, IConfiguration config, ILoggerFactory factory) :
             base(env, config, factory)
         {
 
-        }
-
-        protected override void SetUpIdentity()
-        {
-            Configuration.LoadAwsDevIdentity();
-        }
-
-
-        public override void ConfigureServices(IServiceCollection services)
-        {
-            base.ConfigureServices(services);
-
-            services.AddDevCommands(x => x.AddTempDatabase<SqlServerManager, ReferenceData>().AddClearApiCache());
-            services.AddIOEventBus();
         }
     }
 }

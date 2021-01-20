@@ -11,13 +11,13 @@
     <DefineConstants>TRACE;DEBUG;NETCOREAPP2_1</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Olive.Microservices" Version="2.1.104" />
-    <PackageReference Include="Olive.ApiClient" Version="2.2.105" />
-    <PackageReference Include="Olive.Audit" Version="2.1.105" />
-    <PackageReference Include="Olive.Entities" Version="2.1.148" />
-    <PackageReference Include="Olive.Encryption" Version="2.2.104" />
-    <PackageReference Include="Olive.Entities.Data" Version="2.1.164" />
-    <PackageReference Include="Olive.Mvc" Version="3.1.108" />
-    <PackageReference Include="Olive.PassiveBackgroundTasks" Version="1.0.17" />
+     <PackageReference Include="Olive.Microservices" Version="2.1.105" />
+    <PackageReference Include="Olive.ApiClient" Version="2.2.106" />
+    <PackageReference Include="Olive.Audit" Version="2.1.106" />
+    <PackageReference Include="Olive.Entities" Version="2.1.151" />
+    <PackageReference Include="Olive.Encryption" Version="2.2.105" />
+    <PackageReference Include="Olive.Entities.Data" Version="2.1.165" />
+    <PackageReference Include="Olive.Mvc" Version="3.1.115" />
+    <PackageReference Include="Olive.PassiveBackgroundTasks" Version="1.0.18" />
   </ItemGroup>
 </Project>

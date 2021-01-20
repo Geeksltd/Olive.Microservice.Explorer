@@ -17,13 +17,5 @@ namespace Website
         {
 
         }
-
-        protected override bool IsProduction() => false;
-
-        protected override void ConfigureMvc(IMvcBuilder mvc)
-        {
-            mvc.SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Version_2_1);
-            base.ConfigureMvc(mvc);
-        }
     }
-} 
+}
