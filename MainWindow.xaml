@@ -263,7 +263,7 @@
                                             <ToolTip  Content="{Binding  LocalGitTooltip }" />
                                         </Border.ToolTip>
                                     <TextBlock Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding LocalGitChanges}"></TextBlock>
-                                    </Border>
+                                 </Border>
                                 <Button PreviewMouseLeftButtonDown="SourceTree_OnClick" Style="{StaticResource gridButton}" Tag="{Binding}"  >
                                     <Image Source="Resources/SourceTree.png" Style="{StaticResource gridImage}"  Width="25" ToolTip="Browse with SourceTree"  />
                                 </Button>
@@ -309,7 +309,7 @@
                 <DataGridTemplateColumn Header="Debug" SortMemberPath="VisibleCode" Width="50" >
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
                                 <Button Style="{StaticResource gridButton}" PreviewMouseLeftButtonDown="ShowKestrelLog_OnClick"  Tag="{Binding}" Visibility="{Binding VisibleKestrel}" ToolTip="Show the running Kestrel console log window.">
                                     <Image Source="Resources/log.png" Style="{StaticResource gridImage}"  Width="25"/>
                                 </Button>
