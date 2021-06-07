@@ -160,6 +160,12 @@ namespace MicroserviceExplorer
 						await Task.Run(() => CalculateGitUpdates(p));
 				});
 
+				await Task.Run(() => LocalGitChanges(highPriority)).ContinueWith(async (t) =>
+				{
+					foreach (var p in projects.Except(highPriority))
+						await Task.Run(() => LocalGitChanges(p));
+				});
+
 			}
 			else
 			{
@@ -191,6 +197,17 @@ namespace MicroserviceExplorer
 								   if (highPriority == null) await CalculateGitUpdates(p);
 							   });
 					   });
+
+				await Task.Factory.StartNew(() => System.Threading.Thread.Sleep(waitTime * 1000))
+					   .ContinueWith(async (t) =>
+					   {
+						   foreach (var p in projects)
+							   await Task.Run(async () =>
+							   {
+								   if (highPriority == null) await LocalGitChanges(p);
+							   });
+					   });
+
 			}
 
 			AutoRefreshTimerInProgress = false;

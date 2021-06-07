@@ -57,6 +57,7 @@ namespace MicroserviceExplorer
 				});
 
 			});
+			References = References.Where(x => x != null).ToList();
 			OnPropertyChanged(nameof(NugetUpdates));
 			OnPropertyChanged(nameof(NugetUpdatesTooltip));
 			StopProgress();
