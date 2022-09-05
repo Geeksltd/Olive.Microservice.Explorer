@@ -150,20 +150,32 @@ namespace MicroserviceExplorer
 			{
 				await Task.Run(() => FetchUpdates(highPriority)).ContinueWith(async (t) =>
 				{
-					foreach (var p in projects.Except(highPriority))
-						await Task.Run(() => FetchUpdates(p));
+					Parallel.ForEach(projects.Except(highPriority), p =>
+					{
+						Task.Run(() => FetchUpdates(p)).Await();
+					});
+					//foreach (var p in projects.Except(highPriority))
+					//	await Task.Run(() => FetchUpdates(p));
 				});
 
 				await Task.Run(() => CalculateGitUpdates(highPriority)).ContinueWith(async (t) =>
 				{
-					foreach (var p in projects.Except(highPriority))
-						await Task.Run(() => CalculateGitUpdates(p));
+					Parallel.ForEach(projects.Except(highPriority), p =>
+					{
+						Task.Run(() => CalculateGitUpdates(p)).Await();
+					});
+					//foreach (var p in projects.Except(highPriority))
+					//	Task.Run(() => CalculateGitUpdates(p)).Await();
 				});
 
 				await Task.Run(() => LocalGitChanges(highPriority)).ContinueWith(async (t) =>
 				{
-					foreach (var p in projects.Except(highPriority))
-						await Task.Run(() => LocalGitChanges(p));
+					Parallel.ForEach(projects.Except(highPriority), p =>
+					{
+						Task.Run(() => LocalGitChanges(p)).Await();
+					});
+					//foreach (var p in projects.Except(highPriority))
+					//	await Task.Run(() => LocalGitChanges(p));
 				});
 
 			}
@@ -182,30 +194,42 @@ namespace MicroserviceExplorer
 				await Task.Factory.StartNew(() => System.Threading.Thread.Sleep(waitTime * 1000))
 					   .ContinueWith(async (t) =>
 					   {
-						   foreach (var p in projects)
-							   await Task.Run(async () =>
-							   {
-								   if (highPriority == null) await FetchUpdates(p);
-							   });
+						   Parallel.ForEach(projects.Except(highPriority), p =>
+						   {
+							   Task.Run(() => FetchUpdates(p)).Await();
+						   });
+						   //foreach (var p in projects)
+						   // await Task.Run(async () =>
+						   // {
+						   //  if (highPriority == null) await FetchUpdates(p);
+						   // });
 					   });
 				await Task.Factory.StartNew(() => System.Threading.Thread.Sleep(waitTime * 1000))
 					   .ContinueWith(async (t) =>
 					   {
-						   foreach (var p in projects)
-							   await Task.Run(async () =>
-							   {
-								   if (highPriority == null) await CalculateGitUpdates(p);
-							   });
+						   Parallel.ForEach(projects.Except(highPriority), p =>
+						   {
+							   Task.Run(() => CalculateGitUpdates(p)).Await();
+						   });
+						   //foreach (var p in projects)
+						   // await Task.Run(async () =>
+						   // {
+						   //  if (highPriority == null) await CalculateGitUpdates(p);
+						   // });
 					   });
 
 				await Task.Factory.StartNew(() => System.Threading.Thread.Sleep(waitTime * 1000))
 					   .ContinueWith(async (t) =>
 					   {
-						   foreach (var p in projects)
-							   await Task.Run(async () =>
-							   {
-								   if (highPriority == null) await LocalGitChanges(p);
-							   });
+						   Parallel.ForEach(projects.Except(highPriority), p =>
+						   {
+							   Task.Run(() => LocalGitChanges(p)).Await();
+						   });
+						   //foreach (var p in projects)
+						   // await Task.Run(async () =>
+						   // {
+						   //  if (highPriority == null) await LocalGitChanges(p);
+						   // });
 					   });
 
 			}
@@ -315,8 +339,6 @@ namespace MicroserviceExplorer
 				LoadFile(openFileDialog.SelectedPath);
 			}
 		}
-
-
 
 		void CloseMenuItem_OnClick(object sender, RoutedEventArgs e) => Close();
 

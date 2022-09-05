@@ -19,6 +19,7 @@ namespace MicroserviceExplorer
 
 		async Task CalculateGitUpdates(MicroserviceItem service)
 		{
+			if (service == null) return;
 			if (service.WebsiteFolder.IsEmpty()) return;
 			service.RollProgress($"Fetch '{service.Service}' local git updates ...");
 			var projFOlder = service.WebsiteFolder.AsDirectory().Parent;

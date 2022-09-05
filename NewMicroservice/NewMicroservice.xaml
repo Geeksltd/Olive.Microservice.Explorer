@@ -8,10 +8,10 @@
         Title="NewMicroservice" Height="287.252" Width="483.853">
     <StackPanel Margin="30,30,30,38" >
         <Label>Service Name:</Label>
-        <TextBox Name="txtServiceName" Height="25" Margin="0,0,0,5" TextChanged="TxtProjectName_OnTextChanged" />
+        <TextBox Name="txtServiceName" Height="25" Margin="0,0,0,5" VerticalAlignment="Center" TextChanged="TxtProjectName_OnTextChanged" Padding="4"/>
 
         <Label>Git Repository URL:</Label>
-        <TextBox Name="txtGitRepoUrl" Height="25" Margin="0,0,0,5" TextChanged="TxtProjectName_OnTextChanged" />
+        <TextBox Name="txtGitRepoUrl" Height="25" Margin="0,0,0,5" VerticalAlignment="Center" TextChanged="TxtProjectName_OnTextChanged" Padding="4" />
         <Label Name="LblError" Foreground="Crimson" FontWeight="Bold" />
         
         <StackPanel Orientation="Horizontal" Margin="3" HorizontalAlignment="Right">
